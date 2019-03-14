@@ -1,0 +1,5 @@
+1. Meta-data information for each config section
+2. SetSuccess and SetFailed overload to have msg member, also automatically move them to appropriate folder
+3. StreamProfile - need to open and close whenever Frx needs
+4. Environment / machine specific config
+5. Generic Priority Queue

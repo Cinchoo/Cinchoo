@@ -1,0 +1,20 @@
+11. Provide TypeShortName map throu' config (Done)
+4. Environment / machine specific config (Done)
+15. Support of include INIs - DONE
+
+
+
+1. Meta-data information for each config section
+2. SetSuccess and SetFailed overload to have msg member, also automatically move them to appropriate folder
+3. StreamProfile - need to open and close whenever Frx needs
+5. Generic Priority Queue
+6. Password Encoding/Decoding Attribute
+7. Add Factory to Object Creation Factories (Ioc Containers)
+8. Inherit flag should be accounted in the attribute cache
+9. Apply attributes dynamically.
+10. Configure Profile for Types. (Addressing)
+12. Simplify the IFormattable Interface
+13. Support for object members in Config
+14. Saving XML config having includes to appropriate files
+15. Add Stream Storge Pattern and integrate to Profile objects
+16. 

@@ -1,0 +1,924 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{3F1EC1AF-286B-42EE-8A96-7E5B0E911276}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Cinchoo.Core</RootNamespace>
+    <AssemblyName>Cinchoo.Core</AssemblyName>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>Cinchoo.Core.snk</AssemblyOriginatorKeyFile>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_DYNAMIC_</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <NoWarn>0628</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE;_DYNAMIC_</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+  <PropertyGroup />
+  <ItemGroup>
+    <Reference Include="Accessibility" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Configuration.Install" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ChoApplicationContext.cs" />
+    <Compile Include="ChoEventManager.cs" />
+    <Compile Include="Collections\Generic\ChoDeque.cs" />
+    <Compile Include="Collections\Generic\ChoEnumerable.cs" />
+    <Compile Include="Collections\Generic\Dictionary\ChoSerializableDictionary.cs" />
+    <Compile Include="Configuration\ChoConfigurationObjectEventArgs.cs" />
+    <Compile Include="Configuration\ChoWPFBindableConfigObject.cs" />
+    <Compile Include="Configuration\ChoAppFrxSettings.cs" />
+    <Compile Include="Configuration\IChoConfigurationParametersOverridable.cs" />
+    <Compile Include="Configuration\ConfigSectionHandlerAttributes\ChoDictionaryAdapterConfigurationSectionAttribute.cs" />
+    <Compile Include="Configuration\Storage\ChoDictionaryAdapterConfigStorage.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Configuration\Storage\IChoConfigObjectAdapter.cs" />
+    <Compile Include="Configuration\Watchers\ChoConfigurationChangeWatcherSettings.cs" />
+    <Compile Include="Configuration\Watchers\ChoConfigurationAdapterChangeWatcher.cs" />
+    <Compile Include="Configuration\Watchers\ChoPushConfigurationChangeWatcher.cs" />
+    <Compile Include="Converters\ChoByteArrayToStringConverter.cs" />
+    <Compile Include="Diagnostics\BackingStores\ChoConsoleProfileBackingStore.cs" />
+    <Compile Include="Exceptions\ChoThreadAbortException.cs" />
+    <Compile Include="Exceptions\ChoConsoleCtrlException.cs" />
+    <Compile Include="Exceptions\ChoConfigurationObjectPostInvokeException.cs" />
+    <Compile Include="ExtensioinMethods\ChoArrayEx.cs" />
+    <Compile Include="ExtensioinMethods\ChoBooleanEx.cs" />
+    <Compile Include="ExtensioinMethods\ChoCharEx.cs" />
+    <Compile Include="ExtensioinMethods\ChoDelegateEx.cs" />
+    <Compile Include="ExtensioinMethods\ChoEnum.cs" />
+    <Compile Include="ExtensioinMethods\ChoEnumTypeCache.cs" />
+    <Compile Include="ExtensioinMethods\ChoEventHandlerEx.cs" />
+    <Compile Include="ExtensioinMethods\ChoMethodInfoEx.cs" />
+    <Compile Include="ExtensioinMethods\ChoTimeSpanEx.cs" />
+    <Compile Include="ExtensioinMethods\ChoTypeEx.cs" />
+    <Compile Include="ExtensioinMethods\Collections\ChoHashtable.cs" />
+    <Compile Include="ExtensioinMethods\Collections\Generic\ChoDictionaryEx.cs" />
+    <Compile Include="ExtensioinMethods\Collections\Generic\ChoListEx.cs" />
+    <Compile Include="ExtensioinMethods\Collections\Generic\IEnumerableEx.cs" />
+    <Compile Include="ExtensioinMethods\Collections\Specialized\ChoNameValueCollectionEx.cs" />
+    <Compile Include="ExtensioinMethods\Configuration\ChoKeyValueConfigurationCollectionEx.cs" />
+    <Compile Include="ExtensioinMethods\Reflection\ChoFieldInfoEx.cs" />
+    <Compile Include="ExtensioinMethods\Reflection\ChoPropertyInfoEx.cs" />
+    <Compile Include="ExtensioinMethods\Reflection\Emit\ChoEmitHelper.cs" />
+    <Compile Include="ExtensioinMethods\Reflection\Emit\ChoILGeneratorEx.cs" />
+    <Compile Include="ExtensioinMethods\Threading\ChoThreadEx.cs" />
+    <Compile Include="ExtensioinMethods\Win32\RegistryKeyEx.cs" />
+    <Compile Include="ExtensioinMethods\Windows\ChoFormEx.cs" />
+    <Compile Include="ExtensioinMethods\Xml\Linq\XDocumentEx.cs" />
+    <Compile Include="ExtensioinMethods\Xml\Serialization\ChoNullNSXmlSerializer.cs" />
+    <Compile Include="ExtensioinMethods\Xml\XmlNodeEx.cs" />
+    <Compile Include="Forms\ChoMainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\ChoMainForm.Designer.cs">
+      <DependentUpon>ChoMainForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GlobalAssemblyInfo.cs" />
+    <Compile Include="IChoObjectChangeWatcheable.cs" />
+    <Compile Include="Ini\ChoIniSettings.cs" />
+    <Compile Include="Ini\IChoIniNodesContainer.cs" />
+    <Compile Include="IO\ChoNoCloseStreamWriter.cs" />
+    <Compile Include="IO\ChoNoCloseStreamReader.cs" />
+    <Compile Include="Net\ChoNetworkShare.cs" />
+    <Compile Include="Services\ChoAPMSettings.cs" />
+    <Compile Include="ChoAsyncResult.cs" />
+    <Compile Include="Attributes\ChoAppDomainEventsRegisterableTypeAttribute.cs" />
+    <Compile Include="Attributes\ChoCanObjectFormattableAttribute.cs" />
+    <Compile Include="Attributes\ChoConfigMemberInfoAttribute.cs" />
+    <Compile Include="Attributes\ChoEqualityComparerAttribute.cs" />
+    <Compile Include="Attributes\ChoHiddenMemberAttribute.cs" />
+    <Compile Include="Attributes\ChoMemberRegistryInfoAttribute.cs" />
+    <Compile Include="Attributes\ChoObjectFormatterAttribute.cs" />
+    <Compile Include="Attributes\ChoProxyAttribute.cs" />
+    <Compile Include="Attributes\ChoRegistrySectionAttribute.cs" />
+    <Compile Include="Attributes\ChoSingletonAttribute.cs" />
+    <Compile Include="Attributes\ChoLoggableProxyAttribute.cs" />
+    <Compile Include="Attributes\ChoTypeDiscoverableAssemblyAttribute.cs" />
+    <Compile Include="Attributes\ChoMemberItemFormatterAttribute.cs" />
+    <Compile Include="Attributes\ChoXPathAttribute.cs" />
+    <Compile Include="ChoApplicationHost.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Configuration\ChoCoreFrxConfigurationManager.cs" />
+    <Compile Include="Configuration\ChoXmlFileConfigurationManager.cs" />
+    <Compile Include="Configuration\Storage\IChoConfigStorage.cs" />
+    <Compile Include="Configuration\Storage\IChoDictionaryConfigStorage.cs" />
+    <Compile Include="Configuration\Storage\IChoNameValueConfigStorage.cs" />
+    <Compile Include="ChoFramwork.cs" />
+    <Compile Include="Configuration\Storage\IChoObjectConfigStorage.cs" />
+    <Compile Include="ExtensioinMethods\Xml\ChoXmlDocumentEx.cs" />
+    <Compile Include="Instrumentation\Performance\MetaData\ChoPCMetaDataInfo.cs" />
+    <Compile Include="Instrumentation\Performance\MetaData\ChoPCMetaDataManager.cs" />
+    <Compile Include="Instrumentation\Performance\ChoPerformanceCounterCategory.cs" />
+    <Compile Include="EqualityComparer\ChoNameValueCollectionEqualityComparer.cs" />
+    <Compile Include="Configuration\Attributes\ChoPropertyInfoAttribute.cs" />
+    <Compile Include="ChoGlobalObjectFormatters.cs" />
+    <Compile Include="ChoTypeMembersCache.cs" />
+    <Compile Include="Collections\ChoBaseEnumerator.cs" />
+    <Compile Include="Collections\ChoCircularEnumerator.cs" />
+    <Compile Include="Collections\ChoConstraintEnumerator.cs" />
+    <Compile Include="Collections\ChoReverseEnumerator.cs" />
+    <Compile Include="Collections\ChoSteppedEnumerator.cs" />
+    <Compile Include="Collections\ChoSynchronizedEnumerator.cs" />
+    <Compile Include="Collections\Generic\ChoCircularEnumerator.cs" />
+    <Compile Include="Collections\Generic\ChoBaseEnumerator.cs" />
+    <Compile Include="Collections\Generic\ChoConstrainEnumerator.cs" />
+    <Compile Include="Collections\Generic\ChoReverseEnumerator.cs" />
+    <Compile Include="Collections\Generic\ChoSteppedEnumerator.cs" />
+    <Compile Include="Configuration\Attributes\ChoIgnorePropertyAttribute.cs" />
+    <Compile Include="Converters\ChoCDATAToStringConverter.cs" />
+    <Compile Include="ChoTypeDescriptor.cs" />
+    <Compile Include="ExtensioinMethods\ChoObjectEx.cs" />
+    <Compile Include="ExtensioinMethods\Reflection\ChoMemberInfoEx.cs" />
+    <Compile Include="Formatters\ChoFormatProvider.cs" />
+    <Compile Include="ChoMetaDataFilePathSettings.cs" />
+    <Compile Include="IO\ChoDirectory.cs" />
+    <Compile Include="Pattern\ChoMetaDataManager.cs" />
+    <Compile Include="Pattern\IChoMetaDataObject.cs" />
+    <Compile Include="Property\ChoGlobalDynamicMethodInvokeReplacer.cs" />
+    <Compile Include="Property\ChoUnknownProperyEventArgs.cs" />
+    <Compile Include="ServiceProcess\ChoService.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ServiceProcess\ChoServiceCommandLineArgs.cs" />
+    <Compile Include="ServiceProcess\ChoServiceProcessInstallerSettings.cs" />
+    <Compile Include="ServiceProcess\ChoServiceInstallerSettings.cs" />
+    <Compile Include="Services\ChoPriorityQueuedMsgService.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Services\ChoQueuedMsgServiceObjectBase.cs" />
+    <Compile Include="Services\ChoAbortableExecutionServiceBase.cs" />
+    <Compile Include="Shell\CommandLine\ChoCommandLineArgException.cs" />
+    <Compile Include="Shell\CommandLine\ChoCommandLineArgObject.cs" />
+    <Compile Include="Shell\CommandLine\ChoCommandLineArgObjectAttribute.cs" />
+    <Compile Include="ChoLoggableObject.cs" />
+    <Compile Include="Shell\CommandLine\ChoCommandLineArgObjectDirector.cs" />
+    <Compile Include="Shell\CommandLine\ChoCommandLineArgObjectLoadHandlerAttributes.cs" />
+    <Compile Include="Shell\CommandLine\ChoDefaultCommandLineArgAttribute.cs" />
+    <Compile Include="Shell\CommandLine\ChoCommandLineArgUsageException.cs" />
+    <Compile Include="Configuration\ConfigSectionHandlerAttributes\ChoStandardAppSettingsConfigurationSectionAttribute.cs" />
+    <Compile Include="Configuration\ChoConfigurationObjectLoadHandlerAttributes.cs" />
+    <Compile Include="Cache\WeakReferenceCache.cs" />
+    <Compile Include="Configuration\ConfigSectionHandlerAttributes\ChoNameValueConfigurationSectionAttribute.cs" />
+    <Compile Include="Configuration\ConfigSectionHandlerAttributes\ChoDictionaryConfigurationSectionAttribute.cs" />
+    <Compile Include="Configuration\ConfigSectionHandlerAttributes\ChoSingleTagConfigurationSectionAttribute.cs" />
+    <Compile Include="Configuration\ConfigSectionHandlerAttributes\ChoIniConfigurationSectionAttribute.cs" />
+    <Compile Include="Configuration\ConfigSectionHandlerAttributes\ChoRegistryConfigurationSectionAttribute.cs" />
+    <Compile Include="Configuration\ConfigSectionHandlerAttributes\ChoXmlSerializerConfigurationSectionAttribute.cs" />
+    <Compile Include="Configuration\ChoConfigurationStateChangedEventArgs.cs" />
+    <Compile Include="Configuration\MetaData\ChoConfigurationMetaDataManager.cs" />
+    <Compile Include="Configuration\Serialization\ChoConfiguration.cs" />
+    <Compile Include="Configuration\Serialization\ChoConfigurationSectionGroup.cs" />
+    <Compile Include="Configuration\Serialization\ChoConfigurationSection.cs" />
+    <Compile Include="Configuration\Watchers\ChoConfigurationChangeCompositeWatcher.cs" />
+    <Compile Include="Configuration\Watchers\ChoConfigurationCompositeChangedEventArgs.cs" />
+    <Compile Include="Configuration\Watchers\File\ChoConfigurationChangeCompositeFileWatcher.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Converters\ChoCharArrayToStringConverter.cs" />
+    <Compile Include="Converters\IChoValueConverter.cs" />
+    <Compile Include="Diagnostics\ChoProfileBackingStoreManager.cs" />
+    <Compile Include="Diagnostics\ChoBaseProfile.cs" />
+    <Compile Include="Diagnostics\ChoProfileConfigurationManager.cs" />
+    <Compile Include="Diagnostics\ChoProfileEx.cs" />
+    <Compile Include="ChoRuntimeMethodHandle.cs" />
+    <Compile Include="Collections\Generic\List\ChoList.cs" />
+    <Compile Include="Common\ChoCallbackObj.cs" />
+    <Compile Include="Configuration\ChoConfigStorageManager.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Configuration\ChoXmlConfigurationElement.cs" />
+    <Compile Include="Configuration\MetaData\ChoStandardConfigurationMetaDataInfo.cs" />
+    <Compile Include="Configuration\MetaData\ChoBaseConfigurationMetaDataInfo.cs" />
+    <Compile Include="Configuration\Storage\ChoRegistryConfigStorage.cs" />
+    <Compile Include="Configuration\Watchers\ChoConfigurationChangeNullWatcher.cs" />
+    <Compile Include="Configuration\Watchers\File\ChoAppConfigurationChangeFileWatcher.cs" />
+    <Compile Include="Configuration\Watchers\Registry\ChoConfigurationChangeRegistryWatcher.cs" />
+    <Compile Include="Configuration\Watchers\Registry\ChoConfigurationRegistryChangedEventArgs.cs" />
+    <Compile Include="ChoWindowsManager.cs" />
+    <Compile Include="Shell\Console\ChoConsoleSession.cs" />
+    <Compile Include="Converters\ChoFullPathConverter.cs" />
+    <Compile Include="Converters\ChoUniqueArray.cs" />
+    <Compile Include="Diagnostics\Attributes\ChoAppTraceAttribute.cs" />
+    <Compile Include="Diagnostics\Attributes\ChoAppBufferProfileAttribute.cs" />
+    <Compile Include="Diagnostics\Attributes\ChoAppStreamProfileAttribute.cs" />
+    <Compile Include="Diagnostics\Attributes\ChoStreamProfileAttribute.cs" />
+    <Compile Include="Diagnostics\Attributes\ChoBufferProfileAttribute.cs" />
+    <Compile Include="Attributes\ChoAppDomainUnloadMethodAttribute.cs" />
+    <Compile Include="Attributes\ChoObjectNameableAttribute.cs" />
+    <Compile Include="Attributes\ChoPostValidatorFactoryAttribute.cs" />
+    <Compile Include="Attributes\ChoIsStringToObjectConvertable.cs" />
+    <Compile Include="Attributes\ChoIgnoreMemberFormatter.cs" />
+    <Compile Include="Attributes\ChoTypeFormatterAttribute.cs" />
+    <Compile Include="Attributes\ChoMemberFormaterAttribute.cs" />
+    <Compile Include="Attributes\ChoObjectFactoryAttribute.cs" />
+    <Compile Include="Attributes\Validators\ChoCompositeValidatorAttribute.cs" />
+    <Compile Include="Attributes\Validators\ChoCallbackValidatorAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Attributes\Validators\ChoContainsCharactersValidatorAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Attributes\Validators\ChoIntegerValidatorAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Attributes\Validators\ChoLongValidatorAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Attributes\Validators\ChoNotNullValidatorAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Attributes\Validators\ChoObjectValidatorAttribute.cs" />
+    <Compile Include="Attributes\Validators\ChoPositiveTimeSpanValidatorAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Attributes\Validators\ChoRegexStringValidatorAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Attributes\Validators\ChoSelfValidationAttribute.cs" />
+    <Compile Include="Attributes\Validators\ChoStringValidatorAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Attributes\Validators\ChoSubclassTypeValidatorAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Attributes\Validators\ChoTimeSpanValidatorAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Attributes\Validators\ChoValidatorBase.cs" />
+    <Compile Include="Common\ChoObjConfigurable.cs" />
+    <Compile Include="Converters\ChoFilesToObjectHashtableConverter.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Converters\ChoFileToObjectArrayConverter.cs" />
+    <Compile Include="Diagnostics\ChoContextProfilerEx.cs" />
+    <Compile Include="Diagnostics\IChoDelayedStartProfile.cs" />
+    <Compile Include="Diagnostics\ChoProfileContainer.cs" />
+    <Compile Include="ChoAppDomain.cs" />
+    <Compile Include="ChoSharedEnvironmentManager.cs" />
+    <Compile Include="ChoSystemInfo.cs" />
+    <Compile Include="ChoFormatProviderSettings.cs" />
+    <Compile Include="Diagnostics\IChoProfileSource.cs" />
+    <Compile Include="Drawing\ChoPoint.cs" />
+    <Compile Include="EqualityComparer\ChoCharArrayEqualityComparer.cs" />
+    <Compile Include="EqualityComparer\ChoStringArrayEqualityComparer.cs" />
+    <Compile Include="EqualityComparer\IChoEqualityComparer.cs" />
+    <Compile Include="ExtensioinMethods\ChoStringEx.cs" />
+    <Compile Include="Factory\ChoObjectFactory.cs" />
+    <Compile Include="Factory\ChoTypeInitializer.cs" />
+    <Compile Include="IChoSyncDisposable.cs" />
+    <Compile Include="IChoMergeable.cs" />
+    <Compile Include="Interfaces\IChoExceptionHandledObject.cs" />
+    <Compile Include="Logging\ChoLogEntry.cs" />
+    <Compile Include="Logging\ChoLogEntrySelfInitializeMemberAttribute.cs" />
+    <Compile Include="Logging\ChoLogEntrySelfInitizaliableAttribute.cs" />
+    <Compile Include="Logging\ChoLogger.cs" />
+    <Compile Include="Logging\ChoLoggerSettings.cs" />
+    <Compile Include="Logging\ChoLogManager.cs" />
+    <Compile Include="Logging\ChoLogManagerAttribute.cs" />
+    <Compile Include="Logging\ChoLogManagerSettings.cs" />
+    <Compile Include="Logging\ChoSurrogateLogEntry.cs" />
+    <Compile Include="Logging\Formatters\ChoLogFormatterAttribute.cs" />
+    <Compile Include="Logging\Formatters\ChoLogFormatterSettings.cs" />
+    <Compile Include="Logging\Formatters\ChoTextLogFormatter.cs" />
+    <Compile Include="Logging\Formatters\IChoLogFormatter.cs" />
+    <Compile Include="Logging\IChoLogManager.cs" />
+    <Compile Include="Logging\LogListeners\ChoConsoleLogListener.cs" />
+    <Compile Include="Logging\LogListeners\ChoLogListener.cs" />
+    <Compile Include="Logging\LogListeners\ChoLogListenerAttribute.cs" />
+    <Compile Include="Logging\LogListeners\ChoLogListenerSettings.cs" />
+    <Compile Include="Pattern\Singleton\ChoSingletonObject.cs" />
+    <Compile Include="Property\ChoCustomKeyValuePropertyReplacer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Property\ChoDictionaryPropertyReplacer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Property\ChoEnvironmentVariablePropertyReplacer.cs" />
+    <Compile Include="Property\ChoGlobalDictionaryPropertyReplacer.cs" />
+    <Compile Include="Property\ChoGlobalExpressionEvaluatorReplacer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Property\ChoPropertyManagerSettings.cs" />
+    <Compile Include="ChoRandom.cs" />
+    <Compile Include="Configuration\Enums.cs" />
+    <Compile Include="Diagnostics\ChoStackTrace.cs" />
+    <Compile Include="IO\Enums.cs" />
+    <Compile Include="Diagnostics\IChoTrace.cs" />
+    <Compile Include="Diagnostics\IChoProfile.cs" />
+    <Compile Include="Diagnostics\Settings\ChoTraceSettings.cs" />
+    <Compile Include="Diagnostics\Settings\ChoFileProfileSettings.cs" />
+    <Compile Include="Collections\Generic\Dictionary\ChoDictionary.cs" />
+    <Compile Include="Configuration\Handlers\ChoDictionarySectionHandler.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Exceptions\ChoValidatorException.cs" />
+    <Compile Include="ChoObjectNameableImpl.cs" />
+    <Compile Include="Factory\ChoObjectConstructorAttribute.cs" />
+    <Compile Include="Factory\ChoObjectAttribute.cs" />
+    <Compile Include="Factory\ChoObjectFieldAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Factory\ChoObjectInitializer.cs" />
+    <Compile Include="Factory\ChoObjectMemberAttribute.cs" />
+    <Compile Include="Factory\ChoObjectPoolSettings.cs" />
+    <Compile Include="Factory\ChoObjectPropertyAttribute.cs" />
+    <Compile Include="Formatters\ChoHashtableValueToStringFormatter.cs" />
+    <Compile Include="Formatters\ChoHashtableKeyToStringFormatter.cs" />
+    <Compile Include="Converters\ChoPropertyConverter.cs" />
+    <Compile Include="Interfaces\IChoObjectNameable.cs" />
+    <Compile Include="IO\ChoFileSystemWatcher.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Property\ChoPropertyManager.cs" />
+    <Compile Include="Property\ChoStaticDictionaryPropertyReplacer.cs" />
+    <Compile Include="Property\IChoCustomPropertyReplacer.cs" />
+    <Compile Include="Property\IChoKeyValuePropertyReplacer.cs" />
+    <Compile Include="Property\IChoPropertyReplacer.cs" />
+    <Compile Include="Attributes\ChoObjectInitializerAttribute.cs" />
+    <Compile Include="Runtime\Remoting\Proxies\ChoCommandLineArgsObjectProxy.cs" />
+    <Compile Include="Runtime\Remoting\Proxies\ChoSingletonProxy.cs" />
+    <Compile Include="Shell\Console\ChoConsoleException.cs" />
+    <Compile Include="Shell\Console\ChoConsolePercentageProgressorEx.cs" />
+    <Compile Include="Shell\Console\ChoConsolePercentageProgressorSettings.cs" />
+    <Compile Include="Shell\Console\ChoExceptionEventArgs.cs" />
+    <Compile Include="Shell\RemoteExec\ChoWinRemoteExec.cs" />
+    <Compile Include="Shell\RemoteExec\ChoWinRemoteExecState.cs" />
+    <Compile Include="Text\ChoMultiColumnStringFormatter.cs" />
+    <Compile Include="Threading\ChoThreadLocalStorage.cs" />
+    <Compile Include="Threading\Tasks\ChoIdleTask.cs" />
+    <Compile Include="Validation\Validators\ChoValidationAttributeSurrogateValidator.cs" />
+    <Compile Include="Validation\Validators\ChoConfigurationValidatorAttributeSurrogateValidator.cs" />
+    <Compile Include="WaitFor\Action\ChoActionWaitFor.cs" />
+    <Compile Include="WaitFor\Action\ChoActionWaitForEx.cs" />
+    <Compile Include="WaitFor\ChoBaseWaitFor.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WaitFor\ChoWaitFor.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WaitFor\ChoWaitForEx.cs" />
+    <Compile Include="WaitFor\Func\ChoFuncWaitFor.cs" />
+    <Compile Include="WaitFor\Func\ChoFuncWaitForEx.cs" />
+    <Compile Include="Win32\AdvAPI32\ChoAdvAPI32.cs" />
+    <Compile Include="Win32\AdvAPI32\ChoAdvAPI32Enums.cs" />
+    <Compile Include="Win32\AdvAPI32\ChoAdvAPI32Structs.cs" />
+    <Compile Include="Win32\ChoRegistryChangeMonitor.cs" />
+    <Compile Include="Runtime\Remoting\Proxies\ChoStandardConfigurationObjectProxy.cs" />
+    <Compile Include="Threading\ChoTimer.cs" />
+    <Compile Include="Threading\ChoTimerAttribute.cs" />
+    <Compile Include="Types\Settings\ChoStringSettings.cs" />
+    <Compile Include="Validation\ChoCompositeValidatorBuilder.cs" />
+    <Compile Include="Validation\ChoValidationManagerAttribute.cs" />
+    <Compile Include="Validation\ChoValidationManagerSettings.cs" />
+    <Compile Include="Validation\ChoValidationManager.cs" />
+    <Compile Include="Validation\IChoValidationManager.cs" />
+    <Compile Include="Attributes\ChoPreValidatorFactoryAttribute.cs" />
+    <Compile Include="Attributes\Validators\ChoValidatorAttribute.cs" />
+    <Compile Include="Collections\Specialized\ChoNameValueCollectionSettings.cs" />
+    <Compile Include="Collections\Specialized\ChoNameValueCollection.cs" />
+    <Compile Include="Shell\CommandLine\ChoCommandLineParserSettings.cs" />
+    <Compile Include="Converters\ChoShallowConverter.cs" />
+    <Compile Include="Interfaces\IChoObjectCleanable.cs" />
+    <Compile Include="Interfaces\IChoObjectCopyable.cs" />
+    <Compile Include="Interfaces\IChoObjectInitializable.cs" />
+    <Compile Include="ChoStringJoiner.cs" />
+    <Compile Include="Exceptions\ChoValidationException.cs" />
+    <Compile Include="Formatters\ChoArrayToStringFormatter.cs" />
+    <Compile Include="Types\ChoDouble.cs" />
+    <Compile Include="Types\ChoFloat.cs" />
+    <Compile Include="Types\ChoULong.cs" />
+    <Compile Include="Types\ChoLong.cs" />
+    <Compile Include="Types\ChoUShort.cs" />
+    <Compile Include="Types\ChoUInt.cs" />
+    <Compile Include="Types\ChoShort.cs" />
+    <Compile Include="Types\ChoBoolean.cs" />
+    <Compile Include="Types\ChoByte.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\ChoChar.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\ChoDateTime.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\ChoDbNull.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\ChoInt.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\ChoInt16.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\ChoInt32.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\ChoInt64.cs" />
+    <Compile Include="Types\ChoNull.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\ChoSByte.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Types\ChoTypesManager.cs" />
+    <Compile Include="Validation\Validators\ChoBaseSurrogateValidator.cs" />
+    <Compile Include="Validation\Validators\ChoAndCompositeValidator.cs" />
+    <Compile Include="Validation\Validators\ChoCompositeValidator.cs" />
+    <Compile Include="Validation\Validators\ChoObjectValidator.cs" />
+    <Compile Include="Validation\Validators\ChoOrCompositeValidator.cs" />
+    <Compile Include="Validation\Validators\ChoConfigurationValidatorBaseSurrogateValidator.cs" />
+    <Compile Include="Validation\Validators\IChoSurrogateValidator.cs" />
+    <Compile Include="Validation\Validators\ChoSurrogateValidator.cs" />
+    <Compile Include="Validation\Validators\ChoContainsCharactorsValidator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Validation\Validators\ChoNotNullValidator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Validation\Validators\ChoValidator.cs" />
+    <Compile Include="Collections\ChoPriorityQueue.cs" />
+    <Compile Include="Converters\ChoArrayToStringConverter.cs" />
+    <Compile Include="ChoInterceptableObject.cs" />
+    <Compile Include="Configuration\ChoConfigurableObject.cs" />
+    <Compile Include="Configuration\Handlers\ChoNameValueSectionHandler.cs" />
+    <Compile Include="Converters\ChoTypeConverterAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Collections\ChoQueue.cs" />
+    <Compile Include="Shell\CommandLine\ChoCommandLineArgParser.cs" />
+    <Compile Include="Shell\CommandLine\ChoCommandLineArgAttribute.cs" />
+    <Compile Include="Configuration\ChoConfigurationManager.cs" />
+    <Compile Include="Configuration\Watchers\ChoConfigurationChangedEventArgs.cs" />
+    <Compile Include="Configuration\ChoConfigurationManagementFactory.cs" />
+    <Compile Include="Configuration\Watchers\File\ChoConfigurationChangeFileWatcher.cs" />
+    <Compile Include="Configuration\Watchers\ChoConfigurationChangeWatcher.cs" />
+    <Compile Include="Configuration\Watchers\IChoConfigurationChangeWatcher.cs" />
+    <Compile Include="Converters\ChoToStringArrayConverter.cs" />
+    <Compile Include="Converters\ChoToUpperCaseConverter.cs" />
+    <Compile Include="Converters\ChoToLowerCaseConverter.cs" />
+    <Compile Include="Converters\ChoToDateTimeConverter.cs" />
+    <Compile Include="Converters\ChoToDoubleConverter.cs" />
+    <Compile Include="Converters\ChoIntConverter.cs" />
+    <Compile Include="Converters\ChoParameterizedTypeConverter.cs" />
+    <Compile Include="Runtime\Remoting\Proxies\ChoRealProxy.cs" />
+    <Compile Include="Diagnostics\ChoProfile.cs" />
+    <Compile Include="ChoConvert.cs" />
+    <Compile Include="ChoEnvironmentSettings.cs" />
+    <Compile Include="ChoObject.cs" />
+    <Compile Include="ChoPair.cs" />
+    <Compile Include="ChoResourceManager.cs" />
+    <Compile Include="Diagnostics\ChoBufferProfile.cs" />
+    <Compile Include="ChoCodeBase.cs" />
+    <Compile Include="Collections\ChoNotNullableArrayList.cs" />
+    <Compile Include="Collections\ChoArray.cs" />
+    <Compile Include="Configuration\Attributes\ChoConfigurationSectionAttribute.cs" />
+    <Compile Include="Diagnostics\ChoStreamProfile.cs" />
+    <Compile Include="ChoGlobalApplicationSettings.cs" />
+    <Compile Include="Diagnostics\ChoFileStreamWithBackup.cs" />
+    <Compile Include="Diagnostics\ChoTrace.cs" />
+    <Compile Include="ChoEnvironment.cs" />
+    <Compile Include="ChoWeakEventHandler.cs" />
+    <Compile Include="ChoGlobalAttributes.cs" />
+    <Compile Include="ChoType.cs" />
+    <Compile Include="Types\ChoString.cs" />
+    <Compile Include="Exceptions\ChoApplicationException.cs" />
+    <Compile Include="Exceptions\ChoConfigurationConstructionException.cs" />
+    <Compile Include="Exceptions\ChoConfigurationException.cs" />
+    <Compile Include="Exceptions\ChoFatalApplicationException.cs" />
+    <Compile Include="ChoGuard.cs" />
+    <Compile Include="Factory\ChoObjectManagementFactory.cs" />
+    <Compile Include="Factory\IChoCustomObjectFactory.cs" />
+    <Compile Include="Formatters\ChoStringToArrayFormatter.cs" />
+    <Compile Include="Formatters\IChoMemberFormatter.cs" />
+    <Compile Include="IO\ChoFile.cs" />
+    <Compile Include="IO\ChoPath.cs" />
+    <Compile Include="IO\IsolatedStorage\ChoIsolatedStorage.cs" />
+    <Compile Include="IO\LiteBinaryReader.cs" />
+    <Compile Include="IO\LiteBinaryWriter.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Reflection\ChoMemberInfo.cs" />
+    <Compile Include="Reflection\ChoAssembly.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\ConfigResources.cs" />
+    <Compile Include="Runtime\Serialization\Formatters\Binary\LiteBinaryFormatter.cs" />
+    <Compile Include="Runtime\Serialization\ILiteSerializable.cs" />
+    <Compile Include="Runtime\Serialization\LiteSerializableAttribute.cs" />
+    <Compile Include="Runtime\Serialization\LiteSerializationContext.cs" />
+    <Compile Include="Runtime\Serialization\LiteSerializationException.cs" />
+    <Compile Include="Runtime\Serialization\LiteSerializerAttribute.cs" />
+    <Compile Include="Runtime\Serialization\LiteSerializerFactory.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\Collections\LiteArraySerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\Collections\LiteBooleanArraySerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\Collections\LiteByteArraySerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\Collections\LiteCharArraySerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\Collections\LiteDateTimeArraySerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\Collections\LiteDecimalArraySerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\Collections\LiteDictionarySerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\Collections\LiteDoubleArraySerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\Collections\LiteGuidArraySerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\Collections\LiteIListSerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\Collections\LiteILiteSerializableSerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\Collections\LiteInt16ArraySerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\Collections\LiteInt32ArraySerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\Collections\LiteInt64ArraySerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\Collections\LiteObjectArraySerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\Collections\LiteSByteArraySerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\Collections\LiteSingleArraySerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\Collections\LiteStringArraySerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\Collections\LiteUInt16ArraySerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\Collections\LiteUInt32ArraySerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\Collections\LiteUInt64ArraySerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\LiteBooleanSerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\LiteByteSerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\LiteCharSerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\LiteDateTimeSerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\LiteDecimalSerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\LiteDoubleSerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\LiteEnumSerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\LiteGuidSerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\LiteInt16Serializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\LiteInt32Serializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\LiteInt64Serializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\LiteNullSerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\LiteObjectSerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\LiteSByteSerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\LiteSerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\LiteSingleSerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\LiteStringSerializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\LiteUInt16Serializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\LiteUInt32Serializer.cs" />
+    <Compile Include="Runtime\Serialization\Serializers\LiteUInt64Serializer.cs" />
+    <Compile Include="Runtime\Serialization\LiteSerializationSettings.cs" />
+    <Compile Include="Storage\ChoStorageScale.cs" />
+    <Compile Include="Text\ChoStringMsgBuilderCollection.cs" />
+    <Compile Include="Text\ChoStringMsgBuilder.cs" />
+    <Compile Include="Threading\ChoThreadPool.cs" />
+    <Compile Include="Threading\ChoThreadPoolExceptions.cs" />
+    <Compile Include="Threading\ChoThreadPoolSettings.cs" />
+    <Compile Include="Threading\ChoWorkItem.cs" />
+    <Compile Include="Threading\ChoWorkItemsQueue.cs" />
+    <Compile Include="Threading\ChoAppSyncMethodExecuter.cs" />
+    <Compile Include="Validation\ChoValidationResults.cs" />
+    <Compile Include="Validation\ChoValidationResult.cs" />
+    <Compile Include="Validation\ChoValidation.cs" />
+    <Compile Include="Win32\ChoRegistryKey.cs" />
+    <Compile Include="Win32\ChoWin32Common.cs" />
+    <Compile Include="Win32\ChoWin32Exception.cs" />
+    <Compile Include="Win32\Dialogs\ChoFolderBrowserDialog.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Win32\Kernel32\ChoKernel32.cs" />
+    <Compile Include="Win32\Kernel32\ChoKernel32Enums.cs" />
+    <Compile Include="Win32\Kernel32\ChoKernel32Structs.cs" />
+    <Compile Include="Win32\Mbr\ChoMpr.cs" />
+    <Compile Include="Win32\Mbr\ChoMprEnums.cs" />
+    <Compile Include="Win32\Mbr\ChoMprTypes.cs" />
+    <Compile Include="Win32\SafeHandles\ChoSafeLocalHandle.cs" />
+    <Compile Include="Win32\User32\ChoUser32.cs" />
+    <Compile Include="Win32\User32\ChoUser32Enums.cs" />
+    <Compile Include="WPF\ChoWPFBindableObject.cs" />
+    <Compile Include="Xml\ChoXmlDocument.cs" />
+    <Compile Include="Configuration\Sections\ChoXmlSerializerSection.cs" />
+    <Compile Include="Configuration\Sections\ChoConfigSection.cs" />
+    <Compile Include="Xml\ChoXmlDocumentChangedEventArgs.cs" />
+    <Compile Include="Xml\ChoXmlDocumentEventArgs.cs" />
+    <Compile Include="Xml\ChoXmlDocumentChangingEventArgs.cs" />
+    <Compile Include="Xml\ChoXmlNodeEx.cs" />
+    <Compile Include="Xml\Serialization\ChoCDATA.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Forms\ChoMainForm.resx">
+      <DependentUpon>ChoMainForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <SubType>Designer</SubType>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\DefaultTrayIcon.ico" />
+    <Content Include="TODO.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ChoAbortableAsyncResult.cs" />
+    <Compile Include="ChoAsyncResultBase.cs" />
+    <Compile Include="IChoAbortableAsyncResult.cs" />
+    <Compile Include="IChoAsyncResult.cs" />
+    <Compile Include="Attributes\ChoAppDomainLoadMethodAttribute.cs" />
+    <Compile Include="Attributes\ChoAttribute.cs" />
+    <Compile Include="Attributes\ChoDisposableObjectAttribute.cs" />
+    <Compile Include="Attributes\ChoDoObjectValidationAfterInitialization.cs" />
+    <Compile Include="Attributes\ChoIgnoreCompareAttribute.cs" />
+    <Compile Include="Attributes\ChoStringObjectFormattableAttribute.cs" />
+    <Compile Include="Attributes\ChoStringToObjectConverterAttribute.cs" />
+    <Compile Include="Attributes\ChoMemberInfoAttribute.cs" />
+    <Compile Include="Attributes\ChoTypeInfoAttribute.cs" />
+    <Compile Include="Attributes\ChoTypeAttribute.cs" />
+    <Compile Include="Attributes\ChoIgnoreEqualAttribute.cs" />
+    <Compile Include="Attributes\Validators\ChoNotNulOrEmptyValidatorAttribute.cs" />
+    <Compile Include="ChoActivator.cs" />
+    <Compile Include="ChoAppDomainSetup.cs" />
+    <Compile Include="ChoApplication.cs" />
+    <Compile Include="ChoComparableObject.cs" />
+    <Compile Include="ChoEquatableObject.cs" />
+    <Compile Include="ChoFormattableObject.cs" />
+    <Compile Include="ChoNameableObject.cs" />
+    <Compile Include="ChoTuple.cs" />
+    <Compile Include="ChoTypesManagerSettings.cs" />
+    <Compile Include="Collections\Generic\ChoNode.cs" />
+    <Compile Include="Collections\Generic\ChoSynchronizedEnumerator.cs" />
+    <Compile Include="Collections\Generic\Dictionary\ChoSynchronizedDictionary.cs" />
+    <Compile Include="Collections\Generic\Dictionary\ChoFixedDictionary.cs" />
+    <Compile Include="Collections\Generic\Dictionary\ChoReadOnlyDictionary.cs" />
+    <Compile Include="Collections\Generic\Dictionary\ChoUniqueDictionary.cs" />
+    <Compile Include="Collections\Generic\Dictionary\ChoConcurrentDictionary.cs" />
+    <Compile Include="Collections\Generic\Dictionary\NestedDictionary\ChoNestedDictionary.cs" />
+    <Compile Include="Collections\Generic\List\ChoFixedList.cs" />
+    <Compile Include="Collections\Generic\List\NestedList\ChoNestedList.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Collections\Generic\List\ChoNotNullableList.cs" />
+    <Compile Include="Collections\Generic\List\ChoReadOnlyList.cs" />
+    <Compile Include="Collections\Generic\List\ChoSynchronizedList.cs" />
+    <Compile Include="Collections\Generic\List\ChoUniqueList.cs" />
+    <Compile Include="Collections\Generic\List\IChoList.cs" />
+    <Compile Include="Collections\Generic\List\NestedList\ChoNestedListException.cs" />
+    <Compile Include="Collections\Generic\Queue\ChoBlockingQueue.cs" />
+    <Compile Include="Collections\Generic\Queue\ChoQueue.cs" />
+    <Compile Include="Collections\Generic\Queue\ChoQueueException.cs" />
+    <Compile Include="Collections\Generic\Queue\ChoQueueTimeoutException.cs" />
+    <Compile Include="Collections\Generic\Queue\ChoSyncronizedQueue.cs" />
+    <Compile Include="ComponentModel\ChoTaggedDescriptionAttribute.cs" />
+    <Compile Include="Configuration\ChoCustomConfigurationElement.cs" />
+    <Compile Include="Configuration\Handlers\ChoApplicationExeSectionHandler.cs" />
+    <Compile Include="Configuration\Handlers\ChoCustomConfigurationSectionHandler.cs" />
+    <Compile Include="Configuration\Handlers\IChoStandardConfigurationSectionHandler.cs" />
+    <Compile Include="Configuration\Handlers\IChoCustomConfigurationSectionHandler.cs" />
+    <Compile Include="Configuration\Handlers\IChoNullConfigurationSectionableHandler.cs" />
+    <Compile Include="Configuration\Sections\ChoApplicationExeConfigSection.cs" />
+    <Compile Include="Configuration\Storage\ChoApplicationExeConfigStorage.cs" />
+    <Compile Include="Configuration\Storage\ChoNullConfigStorage.cs" />
+    <Compile Include="Configuration\Storage\ChoSingleTagConfigStorage.cs" />
+    <Compile Include="Configuration\Storage\ChoFileNameValueConfigStorage.cs" />
+    <Compile Include="Configuration\Storage\ChoFileDictionaryConfigStorage.cs" />
+    <Compile Include="Configuration\Watchers\File\ChoConfigurationChangeCompositeFileWatcherEx.cs" />
+    <Compile Include="Configuration\Watchers\File\ChoConfigurationCompositeFileChangedEventArgs.cs" />
+    <Compile Include="Shell\Console\ChoConsole.cs" />
+    <Compile Include="Shell\Console\ChoConsoleSpinProgressor.cs" />
+    <Compile Include="ChoEventHandler.cs" />
+    <Compile Include="ChoWeakReference.cs" />
+    <Compile Include="Shell\Console\ChoConsolePercentageProgressor.cs" />
+    <Compile Include="ComponentModel\ChoConfigurartionTypeDescriptionProvider.cs" />
+    <Compile Include="ComponentModel\ChoConfigurartionTypeDescriptor.cs" />
+    <Compile Include="ComponentModel\ChoCustomTypeDescriptor.cs" />
+    <Compile Include="ComponentModel\ChoTypeDescriptionProvider.cs" />
+    <Compile Include="ComponentModel\ChoTypeProviderAttribute.cs" />
+    <Compile Include="ComponentModel\ChoConfigurationFieldPropertyDescriptor.cs" />
+    <Compile Include="ComponentModel\ChoPropertyDescriptor.cs" />
+    <Compile Include="Configuration\ChoBaseConfigurationElement.cs" />
+    <Compile Include="Configuration\ChoConfigurationObjectErrorManagerService.cs" />
+    <Compile Include="Configuration\ChoConfigurationElement.cs" />
+    <Compile Include="Configuration\Sections\ChoDictionarySection.cs" />
+    <Compile Include="Configuration\Sections\ChoNameValueSection.cs" />
+    <Compile Include="Configuration\Sections\ChoStandardCustomSection.cs" />
+    <Compile Include="Configuration\Sections\IChoCustomConfigSection.cs" />
+    <Compile Include="Configuration\ChoConfigStorageManagerSettings.cs" />
+    <Compile Include="Configuration\Handlers\ChoXmlSerializerSectionHandler.cs" />
+    <Compile Include="Configuration\Sections\ChoNullSection.cs" />
+    <Compile Include="Configuration\Storage\ChoStandardAppSettingsConfigStorage.cs" />
+    <Compile Include="Configuration\Storage\ChoConfigStorage.cs" />
+    <Compile Include="Configuration\Storage\ChoBaseConfigStorage.cs" />
+    <Compile Include="Configuration\Storage\ChoIniConfigStorage.cs" />
+    <Compile Include="Configuration\Storage\ChoFileXmlSerializerConfigStorage.cs" />
+    <Compile Include="Configuration\Storage\ChoXmlSerializerConfigHelper.cs" />
+    <Compile Include="Configuration\Watchers\File\ChoConfigurationFileChangedEventArgs.cs" />
+    <Compile Include="Shell\Console\ChoConsoleSettings.cs" />
+    <Compile Include="Converters\ChoBaseConverter.cs" />
+    <Compile Include="Converters\ChoStringToBooleanConverter.cs" />
+    <Compile Include="Converters\ChoDateTimeConverter.cs" />
+    <Compile Include="Converters\ChoDoubleConverter.cs" />
+    <Compile Include="Converters\ChoIgnoreInvalidArrayItemsConvertor.cs" />
+    <Compile Include="Converters\ChoLowerCaseStringConverter.cs" />
+    <Compile Include="Converters\ChoStringToStringArrayConverter.cs" />
+    <Compile Include="Converters\ChoToEncodingConverter.cs" />
+    <Compile Include="Converters\ChoToEnumConverter.cs" />
+    <Compile Include="Diagnostics\Attributes\ChoProfileAttribute.cs" />
+    <Compile Include="Diagnostics\Attributes\ChoEnlistProfileAttribute.cs" />
+    <Compile Include="Diagnostics\ChoContextProfiler.cs" />
+    <Compile Include="ChoDisposableObject.cs" />
+    <Compile Include="ChoFramworkInitializer.cs" />
+    <Compile Include="Attributes\ChoTypeShortNameAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Collections\ChoBinaryHeap.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Converters\ChoObjectMemberResolver.cs" />
+    <Compile Include="ChoObjectDisposar.cs" />
+    <Compile Include="ChoShortTypeNameSettings.cs" />
+    <Compile Include="ChoSyncDisposableObject.cs" />
+    <Compile Include="ChoTypeFactory.cs" />
+    <Compile Include="Instrumentation\Performance\ChoPerformanceCounter.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Diagnostics\ChoProcess.cs" />
+    <Compile Include="Diagnostics\ChoTextWriterTraceListener.cs" />
+    <Compile Include="Instrumentation\Performance\ChoPerformanceCounterCategoryAttribute.cs" />
+    <Compile Include="Instrumentation\Performance\ChoPerformanceCounterFactory.cs" />
+    <Compile Include="Instrumentation\Performance\ChoPerformanceCounterInstaller.cs" />
+    <Compile Include="Instrumentation\Performance\ChoPerformanceCounterInstallerBuilder.cs" />
+    <Compile Include="Instrumentation\Performance\ChoPerformanceCounterAttribute.cs" />
+    <Compile Include="Exceptions\ChoAggregateException.cs" />
+    <Compile Include="Exceptions\ChoTimeoutException.cs" />
+    <Compile Include="ExpressionEvaluator\ChoBaseExpressionEvaluator.cs" />
+    <Compile Include="ExpressionEvaluator\ChoExpressionEvaluator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ExpressionEvaluator\ChoExpressionParseException.cs" />
+    <Compile Include="ExpressionEvaluator\ChoExpressionTokenizer.cs" />
+    <Compile Include="Formatters\ChoDictionaryToStringFormatter.cs" />
+    <Compile Include="IChoApplication.cs" />
+    <Compile Include="IChoClonable.cs" />
+    <Compile Include="IChoDisposable.cs" />
+    <Compile Include="Ini\ChoIniDocumentEventArgs.cs" />
+    <Compile Include="Ini\ChoIniCommentNode.cs" />
+    <Compile Include="Ini\ChoIniDocument.cs" />
+    <Compile Include="Ini\ChoIniDocumentException.cs" />
+    <Compile Include="Ini\ChoIniDocumentManager.cs" />
+    <Compile Include="Ini\ChoIniIncludeFileNode.cs" />
+    <Compile Include="Ini\ChoIniNameValueNode.cs" />
+    <Compile Include="Ini\ChoIniNewLineNode.cs" />
+    <Compile Include="Ini\ChoIniNode.cs" />
+    <Compile Include="Ini\ChoIniNodeChangedEventArgs.cs" />
+    <Compile Include="Ini\ChoIniNodeChangingEventArgs.cs" />
+    <Compile Include="Ini\ChoIniSectionNode.cs" />
+    <Compile Include="Ini\IChoIniDocument.cs" />
+    <Compile Include="Ini\IChoIniNode.cs" />
+    <Compile Include="IO\ChoMemoryStream.cs" />
+    <Compile Include="Memory\ChoObjectPool.cs" />
+    <Compile Include="Memory\ChoObjectPoolException.cs" />
+    <Compile Include="Pattern\DoubleCheckLock\ChoDoubleCheckLockInitializer.cs" />
+    <Compile Include="Pattern\Singleton\Attributes\ChoCustomSingletonTypeAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Pattern\Singleton\Attributes\ChoSingletonConstructorAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Pattern\Singleton\Attributes\ChoSingletonFactoryMethodAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Pattern\Singleton\ChoSingleton.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Pattern\Singleton\ChoSingletonHelper.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Pattern\Singleton\Exceptions\ChoSingletonException.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Profilers\ChoConfigurationErrorsProfiler.cs" />
+    <Compile Include="Reflection\ChoAssemblyFactory.cs" />
+    <Compile Include="Reflection\ChoAssemblyResolver.cs" />
+    <Compile Include="Reflection\ChoAssemblySettings.cs" />
+    <Compile Include="Runtime\InteropServices\ChoRuntimeEnvironment.cs" />
+    <Compile Include="Runtime\InteropServices\VisualStudio\ChoVisualStudioEnvironment.cs" />
+    <Compile Include="Runtime\InteropServices\VisualStudio\ChoVisualStudioVersion.cs" />
+    <Compile Include="Security\Cryptography\ChoAESCryptography.cs" />
+    <Compile Include="Security\Cryptography\ChoAESCryptoGraphySettings.cs" />
+    <Compile Include="Services\ChoDictionaryService.cs" />
+    <Compile Include="Services\ChoExecutionServiceBase.cs" />
+    <Compile Include="Services\ChoGlobalTimerServiceManager.cs" />
+    <Compile Include="Services\ChoQueuedExecutionService.cs" />
+    <Compile Include="Services\ChoQueuedMsgService.cs" />
+    <Compile Include="Services\ChoQueuedMsgServiceException.cs" />
+    <Compile Include="Services\ChoStandardQueuedMsgObject.cs" />
+    <Compile Include="Services\ChoTimerService.cs" />
+    <Compile Include="Services\ChoTimerServiceException.cs" />
+    <Compile Include="Services\ChoWeakDictionaryService.cs" />
+    <Compile Include="Services\ChoExecutionServiceData.cs" />
+    <Compile Include="Services\ChoAbortableQueuedExecutionService.cs" />
+    <Compile Include="Services\IChoDictionaryService.cs" />
+    <Compile Include="Text\RegularExpressions\ChoWildcard.cs" />
+    <Compile Include="Threading\ChoBarrier.cs" />
+    <Compile Include="Threading\ChoReverseSemaphore.cs" />
+    <Compile Include="Threading\ChoMethodDispatcher.cs" />
+    <Compile Include="Threading\ChoMethodDispatcherResult.cs" />
+    <Compile Include="Threading\ChoSyncGate.cs" />
+    <Compile Include="Threading\ChoCountdownLatch.cs" />
+    <Compile Include="Threading\IChoMethodDispatcher.cs" />
+    <Compile Include="Validation\Validators\ChoNotNulOrEmptyValidator.cs" />
+    <Compile Include="Win32\Kernel32\ChoKernel32Core.cs" />
+    <Compile Include="Xml\ChoXmlDocumentException.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Cinchoo.Core.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Cleanup\" />
+    <Folder Include="Comparer\" />
+    <Folder Include="Configuration\Watchers\Database\" />
+    <Folder Include="Data\" />
+    <Folder Include="Net\Sockets\TCP\" />
+    <Folder Include="Net\Sockets\UDP\" />
+    <Folder Include="Remoting\" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>COPY $(TargetDir)*.dll $(SolutionDir)..
+COPY $(TargetDir)*.pdb $(SolutionDir)..
+</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
