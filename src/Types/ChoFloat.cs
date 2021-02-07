@@ -9,8 +9,8 @@ namespace Cinchoo.Core
 
     #endregion NameSpaces
 
-    [ChoStringObjectFormattable]
-    public class ChoFloat
+    [ChoStringObjectFormattable(typeof(float))]
+    public class ChoFloat : IChoStringObjectFormatter<float>
     {
         #region Constants
 
@@ -70,6 +70,12 @@ namespace Cinchoo.Core
         public float Value
         {
             get { return _value; }
+        }
+
+        public string GetHelpText()
+        {
+            ChoFloat x = new ChoFloat(99.099F);
+            return x.ToFormattedString();
         }
 
         #endregion Instance Members (Public)

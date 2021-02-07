@@ -84,6 +84,9 @@
 
         public static object Clear()
         {
+            if (ChoApplication.ApplicationMode != ChoApplicationMode.Console)
+                return null;
+
             AutoResetEvent taskDone = new AutoResetEvent(false);
             int retVal = 0;
             lock (ChoConsole.SyncRoot)
@@ -123,6 +126,9 @@
         /// <returns>The next character from the input stream, or negative one (-1) if there are currently no more characters to be read.</returns>
         public static int Pause(string msg)
         {
+            if (ChoApplication.ApplicationMode != ChoApplicationMode.Console)
+                return 0;
+
             AutoResetEvent taskDone = new AutoResetEvent(false);
             int retVal = 0;
             lock (ChoConsole.SyncRoot)
@@ -167,6 +173,9 @@
         /// <returns>The next line of characters from the input stream, or null if no more lines are available.</returns>
         public static string PauseLine(string msg)
         {
+            if (ChoApplication.ApplicationMode != ChoApplicationMode.Console)
+                return String.Empty;
+
             AutoResetEvent taskDone = new AutoResetEvent(false);
             string retVal = null;
             lock (ChoConsole.SyncRoot)
@@ -233,6 +242,9 @@
         /// <returns>The next line of characters from the input stream, or null if no more lines</returns>
         public static int Read(int timeoutInMilliSeconds, int? defaultValue, string errMsg)
         {
+            if (ChoApplication.ApplicationMode != ChoApplicationMode.Console)
+                return 0;
+
             AutoResetEvent taskDone = new AutoResetEvent(false);
             int retValue = 0;
             Exception retEx = null;
@@ -319,6 +331,9 @@
         /// <returns>The next line of characters from the input stream, or null if no more lines</returns>
         public static string ReadLine(int timeoutInMilliSeconds, string defaultValue, string errMsg)
         {
+            if (ChoApplication.ApplicationMode != ChoApplicationMode.Console)
+                return String.Empty;
+
             AutoResetEvent taskDone = new AutoResetEvent(false);
             string retValue = null;
             Exception retEx = null;
@@ -421,8 +436,11 @@
         /// </returns>
         public static ConsoleKeyInfo ReadKey(int timeoutInMilliSeconds, ConsoleKeyInfo? defaultValue, string errMsg)
         {
-            AutoResetEvent taskDone = new AutoResetEvent(false);
             ConsoleKeyInfo retValue = default(ConsoleKeyInfo);
+            if (ChoApplication.ApplicationMode != ChoApplicationMode.Console)
+                return retValue;
+
+            AutoResetEvent taskDone = new AutoResetEvent(false);
             Exception retEx = null;
 
             lock (ChoConsole.SyncRoot)
@@ -483,6 +501,9 @@
 
         public static string ReadPassword(char maskChar, int maxLength)
         {
+            if (ChoApplication.ApplicationMode != ChoApplicationMode.Console)
+                return String.Empty;
+
             AutoResetEvent taskDone = new AutoResetEvent(false);
             string retValue = null;
             Exception retEx = null;
@@ -532,7 +553,7 @@
                                 }
                                 while (info.Key != ConsoleKey.Enter);
 
-                                ClearKeys();
+                                ClearKeysInternal(true);
 
                                 retValue = password;
                             }
@@ -545,6 +566,7 @@
             }
 
             taskDone.WaitOne();
+            Console.WriteLine();
             if (retEx != null)
                 throw retEx;
             else
@@ -560,8 +582,20 @@
             return ClearKeys(true);
         }
 
+        private static ConsoleKeyInfo[] ClearKeysInternal(bool intercept)
+        {
+            List<ConsoleKeyInfo> keyInfos = new List<ConsoleKeyInfo>();
+            while (Console.KeyAvailable)
+                keyInfos.Add(Console.ReadKey(intercept));
+
+            return keyInfos.ToArray();
+        }
+
         public static ConsoleKeyInfo[] ClearKeys(bool intercept)
         {
+            if (ChoApplication.ApplicationMode != ChoApplicationMode.Console)
+                return null;
+
             AutoResetEvent taskDone = new AutoResetEvent(false);
             ConsoleKeyInfo[] retValue = null;
 
@@ -571,11 +605,7 @@
                     {
                         try
                         {
-                            List<ConsoleKeyInfo> keyInfos = new List<ConsoleKeyInfo>();
-                            while (Console.KeyAvailable)
-                                keyInfos.Add(Console.ReadKey(intercept));
-
-                            retValue = keyInfos.ToArray();
+                            return ClearKeysInternal(intercept);
                         }
                         finally
                         {
@@ -1888,6 +1918,9 @@
 
         private static void Write(string msg, int? cursorLeft, int? cursorTop, ConsoleColor foregroundColor, ConsoleColor backgroundColor)
         {
+            if (ChoApplication.ApplicationMode != ChoApplicationMode.Console)
+                return;
+
             //lock (ChoConsole.SyncRoot)
             //{
                 OutputQueuedExecutionService.Enqueue(_action, msg, cursorLeft, cursorTop, foregroundColor, backgroundColor);

@@ -9,19 +9,19 @@ namespace Cinchoo.Core
 
     #endregion NameSpaces
 
-    [ChoStringObjectFormattable]
-    public class ChoDateTime
+    [ChoStringObjectFormattable(typeof(DateTime))]
+    public class ChoDateTime : IChoStringObjectFormatter<DateTime>
     {
         #region Constants
 
         private const string Delimiter = "#";
-        private const string FormatSeperator = "^";
+        private const string FormatSeparator = "^";
 
         #endregion Constants
 
         #region Shared Data Members (Private)
 
-        private static readonly Regex _regEx = new Regex(String.Format(@"^{0}(?<value>.*)\{1}(?<format>.*){0}$|^{0}(?<value>.*){0}", Delimiter, FormatSeperator), RegexOptions.Compiled);
+        private static readonly Regex _regEx = new Regex(String.Format(@"^{0}(?<value>.*)\{1}(?<format>.*){0}$|^{0}(?<value>.*){0}", Delimiter, FormatSeparator), RegexOptions.Compiled);
 
         #endregion Shared Data Members (Private)
 
@@ -66,12 +66,18 @@ namespace Cinchoo.Core
 
         public string ToFormattedString()
         {
-            return String.Format("{1}{0}{2}{3}{1}", _value, Delimiter, FormatSeperator, _formatString);
+            return String.Format("{1}{0}{2}{3}{1}", _value, Delimiter, FormatSeparator, _formatString);
         }
 
         public DateTime Value
         {
             get { return _value; }
+        }
+
+        public string GetHelpText()
+        {
+            ChoDateTime x = new ChoDateTime();
+            return x.ToFormattedString();
         }
 
         #endregion Instance Members (Public)

@@ -6,6 +6,7 @@ namespace Cinchoo.Core
     using System.Diagnostics;
     using Cinchoo.Core.Diagnostics;
     using Cinchoo.Core.Text;
+    using System.Threading;
 
     #endregion NameSpaces
 
@@ -27,10 +28,17 @@ namespace Cinchoo.Core
 				IChoSyncDisposable disposableObj = target as IChoSyncDisposable;
 				if (disposableObj.DisposableLockObj != null)
 				{
-					lock (disposableObj.DisposableLockObj)
-					{
-						CheckNDisposeObject(finalize, disposableObj, disposeMethod);
-					}
+                    if (!Monitor.TryEnter(disposableObj, 1000))
+                        return;
+
+                    try
+                    {
+                        CheckNDisposeObject(finalize, disposableObj, disposeMethod);
+                    }
+                    finally
+                    {
+                        Monitor.Exit(disposableObj);
+                    }
 				}
 				else
 					CheckNDisposeObject(finalize, disposableObj, disposeMethod);

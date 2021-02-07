@@ -9,8 +9,8 @@ namespace Cinchoo.Core
 
     #endregion NameSpaces
 
-    [ChoStringObjectFormattable]
-    public class ChoBoolean
+    [ChoStringObjectFormattable(typeof(Boolean))]
+    public class ChoBoolean : IChoStringObjectFormatter<bool>
     {
         #region Constants
 
@@ -72,6 +72,12 @@ namespace Cinchoo.Core
             get { return _value; }
         }
 
+        public string GetHelpText()
+        {
+            ChoBoolean x = new ChoBoolean(true);
+            return ToFormattedString();
+        }
+
         #endregion Instance Members (Public)
 
         #region Shared Members (Public)
@@ -112,7 +118,11 @@ namespace Cinchoo.Core
         {
             if (value == null || value.Length == 0) return false;
 
-            return _regEx.IsMatch(value);
+            return _regEx.IsMatch(value)
+                || String.Compare(value, "true", true) == 0
+                || String.Compare(value, "false", true) == 0
+                || value == "1"
+                || value == "0";
         }
 
         public static bool TryParse(string value, out bool output)
@@ -124,12 +134,12 @@ namespace Cinchoo.Core
             if (IsBoolean(value))
             {
                 string actualValue = GetValue(value);
-                if (String.Compare(actualValue, "true") == 0 || actualValue == "1")
+                if (String.Compare(actualValue, "true", true) == 0 || actualValue == "1")
                 {
                     output = true;
                     return true;
                 }
-                else if (String.Compare(actualValue, "false") == 0 || actualValue == "0")
+                else if (String.Compare(actualValue, "false", true) == 0 || actualValue == "0")
                 {
                     output = false;
                     return true;
@@ -162,7 +172,7 @@ namespace Cinchoo.Core
             if (match.Success)
                 return match.Groups["value"].ToString();
             else
-                return String.Empty;
+                return value;
         }
 
         #endregion Shared Members (Private)

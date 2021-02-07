@@ -9,8 +9,8 @@ namespace Cinchoo.Core
 
     #endregion NameSpaces
 
-    [ChoStringObjectFormattable]
-    public class ChoInt32
+    [ChoStringObjectFormattable(typeof(Int32))]
+    public class ChoInt32 : IChoStringObjectFormatter<Int32>
     {
         #region Constants
 
@@ -70,6 +70,12 @@ namespace Cinchoo.Core
         public Int32 Value
         {
             get { return _value; }
+        }
+
+        public string GetHelpText()
+        {
+            ChoInt32 x = new ChoInt32(99);
+            return x.ToFormattedString();
         }
 
         #endregion Instance Members (Public)

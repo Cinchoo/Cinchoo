@@ -59,12 +59,12 @@ namespace Cinchoo.Core
         //     The object value.
         public override void Validate(string objectToValidate)
         {
-            if (objectToValidate != null)
+            if (_containsAnyCharacters)
             {
-                if (_containsAnyCharacters)
+                List<char> characterSetArray = new List<char>(_characterSet);
+                bool containsCharacterFromSet = false;
+                if (objectToValidate != null)
                 {
-                    List<char> characterSetArray = new List<char>(_characterSet);
-                    bool containsCharacterFromSet = false;
                     foreach (char ch in objectToValidate)
                     {
                         if (characterSetArray.Contains(ch))
@@ -74,27 +74,31 @@ namespace Cinchoo.Core
                         }
 
                     }
-
-                    if ((containsCharacterFromSet && Negated) 
-                        || (!containsCharacterFromSet && !Negated))
-                        throw new ChoValidationException(GetErrMsg());
                 }
+                if ((containsCharacterFromSet && Negated)
+                    || (!containsCharacterFromSet && !Negated))
+                    throw new ChoValidationException(GetErrMsg());
+            }
+            else
+            {
+                List<char> objectToValidateArray = null;
+                if (objectToValidate != null)
+                    objectToValidateArray = new List<char>(objectToValidate);
                 else
-                {
-                    List<char> objectToValidateArray = new List<char>(objectToValidate);
-                    bool containsAllCharactersFromSet = true;
-                    foreach (char ch in _characterSet)
-                    {
-                        if (!objectToValidateArray.Contains(ch))
-                        {
-                            containsAllCharactersFromSet = false;
-                        }
-                    }
+                    objectToValidateArray = new List<char>();
 
-                    if ((containsAllCharactersFromSet && Negated)
-                        || (!containsAllCharactersFromSet && !Negated))
-                        throw new ChoValidationException(GetErrMsg());
+                bool containsAllCharactersFromSet = true;
+                foreach (char ch in _characterSet)
+                {
+                    if (!objectToValidateArray.Contains(ch))
+                    {
+                        containsAllCharactersFromSet = false;
+                    }
                 }
+
+                if ((containsAllCharactersFromSet && Negated)
+                    || (!containsAllCharactersFromSet && !Negated))
+                    throw new ChoValidationException(GetErrMsg());
             }
         }
     }

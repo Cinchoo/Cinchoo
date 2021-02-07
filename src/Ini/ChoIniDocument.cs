@@ -27,7 +27,7 @@ namespace Cinchoo.Core.Ini
 
         #region Instance Data Members (Public)
 
-        public char NameValueSeperator;
+        public char NameValueSeparator;
         public string CommentChars;
         public bool IgnoreValueWhiteSpaces;
 
@@ -37,7 +37,7 @@ namespace Cinchoo.Core.Ini
 
         public ChoIniLoadOptions()
         {
-            NameValueSeperator = ChoIniSettings.Me.NameValueSeperator;
+            NameValueSeparator = ChoIniSettings.Me.NameValueSeparator;
             CommentChars = ChoIniSettings.Me.CommentChars;
             IgnoreValueWhiteSpaces = ChoIniSettings.Me.IgnoreValueWhiteSpaces;
         }
@@ -104,7 +104,7 @@ namespace Cinchoo.Core.Ini
         private readonly List<ChoIniNode> _headings = new List<ChoIniNode>();
         private readonly string _path;
 		
-        private char _nameValueSeperator = DEFAULT_NAME_VALUE_DELIMITER;
+        private char _nameValueSeparator = DEFAULT_NAME_VALUE_DELIMITER;
 		private string _commentChars = DEFAULT_COMMENT_CHARS;
 		private ChoIniSectionNode _rootSection;
 		private bool _ignoreValueWhiteSpaces = false;
@@ -552,7 +552,7 @@ namespace Cinchoo.Core.Ini
             else
                 _loadOptions = loadOptions;
 
-            _nameValueSeperator = _loadOptions.NameValueSeperator;
+            _nameValueSeparator = _loadOptions.NameValueSeparator;
             _commentChars = _loadOptions.CommentChars;
             _ignoreValueWhiteSpaces = _loadOptions.IgnoreValueWhiteSpaces;
 
@@ -1271,9 +1271,9 @@ namespace Cinchoo.Core.Ini
 			get { return _ignoreValueWhiteSpaces; }
 		}
 
-		public char NameValueSeperator
+		public char NameValueSeparator
 		{
-			get { return _nameValueSeperator; }
+			get { return _nameValueSeparator; }
 		}
 
 		public string CommentChars
@@ -1473,26 +1473,26 @@ namespace Cinchoo.Core.Ini
 
         internal ChoIniNameValueNode CreateNameValueNode(string name, string value)
         {
-            return CreateNameValueNode(name, value, _nameValueSeperator);
+            return CreateNameValueNode(name, value, _nameValueSeparator);
         }
 
         internal ChoIniNameValueNode CreateNameValueNode(string name, string value, ChoIniCommentNode inlineCommentNode)
         {
-            ChoIniNameValueNode iniNameValueNode = CreateNameValueNode(name, value, _nameValueSeperator);
+            ChoIniNameValueNode iniNameValueNode = CreateNameValueNode(name, value, _nameValueSeparator);
             iniNameValueNode.CreateOrReplaceInlineCommentNode(inlineCommentNode);
             return iniNameValueNode;
         }
 
         internal ChoIniNameValueNode CreateNameValueNode(string name, string value, string inlineComment)
         {
-            ChoIniNameValueNode iniNameValueNode = CreateNameValueNode(name, value, _nameValueSeperator);
+            ChoIniNameValueNode iniNameValueNode = CreateNameValueNode(name, value, _nameValueSeparator);
             iniNameValueNode.CreateOrReplaceInlineCommentNode(inlineComment);
             return iniNameValueNode;
         }
 
-        internal ChoIniNameValueNode CreateNameValueNode(string name, string value, char nameValueSeperator)
+        internal ChoIniNameValueNode CreateNameValueNode(string name, string value, char nameValueSeparator)
         {
-            return new ChoIniNameValueNode(this, name, value, nameValueSeperator);
+            return new ChoIniNameValueNode(this, name, value, nameValueSeparator);
         }
 
         internal ChoIniCommentNode CreateCommentNode(string comment)

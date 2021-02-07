@@ -26,7 +26,7 @@
 
         #region Shared Data Members (Private)
 
-        private static readonly object _padLock = new object();
+        //private static readonly object _padLock = new object();
         private static readonly Regex regex = new Regex(@"(?<premsg>.*)\[Count: (?<count>\d+)\](?<msg>.*)", RegexOptions.Compiled | RegexOptions.Singleline);
 
         #endregion Shared Data Members (Private)
@@ -82,10 +82,16 @@
                 {
                     ICustomFormatter formatter = ChoFormatProvider.Instance.GetFormat(target.GetType()) as ICustomFormatter;
 
+                    ICustomFormatter tmpFormatter = formatter;
+                    if (ChoApplication.OnObjectFormatterResolve(target.GetType(), out tmpFormatter))
+                        formatter = tmpFormatter;
+
                     if (formatter != null)
                         return formatter.Format(formatName, target, null);
-                    else
+                    else if (formatName.IsNullOrWhiteSpace())
                         return ToString(target);
+                    else
+                        return ChoObject.Format(target, formatName);
                 }
             }
             else
@@ -231,7 +237,6 @@
 
                 return "[Count: {0}]{1}{2}".FormatString(count, Environment.NewLine, arrMsg.ToString());
             }
-
             else
             {
                 bool foundMatchingFormatter = false;
@@ -387,15 +392,22 @@
                 if (memberValue == target)
                     return null;
 
-                if (memberFormaterAttribute == null)
-                {
-                    object[] typeConverters = ChoTypeDescriptor.GetTypeConverters(memberInfo);
-                    if (typeConverters != null && typeConverters.Length > 0)
-                    {
-                        memberText = (string)ChoConvert.ConvertTo(target, memberValue, typeof(string), typeConverters, ChoTypeDescriptor.GetTypeConverterParams(memberInfo), null);
-                        return memberText;
-                    }
-                }
+                //if (memberFormaterAttribute == null)
+                //{
+                //    object[] typeConverters = ChoTypeDescriptor.GetTypeConverters(memberInfo);
+                //    if (typeConverters != null && typeConverters.Length > 0)
+                //    {
+                //        if (typeConverters.Length == 1 && typeConverters[0].GetType() == typeof(System.ComponentModel.TypeConverter))
+                //        {
+                //        }
+                //        else
+                //        {
+                //            object convertedValue = ChoConvert.ConvertTo(target, memberInfo, typeof(string)); //, typeConverters, ChoTypeDescriptor.GetTypeConverterParams(memberInfo), null);
+                //            return convertedValue == null ? String.Empty : convertedValue.ToString();
+                //            //return memberText;
+                //        }
+                //    }
+                //}
                 memberText = ChoFormattableObject.ToString(memberValue, collectErrMsgs, memberFormaterAttribute, memberItemFormaterAttribute, bindingFlags);
                 if (memberText.ContainsMultiLines())
                     memberText = Environment.NewLine + memberText.Indent();

@@ -212,6 +212,9 @@
 
         private void Refresh()
         {
+            if (ChoAppFrxSettings.Me.DisableMetaDataConfig)
+                return;
+
             try
             {
                 LoadFile();

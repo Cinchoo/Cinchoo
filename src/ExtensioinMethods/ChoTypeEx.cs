@@ -7,11 +7,98 @@
     using System.Linq;
     using System.Text;
     using System.Reflection;
+    using Cinchoo.Core;
 
     #endregion NameSpaces
 
+    public enum ChoTypeNameSpecifier { Name, FullName, AssemblyQualifiedName, SimpleQualifiedName }
+
     public static class ChoTypeEx
     {
+        public static Type GetEnumerableType(this Type type)
+        {
+            foreach (Type intType in type.GetInterfaces())
+            {
+                if (intType.IsGenericType
+                    && intType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                {
+                    return intType.GetGenericArguments()[0];
+                }
+            }
+            return null;
+        }
+
+        public static bool IsGenericList(this Type type)
+        {
+            return type.GetInterfaces().Any(t => t.IsGenericType &&
+                t.GetGenericTypeDefinition() == typeof(IList<>));
+
+            //if (type == null)
+            //{
+            //    throw new ArgumentNullException("type");
+            //}
+            //foreach (Type @interface in type.GetInterfaces())
+            //{
+            //    if (@interface.IsGenericType)
+            //    {
+            //        if (@interface.GetGenericTypeDefinition() == typeof(ICollection<>))
+            //        {
+            //            // if needed, you can also return the type used as generic argument
+            //            return true;
+            //        }
+            //    }
+            //}
+            //return false;
+        }
+
+        public static bool IsNullableType(this Type type)
+        {
+            if (type != null && type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>).GetGenericTypeDefinition())
+                return true;
+
+            return false;
+        }
+
+        public static Type GetUnderlyingType(this Type type)
+        {
+            if (type.IsNullableType())
+                return Nullable.GetUnderlyingType(type);
+            else
+                return type;
+        }
+
+        /// <summary>
+        /// Returns a fully qualified type name without the version, culture, or token
+        /// </summary>
+        /// <param name="t"></param>
+        /// <returns></returns>
+        public static string SimpleQualifiedName(this Type t)
+        {
+            return string.Concat(t.FullName, ", ", t.Assembly.GetName().Name);
+        }
+
+        public static string GetName(this Type objType)
+        {
+            return GetName(objType, ChoTypeNameSpecifier.FullName);
+        }
+
+        public static string GetName(this Type objType, ChoTypeNameSpecifier typeName)
+        {
+            ChoGuard.ArgumentNotNull(objType, "Type");
+
+            switch (typeName)
+            {
+                case ChoTypeNameSpecifier.FullName:
+                    return objType.FullName;
+                case ChoTypeNameSpecifier.AssemblyQualifiedName:
+                    return objType.AssemblyQualifiedName;
+                case ChoTypeNameSpecifier.SimpleQualifiedName:
+                    return objType.SimpleQualifiedName();
+                default:
+                    return objType.Name;
+            }
+        }
+
         public static object Default(this Type type)
         {
             if (type.IsValueType)
@@ -93,6 +180,20 @@
             return false;
         }
 
+        public static bool IsSubclassOfRawGeneric(this Type generic, Type toCheck)
+        {
+            while (toCheck != null && toCheck != typeof(object))
+            {
+                var cur = toCheck.IsGenericType ? toCheck.GetGenericTypeDefinition() : toCheck;
+                if (generic == cur)
+                {
+                    return true;
+                }
+                toCheck = toCheck.BaseType;
+            }
+            return false;
+        }
+        
         private static bool IsInParametersMatch(ParameterInfo[] funcInParameterTypes, Type[] inParameterTypes)
         {
             if (inParameterTypes == null && funcInParameterTypes == null) return true;

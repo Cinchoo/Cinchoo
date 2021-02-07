@@ -11,7 +11,7 @@ namespace Cinchoo.Core
 
     #endregion
 
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Class, AllowMultiple = true, Inherited = true)]
     public class ChoTypeConverterAttribute : Attribute
     {
         #region Instance Properties
@@ -46,6 +46,10 @@ namespace Cinchoo.Core
 
         #region Constructors
 
+        protected ChoTypeConverterAttribute()
+        {
+        }
+
         public ChoTypeConverterAttribute(Type converterType)
         {
             if (converterType != null)
@@ -70,13 +74,13 @@ namespace Cinchoo.Core
 
 		#region Instance Members (Internal)
 
-		internal object CreateInstance()
+		public virtual object CreateInstance()
 		{
             if (ConverterType == null)
                 return null;
 
-			if (ChoGuard.IsArgumentNotNullOrEmpty(Parameters) && ChoType.HasConstructor(ConverterType, new object[] { Parameters }))
-				return ChoType.CreateInstance(ConverterType, new object[] { Parameters });
+			if (ChoGuard.IsArgumentNotNullOrEmpty(Parameters) && ChoType.HasConstructor(ConverterType, Parameters))
+				return ChoType.CreateInstance(ConverterType, Parameters);
 			else if (ChoType.HasConstructor(ConverterType, new object[] { String.Empty }))
                 return ChoType.CreateInstance(ConverterType, new object[] { Parameters != null && Parameters.Length > 0 ? Parameters[0] : String.Empty });
 			else

@@ -9,9 +9,9 @@ namespace Cinchoo.Core
 
     #endregion NameSpaces
 
-    [ChoStringObjectFormattable]
+    [ChoStringObjectFormattable(typeof(SByte))]
     [CLSCompliant(false)]
-    public class ChoSByte
+    public class ChoSByte : IChoStringObjectFormatter<sbyte>
     {
         #region Constants
 
@@ -71,6 +71,12 @@ namespace Cinchoo.Core
         public sbyte Value
         {
             get { return _value; }
+        }
+
+        public string GetHelpText()
+        {
+            ChoSByte x = new ChoSByte(10);
+            return x.ToFormattedString();
         }
 
         #endregion Instance Members (Public)

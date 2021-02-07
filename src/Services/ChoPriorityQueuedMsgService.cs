@@ -134,19 +134,19 @@ namespace Cinchoo.Core.Services
 
 			lock (_padLock)
 			{
-				if (_queueProcessingThread != null)
+				if (_queueProcessingThread != null || _queue.Count > 0)
 				{
 					_queue.Enqueue(0, _shutdownMsg);
 					int noOfRetry = 0;
 					while (true)
 					{
 						//Enqueue(_endOfMsg);
-						if (ChoTrace.ChoSwitch.TraceVerbose)
+						if (ChoTraceSwitch.Switch.TraceVerbose)
 							Trace.WriteLine("{0}: Stopping thread...".FormatString(_name));
 
 						if (_queueProcessingThread == null || !_queueProcessingThread.IsAlive || _queueProcessingThread.Join(1000))
 						{
-							if (ChoTrace.ChoSwitch.TraceVerbose)
+							if (ChoTraceSwitch.Switch.TraceVerbose)
 								Trace.WriteLine("{0}: Stopped thread...".FormatString(_name));
 
 							_queueProcessingThread = null;
@@ -226,7 +226,7 @@ namespace Cinchoo.Core.Services
 			{
 				if (_queueProcessingThread != null)
 					Stop(true);
-				else if (ChoTrace.ChoSwitch.TraceVerbose)
+				else if (ChoTraceSwitch.Switch.TraceVerbose)
 					Trace.WriteLine("{0}: Thread not started.".FormatString(_name));
 			}
 			finally

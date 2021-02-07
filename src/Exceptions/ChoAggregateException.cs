@@ -12,7 +12,7 @@
     #endregion NameSpaces
 
     [Serializable]
-    public class ChoAggregateException : Exception
+    public class ChoAggregateException : ChoApplicationException
     {
         #region Instance Members (Private)
 

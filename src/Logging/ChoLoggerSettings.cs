@@ -99,6 +99,8 @@ namespace Cinchoo.Core.Logging
 	[XmlRoot("loggerSettings")]
 	public class ChoLoggerSettings : IChoObjectInitializable
 	{
+        private static readonly ChoLoggerSettings _instance = new ChoLoggerSettings();
+
 		#region Instance Data Members (Public)
 
 		[XmlAttribute("turnOn")]
@@ -142,7 +144,7 @@ namespace Cinchoo.Core.Logging
 
 		public static ChoLoggerSettings Me
 		{
-			get { return ChoConfigurationManagementFactory.CreateInstance<ChoLoggerSettings>(); }
+            get { return _instance; }
 		}
 
 		private static ChoDictionary<string, ChoLogListener[]> _defaultLogSources;

@@ -16,6 +16,8 @@ namespace Cinchoo.Core.Configuration
 	[XmlRoot("configStorageSettings")]
 	public class ChoConfigStorageManagerSettings : IChoObjectInitializable
 	{
+        private static readonly ChoConfigStorageManagerSettings _instance = new ChoConfigStorageManagerSettings();
+
 		#region Instance Data Members (Public)
 
 		[XmlElement("configStorage", typeof(ChoObjConfigurable))]
@@ -33,7 +35,7 @@ namespace Cinchoo.Core.Configuration
 
 		#region Shared Data Members (Private)
 
-        private static string _buildInConfigStorageType = typeof(ChoStandardAppSettingsConfigStorage).AssemblyQualifiedName;
+        private static string _buildInConfigStorageType = typeof(ChoStandardAppSettingsConfigStorage).SimpleQualifiedName();
 
 		#endregion Shared Data Members (Private)
 
@@ -59,7 +61,7 @@ namespace Cinchoo.Core.Configuration
 
 		public static ChoConfigStorageManagerSettings Me
 		{
-			get { return ChoConfigurationManagementFactory.CreateInstance<ChoConfigStorageManagerSettings>(); }
+            get { return _instance; }
 		}
 
 		private static ChoDictionary<string, IChoConfigStorage> _defaultConfigStorages;

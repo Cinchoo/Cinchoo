@@ -40,6 +40,7 @@
         private object _result = null;
         private bool _isAborted = false;
         private bool _isTimedOut = false;
+        private int _retryCount = 0;
 
         #endregion Instance Data Members (Private)
 
@@ -58,6 +59,20 @@
         {
             _result = result;
             SignalCompletion(completedSynchronously);
+        }
+
+        internal void SetAsFailedWithRetry(Exception exception, int retryCount)
+        {
+            // Passing null for exception means no error occurred. 
+            // This is the common case
+
+            _retryCount = retryCount;
+            if (exception is ChoTimeoutException)
+                _isTimedOut = true;
+
+            _exception = exception;
+            //ThreadPool.QueueUserWorkItem(InvokeCallback, _asyncState);
+            InvokeCallback(_asyncState);
         }
 
         internal void SetAsFailed(Exception exception, bool completedSynchronously)
@@ -102,12 +117,11 @@
             //throw new InvalidOperationException("You can set a result only once");
 
             // If the event exists, set it
-            if (_asyncWaitHandle != null)
-                _asyncWaitHandle.Set();
+            ((EventWaitHandle)AsyncWaitHandle).Set();
 
             // If a callback method was set, call it
-            //ThreadPool.QueueUserWorkItem(InvokeCallback);
-            InvokeCallback(null);
+            //ThreadPool.QueueUserWorkItem(InvokeCallback, _asyncState);
+            InvokeCallback(_asyncState);
         }
 
         #endregion Instance Members (Private)
@@ -123,7 +137,7 @@
                 // If the operation isn't done, wait for it
                 AsyncWaitHandle.WaitOne();
                 AsyncWaitHandle.Close();
-                _asyncWaitHandle = null;  // Allow early GC
+                //_asyncWaitHandle = null;  // Allow early GC
             }
 
             // Operation is done: if an exception occured, throw it
@@ -135,6 +149,11 @@
         #endregion Instance Members (Public)
 
         #region Implementation of IAsyncResult
+
+        public int RetryCount
+        {
+            get { return _retryCount; }
+        }
 
         public Object AsyncState
         {
@@ -150,23 +169,32 @@
         {
             get
             {
-                if (_asyncWaitHandle == null)
+                if (_asyncWaitHandle != null)
+                    return _asyncWaitHandle;
+
+                lock (_waitHandleLock)
                 {
-                    Boolean done = IsCompleted;
-                    ManualResetEvent mre = new ManualResetEvent(done);
-                    if (Interlocked.CompareExchange(ref _asyncWaitHandle, mre, null) != null)
+                    if (_asyncWaitHandle != null)
+                        return _asyncWaitHandle;
+                    
+                    if (_asyncWaitHandle == null)
                     {
-                        // Another thread created this object's event; dispose 
-                        // the event we just created
-                        mre.Close();
-                    }
-                    else
-                    {
-                        if (!done && IsCompleted)
+                        Boolean done = IsCompleted;
+                        ManualResetEvent mre = new ManualResetEvent(done);
+                        if (Interlocked.CompareExchange(ref _asyncWaitHandle, mre, null) != null)
                         {
-                            // If the operation wasn't done when we created 
-                            // the event but now it is done, set the event
-                            _asyncWaitHandle.Set();
+                            // Another thread created this object's event; dispose 
+                            // the event we just created
+                            mre.Close();
+                        }
+                        else
+                        {
+                            if (!done && IsCompleted)
+                            {
+                                // If the operation wasn't done when we created 
+                                // the event but now it is done, set the event
+                                _asyncWaitHandle.Set();
+                            }
                         }
                     }
                 }
@@ -191,6 +219,11 @@
         public bool IsAborted
         {
             get { return _isAborted; }
+        }
+
+        public object Result
+        {
+            get { return _result; }
         }
 
         #endregion

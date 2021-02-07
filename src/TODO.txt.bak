@@ -3,3 +3,35 @@
 3. StreamProfile - need to open and close whenever Frx needs
 4. Environment / machine specific config
 5. Generic Priority Queue
+
+Mar 09, 2014 / v1.0.4.0
+
+Cinchoo.Framework.Dlls.Zip (Any CPU)
+
+BUG FIX: Issue setting configuration folder programatically.
+[sourcecode language="csharp"]
+static void ChoApplication_ApplyFrxParamsOverrides(object sender, ChoFrxParamsEventArgs e)
+{
+   e.AppFrxSettings.AppFrxFilePath = @"C:\Config";
+}
+[/sourcecode]
+Mar 09, 2014 / v1.0.3.9
+
+Cinchoo.Framework.Dlls.Zip (Any CPU)
+
+Fixed race condition in creating and managing individual Configuration Section files.
+Feb 13, 2014 / v1.0.3.8
+
+Cinchoo.Framework.Dlls.Zip (Any CPU)
+
+Fixed the issue related to turning on/off Framework logging completely using ChoSwitch (System.Diagnostics.Switch). in App.Config as below. Possible switch are Off, Verbose, Info, Warning, Error.
+[sourcecode language="csharp"]
+<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+	<system.diagnostics>
+		<switches>
+			<add name="ChoSwitch" value="Off" />
+		</switches>
+	</system.diagnostics>
+</configuration>
+[/sourcecode]

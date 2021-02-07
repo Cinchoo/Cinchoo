@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace Cinchoo.Core.IO
@@ -22,6 +23,14 @@ namespace Cinchoo.Core.IO
         public const string Perf = "perf";
         public const string Cho = "cho";
         public const string ETL = "etl";
+        public const string PBS = "pbs";
+        public const string CHK = "chk";
+        public const string CMD = "cmd"; //CommandLineArg
+        public const string BAT = "bat";
+        public const string VBS = "vbs";
+        public const string JS = "js";
+        public const string PLG = "plg";
+        public const string BIN = "bin";
 
         #endregion Constants (Public)
 
@@ -44,6 +53,16 @@ namespace Cinchoo.Core.IO
                 case Xml:
                 case Txt:
                 case Perf:
+                case Cho:
+                case ETL:
+                case PBS:
+                case CHK:
+                case CMD:
+                case BAT:
+                case VBS:
+                case JS:
+                case PLG:
+                case BIN:
                     return true;
                 default:
                     return false;
@@ -77,7 +96,8 @@ namespace Cinchoo.Core.IO
         public const string SerializationIssues = "SerializationIssues";
         public const string ConfigurationErrors = "ConfigurationErrors";
         public const string CoreFrxConfigFileName = "ChoCoreFrx.xml";
-
+        public const string SharedEnvironmentConfigFileName = "SharedEnvironments.xml";
+        
         #endregion Constants
     }
 

@@ -14,6 +14,7 @@
     using Cinchoo.Core.Services;
     using Cinchoo.Core.Xml;
 using System.Reflection;
+    using Cinchoo.Core.Xml.Serialization;
     
 	#endregion NameSpaces
 
@@ -56,6 +57,8 @@ using System.Reflection;
 
             //if (configElement.WatchChange)
             //{
+            if (ConfigurationChangeWatcher != null)
+            {
                 ConfigurationChangeWatcher.SetConfigurationChangedEventHandler("{0}_MetaData_WatcherHandler".FormatString(configElement.ConfigElementPath),
                     (sender, e) =>
                     {
@@ -64,6 +67,7 @@ using System.Reflection;
                             configElement.Refresh();
                         }
                     });
+            }
             //}
         }
 
@@ -72,7 +76,8 @@ using System.Reflection;
             if (configElement == null)
                 return;
 
-            ConfigurationChangeWatcher.SetConfigurationChangedEventHandler("{0}_MetaData_WatcherHandler".FormatString(configElement.ConfigElementPath), NullConfigurationChangedEventHandler);
+            if (ConfigurationChangeWatcher != null)
+                ConfigurationChangeWatcher.SetConfigurationChangedEventHandler("{0}_MetaData_WatcherHandler".FormatString(configElement.ConfigElementPath), NullConfigurationChangedEventHandler);
         }
 
         public static ChoBaseConfigurationMetaDataInfo GetMetaDataSection(ChoBaseConfigurationElement configElement)
@@ -174,13 +179,16 @@ using System.Reflection;
                 if (ChoMetaDataFilePathSettings.Me != null)
                     _metaDataFilepath = ChoMetaDataFilePathSettings.Me.OverridenConfigurationMetaDataFilePath;
 
-                ChoXmlDocument.CreateXmlFileIfEmpty(_metaDataFilepath);
-                _configurationChangeWatcher = new ChoAppConfigurationChangeFileWatcher("meta-data_configurations", _metaDataFilepath, _includeFiles);
-                _configurationChangeWatcher.SetConfigurationChangedEventHandler("ChoMetaDataManager_Watcher",
-                    (sender, e) =>
-                    {
-                        Refresh();
-                    });
+                if (!ChoAppFrxSettings.Me.DisableMetaDataConfig)
+                {
+                    ChoXmlDocument.CreateXmlFileIfEmpty(_metaDataFilepath);
+                    _configurationChangeWatcher = new ChoAppConfigurationChangeFileWatcher("meta-data_configurations", _metaDataFilepath, _includeFiles);
+                    _configurationChangeWatcher.SetConfigurationChangedEventHandler("ChoMetaDataManager_Watcher",
+                        (sender, e) =>
+                        {
+                            Refresh();
+                        });
+                }
 
                 if (!_metaDataFilepath.IsNullOrWhiteSpace() && File.Exists(_metaDataFilepath))
                 {
@@ -194,7 +202,7 @@ using System.Reflection;
             catch (Exception ex)
             {
                 ChoTrace.Error(ex.ToString());
-                throw;
+                //throw;
             }
         }
 
@@ -218,7 +226,7 @@ using System.Reflection;
                             if (memberInfos != null && memberInfos.Length > 0)
                             {
                                 //Set member values
-                                List<ChoPropertyInfo> propertyInfoList = new List<ChoPropertyInfo>();
+                                List<ChoPropertyInfoMetaData> propertyInfoList = new List<ChoPropertyInfoMetaData>();
                                 ChoPropertyInfoAttribute memberInfoAttribute = null;
 
                                 foreach (MemberInfo memberInfo in memberInfos)
@@ -227,15 +235,19 @@ using System.Reflection;
                                         continue;
 
                                     memberInfoAttribute = (ChoPropertyInfoAttribute)ChoType.GetMemberAttribute(memberInfo, typeof(ChoPropertyInfoAttribute));
-                                    ChoPropertyInfo propInfo = new ChoPropertyInfo();
+                                    ChoPropertyInfoMetaData propInfo = new ChoPropertyInfoMetaData();
 
                                     propInfo.Name = ChoType.GetMemberName(memberInfo);
 
+                                    object defaultValue = memberInfo.GetDefaultValue();
+                                    if (defaultValue != null)
+                                        propInfo.DefaultValue = new ChoCDATA(defaultValue.ToString());
+
                                     if (memberInfoAttribute != null)
                                     {
-                                        propInfo.DefaultValue = memberInfoAttribute.DefaultValue;
-                                        propInfo.FallbackValue = memberInfoAttribute.FallbackValue;
+                                        propInfo.FallbackValue = new ChoCDATA(memberInfoAttribute.FallbackValue);
                                         propInfo.SourceType = memberInfoAttribute.SourceType;
+                                        propInfo.IsExpression = memberInfoAttribute.IsExpression;
                                         propInfo.IsDefaultValueSpecified = memberInfoAttribute.IsDefaultValueSpecified;
                                         propInfo.IsFallbackValueSpecified = memberInfoAttribute.IsFallbackValueSpecified;
                                     }
@@ -292,8 +304,8 @@ using System.Reflection;
         }
 
 
-        internal static bool TryConfigFallbackValue(ChoBaseConfigurationElement configElement, string propName,
-            ChoPropertyInfoAttribute memberInfoAttribute, out object configFallbackValue)
+        internal static bool TryGetFallbackValue(ChoBaseConfigurationElement configElement, string propName,
+            ChoPropertyInfoAttribute memberInfoAttribute, out string configFallbackValue)
         {
             configFallbackValue = null;
 
@@ -303,11 +315,17 @@ using System.Reflection;
             ChoPropertyInfos propertyInfo = GetPropertyInfos(configElement);
             if (propertyInfo != null)
             {
-                ChoPropertyInfo propInfo = propertyInfo[propName];
+                ChoPropertyInfoMetaData propInfo = propertyInfo[propName];
                 if (propInfo == null)
-                    return false;
+                {
+                    if (memberInfoAttribute != null && memberInfoAttribute.IsFallbackValueSpecified)
+                    {
+                        configFallbackValue = memberInfoAttribute.FallbackValue;
+                        return memberInfoAttribute.IsFallbackValueSpecified;
+                    }
+                }
 
-                configFallbackValue = propInfo != null ? propInfo.FallbackValue : null;
+                configFallbackValue = propInfo != null && propInfo.FallbackValue != null ? propInfo.FallbackValue.Value : null;
                 return propInfo != null ? propInfo.IsFallbackValueSpecified : false;
             }
             else if (memberInfoAttribute != null && memberInfoAttribute.IsFallbackValueSpecified)
@@ -319,8 +337,8 @@ using System.Reflection;
             return false;
         }
 
-        internal static bool TryConfigDefaultValue(ChoBaseConfigurationElement configElement, string propName,
-            ChoPropertyInfoAttribute memberInfoAttribute, out object configDefaultValue)
+        internal static bool TryGetDefaultValue(ChoBaseConfigurationElement configElement, string propName,
+            ChoPropertyInfoAttribute memberInfoAttribute, out string configDefaultValue)
         {
             configDefaultValue = null;
 
@@ -330,11 +348,17 @@ using System.Reflection;
             ChoPropertyInfos propertyInfo = GetPropertyInfos(configElement);
             if (propertyInfo != null)
             {
-                ChoPropertyInfo propInfo = propertyInfo[propName];
+                ChoPropertyInfoMetaData propInfo = propertyInfo[propName];
                 if (propInfo == null)
-                    return false;
+                {
+                    if (memberInfoAttribute != null && memberInfoAttribute.IsDefaultValueSpecified)
+                    {
+                        configDefaultValue = memberInfoAttribute.DefaultValue;
+                        return memberInfoAttribute.IsDefaultValueSpecified;
+                    }
+                }
 
-                configDefaultValue = propInfo != null ? propInfo.DefaultValue : null;
+                configDefaultValue = propInfo != null && propInfo.DefaultValue != null ? propInfo.DefaultValue.Value : null;
                 return propInfo != null ? propInfo.IsDefaultValueSpecified : false;
             }
             else if (memberInfoAttribute != null && memberInfoAttribute.IsDefaultValueSpecified)
@@ -346,7 +370,6 @@ using System.Reflection;
             return false;
         }
 
-
         internal static Type GetSourceType(ChoBaseConfigurationElement configElement, string propName,
             ChoPropertyInfoAttribute memberInfoAttribute)
         {
@@ -356,7 +379,7 @@ using System.Reflection;
             ChoPropertyInfos propertyInfo = GetPropertyInfos(configElement);
             if (propertyInfo != null)
             {
-                ChoPropertyInfo propInfo = propertyInfo[propName];
+                ChoPropertyInfoMetaData propInfo = propertyInfo[propName];
                 if (propInfo != null && propInfo.SourceType != null)
                     return propInfo.SourceType;
             }
@@ -366,6 +389,27 @@ using System.Reflection;
 
             return null;
         }
+
+        internal static bool IsExpressionProperty(ChoBaseConfigurationElement configElement, string propName,
+            ChoPropertyInfoAttribute memberInfoAttribute)
+        {
+            ChoGuard.ArgumentNotNull(configElement, "ConfigElement");
+            ChoGuard.ArgumentNotNull(propName, "PropertyName");
+
+            ChoPropertyInfos propertyInfo = GetPropertyInfos(configElement);
+            if (propertyInfo != null)
+            {
+                ChoPropertyInfoMetaData propInfo = propertyInfo[propName];
+                if (propInfo != null)
+                    return propInfo.IsExpression;
+            }
+
+            if (memberInfoAttribute != null)
+                return memberInfoAttribute.IsExpression;
+
+            return false;
+        }
+
 
         private static ChoPropertyInfos GetPropertyInfos(ChoBaseConfigurationElement configElement)
         {
@@ -399,22 +443,24 @@ using System.Reflection;
                 }
             }
 
-            return propDict[configElementPath];
+            return propDict.ContainsKey(configElementPath) ? propDict[configElementPath] : null;
         }
 
         #endregion Shared Members (Private)
     }
 
-    public class ChoPropertyInfo
+    public class ChoPropertyInfoMetaData
     {
         [XmlAttribute("name")]
         public string Name;
-        [XmlAttribute("defaultValue")]
-        public string DefaultValue;
-        [XmlAttribute("fallbackValue")]
-        public string FallbackValue;
+        [XmlElement("defaultValue")]
+        public ChoCDATA DefaultValue;
+        [XmlElement("fallbackValue")]
+        public ChoCDATA FallbackValue;
         [XmlAttribute("sourceType")]
         public string SourceTypeText;
+        [XmlAttribute("isExpression")]
+        public bool IsExpression;
 
         private Type _sourceType;
         [XmlIgnore]
@@ -439,7 +485,7 @@ using System.Reflection;
             IsDefaultValueSpecified = DefaultValue != null;
             IsFallbackValueSpecified = FallbackValue != null;
 
-            if (SourceTypeText.IsNullOrWhiteSpace())
+            if (!SourceTypeText.IsNullOrWhiteSpace())
             {
                 try
                 {
@@ -455,11 +501,11 @@ using System.Reflection;
     {
         public static readonly ChoPropertyInfos Default = new ChoPropertyInfos();
 
-        [XmlElement("propertyInfo", typeof(ChoPropertyInfo))]
-        public ChoPropertyInfo[] PropertyInfoArr;
+        [XmlElement("propertyInfo", typeof(ChoPropertyInfoMetaData))]
+        public ChoPropertyInfoMetaData[] PropertyInfoArr;
 
         [XmlIgnore]
-        public ChoPropertyInfo this[string propName]
+        public ChoPropertyInfoMetaData this[string propName]
         {
             get
             {
@@ -478,7 +524,7 @@ using System.Reflection;
         {
             if (PropertyInfoArr != null)
             {
-                foreach (ChoPropertyInfo propertyInfo in PropertyInfoArr)
+                foreach (ChoPropertyInfoMetaData propertyInfo in PropertyInfoArr)
                     propertyInfo.Initialize();
             }
         }

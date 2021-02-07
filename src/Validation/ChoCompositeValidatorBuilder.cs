@@ -3,6 +3,7 @@ namespace Cinchoo.Core
     #region NameSpaces
 
     using System;
+    using System.Linq;
     using System.Collections.Generic;
     using System.Reflection;
     using Cinchoo.Core.Collections.Generic;
@@ -44,89 +45,122 @@ namespace Cinchoo.Core
 
         private static void Build(MemberInfo memberInfo)
         {
+            string validatorName = null;
             List<IChoSurrogateValidator> validators = new List<IChoSurrogateValidator>();
+            Dictionary<string, IChoSurrogateValidator> namedValidators = new Dictionary<string, IChoSurrogateValidator>();
+            List<ChoCompositeValidatorAttribute> compositeValidatorsAttrs = new List<ChoCompositeValidatorAttribute>();
 
-            ChoCompositeValidator compositeValidator = new ChoAndCompositeValidator();
-            foreach (Attribute memberCallAttribute in ChoType.GetMemberAttributesByBaseType(memberInfo, typeof(Attribute)))
+            ChoCompositeValidator topCompositeValidator = new ChoAndCompositeValidator();
+            ChoCompositeValidator compositeValidator = topCompositeValidator;
+
+            Attribute[] attrs = ChoType.GetMemberAttributesByBaseType(memberInfo, typeof(Attribute));
+
+            //Lookup all non composite validators, build and cache them
+            foreach (Attribute memberCallAttribute in attrs)
             {
-                foreach (IChoValidationManager validationManager in ChoValidationManagerSettings.Me.ValidationManagers)
+                if (!(memberCallAttribute is ChoCompositeValidatorAttribute))
                 {
-                    if (memberCallAttribute is ChoCompositeValidatorAttribute)
+                    foreach (IChoValidationManager validationManager in ChoValidationManagerSettings.Me.ValidationManagers)
                     {
-                        if (((ChoCompositeValidatorAttribute)memberCallAttribute).CompositionType == ChoCompositionType.Or)
+                        if (validationManager.IsValid(memberCallAttribute, out validatorName))
                         {
-                            if (validators.Count > 0)
+                            if (!validatorName.IsNullOrWhiteSpace() && namedValidators.ContainsKey(validatorName)) continue;
+
+                            IChoSurrogateValidator validator = validationManager.CreateValidator(memberCallAttribute, ValidationScope.Before, ValidatorSource.Attribute);
+                            if (validator != null)
                             {
-                                compositeValidator.Add(validators.ToArray());
-                                validators.Add(compositeValidator);
-                                validators.Clear();
+                                if (validatorName.IsNullOrWhiteSpace())
+                                    validators.Add(validator);
+                                else
+                                    namedValidators.Add(validatorName, validator);
                             }
-                            compositeValidator = new ChoOrCompositeValidator();
+
+                            break;
                         }
                     }
-                    else if (validationManager.IsValid(memberCallAttribute))
-                    {
-                        IChoSurrogateValidator validator = validationManager.CreateValidator(memberCallAttribute, ValidationScope.Before, ValidatorSource.Attribute);
-                        if (validator != null)
-                            validators.Add(validator);
-                    }
+                }
+                else if (memberCallAttribute is ChoCompositeValidatorAttribute)
+                {
+                    compositeValidatorsAttrs.Add(memberCallAttribute as ChoCompositeValidatorAttribute);
                 }
             }
-            if (validators.Count > 0)
+
+            //Build and cache all the composite validators
+            foreach (ChoCompositeValidatorAttribute memberCallAttribute in compositeValidatorsAttrs)
             {
-                compositeValidator.Add(validators.ToArray());
-                validators.Add(compositeValidator);
+                if (memberCallAttribute.Name.IsNullOrWhiteSpace())
+                {
+                    IChoSurrogateValidator validator = BuildCompositeValidator(memberCallAttribute as ChoCompositeValidatorAttribute, namedValidators, compositeValidatorsAttrs.ToArray());
+                    if (validator != null)
+                        validators.Add(validator);
+                }
             }
 
             _objectMemberValidatorCache.Add(memberInfo, new ChoAndCompositeValidator(validators.ToArray()));
         }
 
+        private static IChoSurrogateValidator BuildCompositeValidator(ChoCompositeValidatorAttribute compositeValidatorAttribute, Dictionary<string, IChoSurrogateValidator> namedValidators,
+            ChoCompositeValidatorAttribute[] attrs, List<ChoCompositeValidator> parentValidators = null)
+        {
+            ChoCompositeValidator compositeValidator = null;
+
+            if (compositeValidatorAttribute.CompositionType == ChoCompositionType.Or)
+                compositeValidator = new ChoOrCompositeValidator();
+            else
+                compositeValidator = new ChoAndCompositeValidator();
+
+            compositeValidator.Name = compositeValidatorAttribute.Name;
+            if (parentValidators == null)
+                parentValidators = new List<ChoCompositeValidator>();
+
+            parentValidators.Add(compositeValidator);
+
+            foreach (string name in compositeValidatorAttribute.ValidatorNames)
+            {
+                if (name.IsNullOrWhiteSpace()) continue;
+                if (namedValidators.ContainsKey(name))
+                {
+                    if (!(namedValidators[name] is ChoCompositeValidator))
+                        compositeValidator.Add(namedValidators[name]);
+                    else if (!IsCircularReferenceFound(parentValidators, name))
+                    {
+                        compositeValidator.Add(namedValidators[name]);
+                        parentValidators.Add(namedValidators[name] as ChoCompositeValidator);
+                    }
+
+                    continue;
+                }
+                else
+                {
+                    foreach (Attribute memberCallAttribute in attrs)
+                    {
+                        if (!(memberCallAttribute is ChoCompositeValidatorAttribute)) continue;
+                        if (((ChoCompositeValidatorAttribute)memberCallAttribute).Name != name) continue;
+                        if (IsCircularReferenceFound(parentValidators, name)) continue;
+
+                        IChoSurrogateValidator childCompositeValidator = null;
+
+                        childCompositeValidator = BuildCompositeValidator(memberCallAttribute as ChoCompositeValidatorAttribute,
+                            namedValidators, attrs, parentValidators);
+
+                        namedValidators.Add(name, childCompositeValidator);
+
+                        compositeValidator.Add(childCompositeValidator);
+                        parentValidators.Add(namedValidators[name] as ChoCompositeValidator);
+                    }
+                }
+            }
+
+            return compositeValidator;
+        }
+
+        private static bool IsCircularReferenceFound(List<ChoCompositeValidator> parentValidators, string name)
+        {
+            if (parentValidators == null) return false;
+
+            return parentValidators.SingleOrDefault((x) => x.Name == name) != null;
+        }
+
         #endregion Shared Members (Private)
-
-        //    private static void Build(object target)
-    //    {
-    //        if (target == null)
-    //            return;
-
-    //        if (_objectValidatorCache.ContainsKey(target.GetType().FullName))
-    //            return;
-
-    //        ChoDictionary<string, IChoSurrogateValidator> memberValidators = new ChoDictionary<string, IChoSurrogateValidator>();
-
-    //        foreach (MemberInfo memberInfo in ChoType.GetMembers(target.GetType()))
-    //        {
-    //            ChoCompositeValidator compositeValidator = new ChoAndCompositeValidator();
-    //            List<IChoSurrogateValidator> validators = new List<IChoSurrogateValidator>();
-    //            foreach (Attribute memberCallAttribute in ChoType.GetMemberAttributesByBaseType(memberInfo, typeof(Attribute)))
-    //            {
-    //                foreach (IChoValidationManager validationManager in ChoValidationManagerSettings.Me.ValidationManagers)
-    //                {
-    //                    if (memberCallAttribute is ChoCompositeValidatorAttribute)
-    //                    {
-    //                        if (((ChoCompositeValidatorAttribute)memberCallAttribute).CompositionType == ChoCompositionType.Or)
-    //                            compositeValidator = new ChoOrCompositeValidator();
-    //                    }
-    //                    else if (validationManager.IsValid(memberCallAttribute))
-    //                    {
-    //                        IChoSurrogateValidator validator = validationManager.CreateValidator(target, memberCallAttribute, ValidationScope.Before, ValidatorSource.Attribute);
-    //                        if (validator != null)
-    //                            validators.Add(validator);
-    //                    }
-    //                }
-    //            }
-    //            if (validators.Count > 0)
-    //            {
-    //                compositeValidator.Add(validators.ToArray());
-    //                memberValidators.Add(memberInfo.Name, compositeValidator);
-    //            }
-    //        }
-
-    //        if (_objectValidatorCache.ContainsKey(target.GetType().FullName))
-    //            _objectValidatorCache[target.GetType().FullName] = memberValidators;
-    //        else
-    //            _objectValidatorCache.Add(target.GetType().FullName, memberValidators);
-    //    }
-
-    //    #endregion Shared Members (Private)
     }
 }

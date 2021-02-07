@@ -38,9 +38,9 @@ namespace Cinchoo.Core
         protected override string GetErrMsg()
         {
             if (Negated)
-                return "The value must not be null/empty.";
-            else
                 return "The value much be null/empty.";
+            else
+                return "The value must not be null/empty.";
         }
 
         //

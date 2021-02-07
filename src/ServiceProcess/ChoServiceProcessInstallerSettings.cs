@@ -11,6 +11,7 @@
     using Cinchoo.Core.Text;
     using System.IO;
     using Cinchoo.Core.IO;
+    using Cinchoo.Core.Security.Cryptography;
 
     #endregion NameSpaces
 
@@ -68,6 +69,14 @@
                 {
                     if (_instance == null)
                         _instance = ChoCoreFrxConfigurationManager.Register<ChoServiceProcessInstallerSettings>();
+                    if (_instance != null)
+                    {
+                        if (!_instance.Password.IsNullOrWhiteSpace())
+                        {
+                            using (ChoAESCryptography crypt = new ChoAESCryptography())
+                                _instance.Password = crypt.Decrypt(_instance.Password);
+                        }
+                    }
                 }
 
                 return _instance;

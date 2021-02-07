@@ -3,11 +3,13 @@ namespace Cinchoo.Core.Diagnostics
     #region NameSpaces
 
     using System;
+    using System.Linq;
     using System.Diagnostics;
     using System.Reflection;
     using Cinchoo.Core;
     using Cinchoo.Core.Collections.Generic;
     using Cinchoo.Core.Threading;
+    using System.Collections.Generic;
 
     #endregion NameSpaces
 
@@ -16,8 +18,13 @@ namespace Cinchoo.Core.Diagnostics
 	{
 		#region Readonly members
 
-		public const string GLOBAL_PROFILE_NAME = "GLOBAL";
-		public readonly static IChoProfile GlobalProfile = null;
+        internal const string GLOBAL_PROFILE_NAME = "GLOBAL";
+        internal const string NULL_PROFILE_NAME = "NULL_PROFILE";
+        internal const string DEFAULT_PROFILE_NAME = "__DUMMY_PROFILE__";
+        internal const string CURRENT_CONTEXT_PROFILE = "__CONTEXT_PROFILE__";
+
+        public static readonly IChoProfile Default = new ChoStreamProfile(ChoProfile.GLOBAL_PROFILE_NAME, String.Empty, null);
+        public static readonly IChoProfile NULL = new ChoStreamProfile(ChoProfile.NULL_PROFILE_NAME, String.Empty, null);
 
 		#endregion ReadOnly members
 
@@ -36,7 +43,7 @@ namespace Cinchoo.Core.Diagnostics
 		//private bool IsDisposed = false;
         private DateTime _startTime = DateTime.Now;
         private string _name = ChoRandom.NextRandom().ToString();
-        private bool _condition = ChoTrace.GetChoSwitch().TraceVerbose;
+        private bool _condition = ChoTraceSwitch.Switch.TraceVerbose;
 
         #endregion
 
@@ -44,7 +51,7 @@ namespace Cinchoo.Core.Diagnostics
 
 		static ChoProfile()
 		{
-			//ChoStreamProfileAttribute memberProfileAttribute = new ChoStreamProfileAttribute(ChoTrace.ChoSwitch.TraceVerbose, "Application Logs...");
+			//ChoStreamProfileAttribute memberProfileAttribute = new ChoStreamProfileAttribute(ChoTraceSwitch.Switch.TraceVerbose, "Application Logs...");
 			//memberProfileAttribute.Name = ChoApplicationSettings.Me.ApplicationId;
 			//TODO:
 			//memberProfileAttribute.Directory = null;
@@ -56,12 +63,12 @@ namespace Cinchoo.Core.Diagnostics
 		}
 
         public ChoProfile(string msg)
-            : this(ChoTrace.ChoSwitch.TraceVerbose, msg)
+            : this(ChoTraceSwitch.Switch.TraceVerbose, msg)
         {
         }
 
         public ChoProfile(string msg, ChoProfile outerProfile)
-            : this(ChoTrace.ChoSwitch.TraceVerbose, msg, outerProfile)
+            : this(ChoTraceSwitch.Switch.TraceVerbose, msg, outerProfile)
         {
         }
 
@@ -252,12 +259,12 @@ namespace Cinchoo.Core.Diagnostics
         public void Debug(object message)
         {
             if (message != null)
-                AppendLineIf(ChoTrace.ChoSwitch.TraceVerbose, message.ToString());
+                AppendLineIf(ChoTraceSwitch.Switch.TraceVerbose, message.ToString());
         }
 
         public void Debug(Exception exception)
         {
-            AppendIf(ChoTrace.ChoSwitch.TraceVerbose, exception);
+            AppendIf(ChoTraceSwitch.Switch.TraceVerbose, exception);
         }
 
         public void Debug(object message, Exception exception)
@@ -268,23 +275,23 @@ namespace Cinchoo.Core.Diagnostics
 
         public void DebugFormat(string format, params object[] args)
         {
-            AppendLineIf(ChoTrace.ChoSwitch.TraceVerbose, String.Format(format, args));
+            AppendLineIf(ChoTraceSwitch.Switch.TraceVerbose, String.Format(format, args));
         }
 
         public void DebugFormat(IFormatProvider provider, string format, params object[] args)
         {
-            AppendLineIf(ChoTrace.ChoSwitch.TraceVerbose, String.Format(provider, format, args));
+            AppendLineIf(ChoTraceSwitch.Switch.TraceVerbose, String.Format(provider, format, args));
         }
 
         public void Error(object message)
         {
             if (message != null)
-                AppendLineIf(ChoTrace.ChoSwitch.TraceError, message.ToString());
+                AppendLineIf(ChoTraceSwitch.Switch.TraceError, message.ToString());
         }
 
         public void Error(Exception exception)
         {
-            AppendIf(ChoTrace.ChoSwitch.TraceError, exception);
+            AppendIf(ChoTraceSwitch.Switch.TraceError, exception);
         }
 
         public void Error(object message, Exception exception)
@@ -295,23 +302,23 @@ namespace Cinchoo.Core.Diagnostics
 
         public void ErrorFormat(string format, params object[] args)
         {
-            AppendLineIf(ChoTrace.ChoSwitch.TraceError, String.Format(format, args));
+            AppendLineIf(ChoTraceSwitch.Switch.TraceError, String.Format(format, args));
         }
 
         public void ErrorFormat(IFormatProvider provider, string format, params object[] args)
         {
-            AppendLineIf(ChoTrace.ChoSwitch.TraceError, String.Format(provider, format, args));
+            AppendLineIf(ChoTraceSwitch.Switch.TraceError, String.Format(provider, format, args));
         }
 
         public void Info(object message)
         {
             if (message != null)
-                AppendLineIf(ChoTrace.ChoSwitch.TraceInfo, message.ToString());
+                AppendLineIf(ChoTraceSwitch.Switch.TraceInfo, message.ToString());
         }
 
         public void Info(Exception exception)
         {
-            AppendIf(ChoTrace.ChoSwitch.TraceInfo, exception);
+            AppendIf(ChoTraceSwitch.Switch.TraceInfo, exception);
         }
 
         public void Info(object message, Exception exception)
@@ -322,23 +329,23 @@ namespace Cinchoo.Core.Diagnostics
 
         public void InfoFormat(string format, params object[] args)
         {
-            AppendLineIf(ChoTrace.ChoSwitch.TraceInfo, String.Format(format, args));
+            AppendLineIf(ChoTraceSwitch.Switch.TraceInfo, String.Format(format, args));
         }
 
         public void InfoFormat(IFormatProvider provider, string format, params object[] args)
         {
-            AppendLineIf(ChoTrace.ChoSwitch.TraceInfo, String.Format(provider, format, args));
+            AppendLineIf(ChoTraceSwitch.Switch.TraceInfo, String.Format(provider, format, args));
         }
 
         public void Warn(object message)
         {
             if (message != null)
-                AppendLineIf(ChoTrace.ChoSwitch.TraceWarning, message.ToString());
+                AppendLineIf(ChoTraceSwitch.Switch.TraceWarning, message.ToString());
         }
 
         public void Warn(Exception exception)
         {
-            AppendIf(ChoTrace.ChoSwitch.TraceWarning, exception);
+            AppendIf(ChoTraceSwitch.Switch.TraceWarning, exception);
         }
 
         public void Warn(object message, Exception exception)
@@ -349,17 +356,161 @@ namespace Cinchoo.Core.Diagnostics
 
         public void WarnFormat(string format, params object[] args)
         {
-            AppendLineIf(ChoTrace.ChoSwitch.TraceWarning, String.Format(format, args));
+            AppendLineIf(ChoTraceSwitch.Switch.TraceWarning, String.Format(format, args));
         }
 
         public void WarnFormat(IFormatProvider provider, string format, params object[] args)
         {
-            AppendLineIf(ChoTrace.ChoSwitch.TraceWarning, String.Format(provider, format, args));
+            AppendLineIf(ChoTraceSwitch.Switch.TraceWarning, String.Format(provider, format, args));
         }
 
         #endregion
 
 		#region Shared Members (Private)
+
+        private static readonly object _profileCacheLock = new object();
+        private static readonly ChoConcurrentDictionary<string, ChoBaseProfile> _profileCache = new ChoConcurrentDictionary<string, ChoBaseProfile>();
+        [ThreadStatic]
+        private static Stack<ChoBaseProfile> _profileStack = null;
+
+        internal static void Register(ChoBaseProfile profile)
+        {
+            if (profile == null || profile.ProfilerName.IsNullOrWhiteSpace()) return;
+            if (profile.ProfilerName == ChoProfile.GLOBAL_PROFILE_NAME ||
+                profile.ProfilerName == ChoProfile.NULL_PROFILE_NAME) return;
+
+            lock (_profileCacheLock)
+            {
+                if (!_profileCache.ContainsKey(profile.ProfilerName))
+                    _profileCache.AddOrUpdate(profile.ProfilerName, profile, (k, v) => v);
+
+                if (_profileStack == null)
+                    _profileStack = new Stack<ChoBaseProfile>();
+
+                _profileStack.Push(profile);
+                _contextProfile = profile;
+                if (_contextProfile == null)
+                    _contextProfile = ChoProfile.Default;
+            }
+
+        }
+
+        internal static void Unregister(ChoBaseProfile profile)
+        {
+            if (profile == null || profile.ProfilerName.IsNullOrWhiteSpace()) return;
+            if (profile.ProfilerName == ChoProfile.GLOBAL_PROFILE_NAME ||
+                profile.ProfilerName == ChoProfile.NULL_PROFILE_NAME) return;
+
+            lock (_profileCacheLock)
+            {
+                ChoBaseProfile x = null;
+                if (_profileCache.ContainsKey(profile.ProfilerName))
+                    _profileCache.TryRemove(profile.ProfilerName, out x);
+
+                if (_profileStack != null)
+                {
+                    if (_profileStack.Count > 0)
+                        _profileStack.Pop();
+
+                    if (_profileStack.Count > 0)
+                        _contextProfile = _profileStack.Peek();
+                    else
+                        _contextProfile = null;
+                }
+
+                if (_contextProfile == null)
+                    _contextProfile = ChoProfile.Default;
+            }
+        }
+
+        [ThreadStatic]
+        private static IChoProfile _contextProfile = null;
+        [ThreadStatic]
+        private static ChoProfileAttribute _profileAttribute = null;
+        
+        internal static IChoProfile GetDefaultContext(StackFrame frame)
+        {
+            IChoProfile contextProfile = GetContext(frame);
+            return contextProfile == null ? ChoProfile.Default : contextProfile;
+        }
+
+        internal static IChoProfile GetContext(StackFrame frame)
+        {
+            string name = null;
+            MemberInfo method = frame.GetMethod();
+            if (method != null)
+            {
+                name = method.Name;
+                ChoProfileAttribute profileAttribute = ChoType.GetMemberAttributeByBaseType<ChoProfileAttribute>(method);
+                if (profileAttribute == null)
+                {
+                    var type = method.DeclaringType;
+                    name = type.Name;
+                    profileAttribute = ChoType.GetAttribute(type, typeof(ChoProfileAttribute)) as ChoProfileAttribute;
+                }
+                if (profileAttribute != null)
+                {
+                    if (_profileAttribute == profileAttribute)
+                        return _contextProfile;
+                    else
+                        _profileAttribute = profileAttribute;
+
+                    if (profileAttribute.Name.IsNullOrWhiteSpace())
+                        profileAttribute.Name = name;
+
+                    if (profileAttribute.OuterProfileName.IsNullOrWhiteSpace())
+                        _contextProfile = profileAttribute.ConstructProfile(null, null);
+                    else
+                        _contextProfile = profileAttribute.ConstructProfile(null, GetProfile(profileAttribute.OuterProfileName));
+                }
+            }
+
+            return _contextProfile;
+        }
+
+        public static IChoProfile DefaultContext
+        {
+            get { return GetDefaultContext(new StackFrame(1)); }
+        }
+
+        public static bool TryGetProfile(string name, ref IChoProfile profile, Func<ChoBaseProfile> profileConstructFactoryMethod)
+        {
+            if (name.IsNullOrWhiteSpace()) return false;
+
+            if (profileConstructFactoryMethod != null)
+            {
+                if (!_profileCache.ContainsKey(name))
+                {
+                    lock (_profileCacheLock)
+                    {
+                        if (!_profileCache.ContainsKey(name))
+                            _profileCache.AddOrUpdate(name, profileConstructFactoryMethod(), (k, v) => v);
+                    }
+                }
+            }
+
+            if (_profileCache.ContainsKey(name))
+            {
+                profile = _profileCache[name];
+                return true;
+            }
+
+            return false;
+        }
+
+        public static IChoProfile GetProfile(string name)
+        {
+            if (name == ChoProfile.GLOBAL_PROFILE_NAME) return ChoProfile.Default;
+            if (name == ChoProfile.NULL_PROFILE_NAME) return ChoProfile.NULL;
+            if (name.IsNullOrWhiteSpace()) return ChoProfile.Default;
+
+            if (_profileCache.ContainsKey(name))
+                return _profileCache[name];
+            else if (name == CURRENT_CONTEXT_PROFILE)
+                return _contextProfile == null ? ChoProfile.Default : _contextProfile;
+            else 
+                return ChoProfile.Default;
+        }
 
 		//private static void SetAsNotDisposed(IChoProfile profile, bool dispose)
 		//{
@@ -440,7 +591,7 @@ namespace Cinchoo.Core.Diagnostics
 						MemberProfileCache.Add(typeProfileName, profile1);
 					}
 					else
-						MemberProfileCache.Add(typeProfileName, GlobalProfile);
+						MemberProfileCache.Add(typeProfileName, Default);
 				}
 
 				if (memberProfileAttribute == null)
@@ -498,13 +649,14 @@ namespace Cinchoo.Core.Diagnostics
 		public static IChoProfile GetDefaultContext(object target)
 		{
 			ChoThreadLocalStorage.Register(target);
-			return DefaultContext;
-		}
-
-        public static IChoProfile DefaultContext
-        {
-			get { return GetContext(_contextName); }
+			//return DefaultContext;
+            return DefaultContext;
         }
+
+        //public static IChoProfile DefaultContext
+        //{
+        //    get { return GetContext(_contextName); }
+        //}
 
         #endregion Shared Properties (Public)
 
@@ -606,13 +758,13 @@ namespace Cinchoo.Core.Diagnostics
 
 		public static void Register(IChoProfile profile)
 		{
-			Register(null, profile);
+            Register(profile.ProfilerName, profile);
 		}
 
-		public static void Register(Lazy<IChoProfile> profile)
-		{
-			Register(null, profile);
-		}
+        //public static void Register(Lazy<IChoProfile> profile)
+        //{
+        //    Register(null, profile);
+        //}
 
 		public static void Register(string name, IChoProfile profile)
 		{
@@ -643,7 +795,7 @@ namespace Cinchoo.Core.Diagnostics
 
         #region Dispose Members (Public)
 
-        [ChoAppDomainUnloadMethod("Disposing all profile objects...")]
+        //[ChoAppDomainUnloadMethod("Disposing all profile objects...")]
         public static void DisposeAll()
         {
 			lock (MemberProfileCache.SyncRoot)
@@ -658,6 +810,14 @@ namespace Cinchoo.Core.Diagnostics
 					}
 				}
 				MemberProfileCache.Clear();
+            }
+            lock (_profileCacheLock)
+            {
+                if (_profileCache != null)
+                {
+                    _profileCache.ForEach((keyValue) => keyValue.Value.Dispose());
+                    _profileCache.Clear();
+                }
             }
         }
 
@@ -674,15 +834,20 @@ namespace Cinchoo.Core.Diagnostics
 
         public static void WriteNewLine()
         {
-            WriteNewLineIf(true);
+            IChoProfile profile = GetDefaultContext(new StackFrame(1));
+            if (profile != null)
+                profile.AppendIf(true, Environment.NewLine);
+            else
+                ChoTrace.WriteLine(Environment.NewLine);
         }
 
         public static void WriteNewLineIf(bool condition)
         {
-            if (DefaultContext != null)
-                DefaultContext.AppendIf(condition, Environment.NewLine);
+            IChoProfile profile = GetDefaultContext(new StackFrame(1));
+            if (profile != null)
+                profile.AppendIf(condition, Environment.NewLine);
             else
-                ChoTrace.Error(Environment.NewLine);
+                ChoTrace.WriteLineIf(condition, Environment.NewLine);
         }
 
         #endregion WriteNewLine Overloads
@@ -691,25 +856,38 @@ namespace Cinchoo.Core.Diagnostics
 
         public static void Write(string msg)
         {
-            WriteIf(true, msg);
+            IChoProfile profile = GetDefaultContext(new StackFrame(1));
+            if (profile != null)
+                profile.AppendIf(true, msg);
+            else
+                ChoTrace.Write(msg);
         }
 
         public static void Write(string format, params object[] args)
         {
-            Write(String.Format(format, args));
+            IChoProfile profile = GetDefaultContext(new StackFrame(1));
+            if (profile != null)
+                profile.AppendIf(true, String.Format(format, args));
+            else
+                ChoTrace.Write(String.Format(format, args));
         }
 
         public static void WriteIf(bool condition, string format, params object[] args)
         {
-            WriteIf(condition, String.Format(format, args));
+            IChoProfile profile = GetDefaultContext(new StackFrame(1));
+            if (profile != null)
+                profile.AppendIf(condition, String.Format(format, args));
+            else
+                ChoTrace.WriteIf(condition, String.Format(format, args));
         }
 
         public static void WriteIf(bool condition, string msg)
         {
-            if (DefaultContext != null)
-                DefaultContext.AppendIf(condition, msg);
+            IChoProfile profile = GetDefaultContext(new StackFrame(1));
+            if (profile != null)
+                profile.AppendIf(condition, msg);
             else
-                ChoTrace.Error(msg);
+                ChoTrace.WriteIf(condition, msg);
         }
 
         #endregion Write Overloads
@@ -718,52 +896,71 @@ namespace Cinchoo.Core.Diagnostics
 
         public static void WriteLine(string msg)
         {
-            WriteLineIf(true, msg);
+            IChoProfile profile = GetDefaultContext(new StackFrame(1));
+            if (profile != null)
+                profile.AppendLineIf(true, msg);
+            else
+                ChoTrace.WriteLine(msg);
         }
 
         public static void WriteLine(string format, params object[] args)
         {
-            WriteLine(String.Format(format, args));
+            IChoProfile profile = GetDefaultContext(new StackFrame(1));
+            if (profile != null)
+                profile.AppendLineIf(true, String.Format(format, args));
+            else
+                ChoTrace.WriteLine(String.Format(format, args));
         }
 
         public static void WriteLineIf(bool condition, string format, params object[] args)
         {
-            WriteLineIf(condition, String.Format(format, args));
+            IChoProfile profile = GetDefaultContext(new StackFrame(1));
+            if (profile != null)
+                profile.AppendLineIf(condition, String.Format(format, args));
+            else
+                ChoTrace.WriteLineIf(condition, String.Format(format, args));
         }
 
         public static void WriteLineIf(bool condition, string msg)
         {
-            if (DefaultContext != null)
-                DefaultContext.AppendLineIf(condition, msg);
+            IChoProfile profile = GetDefaultContext(new StackFrame(1));
+            if (profile != null)
+                profile.AppendLineIf(condition, msg);
             else
-                ChoTrace.Error(msg);
+                ChoTrace.WriteLineIf(condition, msg);
         }
 
         #endregion WriteLine Overloads
 
-        #region WriteSeperator Overloads
+        #region WriteSeparator Overloads
 
-        public static void WriteSeperator()
+        public static void WriteSeparator()
         {
-            WriteSeperatorIf(true);
-        }
-
-        public static void WriteSeperatorIf(bool condition)
-        {
-            if (DefaultContext != null)
-                DefaultContext.AppendLineIf(condition, ChoTrace.SEPERATOR);
+            IChoProfile profile = GetDefaultContext(new StackFrame(1));
+            if (profile != null)
+                profile.AppendLineIf(true, ChoTrace.SEPARATOR);
             else
-                ChoTrace.Error(ChoTrace.SEPERATOR);
+                ChoTrace.WriteLine(ChoTrace.SEPARATOR);
         }
 
-        #endregion WriteSeperator Overloads
+        public static void WriteSeparatorIf(bool condition)
+        {
+            IChoProfile profile = GetDefaultContext(new StackFrame(1));
+            if (profile != null)
+                profile.AppendLineIf(condition, ChoTrace.SEPARATOR);
+            else
+                ChoTrace.WriteLineIf(condition, ChoTrace.SEPARATOR);
+        }
+
+        #endregion WriteSeparator Overloads
 
         #region Write Exception Overloads
 
         public static bool Write(Exception ex)
         {
-            if (DefaultContext != null)
-                DefaultContext.Append(ex);
+            IChoProfile profile = GetDefaultContext(new StackFrame(1));
+            if (profile != null)
+                profile.Append(ex);
             else
                 ChoTrace.Error(ex.ToString());
             return true;
@@ -771,7 +968,11 @@ namespace Cinchoo.Core.Diagnostics
 
         public static bool WriteNThrow(Exception ex)
         {
-            Write(ex);
+            IChoProfile profile = GetDefaultContext(new StackFrame(1));
+            if (profile != null)
+                profile.Append(ex);
+            else
+                ChoTrace.Error(ex.ToString());
             throw new ChoApplicationException("Failed to write.", ex);
         }
 

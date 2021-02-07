@@ -89,30 +89,33 @@ namespace Cinchoo.Core.Services
 
         private void OnTimerCallback(object state)
         {
-            if (_isStopped || _isPaused)
-                _resumeEvent.WaitOne();
-
-            try
+            while (true)
             {
-                if (_timerServiceCallback != null)
-                    _timerServiceCallback.Run((T)state, _timeout);
-                //new Action<T>(OnTimerServiceCallback).WaitFor((T)state, _timeout);
-            }
-            catch (TimeoutException ex)
-            {
-                if (!_silent)
-                    throw new ChoTimerServiceException(String.Format("{1}: Timeout [{0} ms] elapsed prior to completion of the method.", _timeout, _name), ex);
-                else
-                    ChoTrace.Error(String.Format("Timeout [{0} ms] elapsed prior to completion of the method.", _timeout));
-            }
+                if (_isStopped || _isPaused)
+                    _resumeEvent.WaitOne();
 
-            Thread.Sleep(_period);
+                try
+                {
+                    if (_timerServiceCallback != null)
+                        _timerServiceCallback.Run((T)state, _timeout);
+                    //new Action<T>(OnTimerServiceCallback).WaitFor((T)state, _timeout);
+                }
+                catch (TimeoutException) // ex)
+                {
+                    //if (!_silent)
+                    //    throw new ChoTimerServiceException(String.Format("{1}: Timeout [{0} ms] elapsed prior to completion of the method.", _timeout, _name), ex);
+                    //else
+                        ChoTrace.Error(String.Format("Timeout [{0} ms] elapsed prior to completion of the method.", _timeout));
+                }
+
+                Thread.Sleep(_period);
+            }
         }
 
         #endregion Instance Members (Private)
 
         #region Instance Members (Public)
-
+        
         //public virtual void OnTimerServiceCallback(T state)
         //{
         //    if (_timerServiceCallback != null)

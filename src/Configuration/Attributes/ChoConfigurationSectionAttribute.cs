@@ -7,6 +7,8 @@ namespace Cinchoo.Core.Configuration
 	using Cinchoo.Core.IO;
 	using Cinchoo.Core.Runtime.Remoting;
 	using Cinchoo.Core.Services;
+    using System.Reflection;
+    using System.Xml.Serialization;
 
 	#endregion NameSpaces
 
@@ -28,6 +30,7 @@ namespace Cinchoo.Core.Configuration
 		#region Instance Properties
 
 		private string _configElementPath;
+        [XmlIgnore]
 		public virtual string ConfigElementPath
 		{
 			get { return _configElementPath; }
@@ -41,7 +44,8 @@ namespace Cinchoo.Core.Configuration
 		}
 
 		private Type _configSectionHandlerType = typeof(ChoNameValueSectionHandler);
-		public virtual Type ConfigSectionHandlerType
+        [XmlIgnore]
+        public virtual Type ConfigSectionHandlerType
 		{
 			get { return _configSectionHandlerType; }
 			protected set { _configSectionHandlerType = value; }
@@ -183,7 +187,7 @@ namespace Cinchoo.Core.Configuration
 					return (MarshalByRefObject)_dictService.GetValue(configObjType).GetTransparentProxy();
 				else
 				{
-					RealProxy proxy = new ChoStandardConfigurationObjectProxy(base.CreateInstance(configObjType), configObjType);
+                    RealProxy proxy = new ChoStandardConfigurationObjectProxy(base.CreateInstance(configObjType), configObjType);
 					_dictService.SetValue(configObjType, proxy);
 					return (MarshalByRefObject)proxy.GetTransparentProxy();
 				}
@@ -205,7 +209,7 @@ namespace Cinchoo.Core.Configuration
 			ChoStandardConfigurationMetaDataInfo standardConfigurationMetaDataInfo = new ChoStandardConfigurationMetaDataInfo();
 			standardConfigurationMetaDataInfo.BindingMode = BindingMode;
 			if (ConfigStorageType != null)
-				standardConfigurationMetaDataInfo.ConfigStorageType = ConfigStorageType.AssemblyQualifiedName;
+                standardConfigurationMetaDataInfo.ConfigStorageType = ConfigStorageType.SimpleQualifiedName();
 			standardConfigurationMetaDataInfo.ConfigurationMetaDataLogInfo = new ChoConfigurationMetaDataLogInfo();
 			standardConfigurationMetaDataInfo.ConfigurationMetaDataLogInfo.LogCondition = LogCondition;
 			standardConfigurationMetaDataInfo.ConfigurationMetaDataLogInfo.LogTimeStampFormat = LogTimeStampFormat;
@@ -214,25 +218,13 @@ namespace Cinchoo.Core.Configuration
 			standardConfigurationMetaDataInfo.Defaultable = Defaultable;
             standardConfigurationMetaDataInfo.IgnoreCase = IgnoreCase;
             standardConfigurationMetaDataInfo.Silent = Silent;
-			configElement.MetaDataInfo = standardConfigurationMetaDataInfo;
+            standardConfigurationMetaDataInfo.Parameters = Parameters;
+            standardConfigurationMetaDataInfo.ConfigFilePath = ConfigFilePath;
 
-			LoadParameters(configElement);
+            configElement.MetaDataInfo = standardConfigurationMetaDataInfo;
+
+            //LoadParameters(Parameters, configElement);
 			ChoConfigurationMetaDataManager.SetDefaultMetaDataInfo(configElement);
-		}
-
-		private void LoadParameters(ChoBaseConfigurationElement configurationElement)
-		{
-			if (configurationElement == null)
-				return;
-
-			if (Parameters.IsNullOrEmpty())
-				return;
-
-			Parameters = Parameters.ExpandProperties();
-			foreach (Tuple<string, string> keyValue in Parameters.ToKeyValuePairs())
-			{
-				configurationElement[keyValue.Item1] = keyValue.Item2;
-			}
 		}
 
 		#endregion Instance Members (Private)
@@ -258,5 +250,5 @@ namespace Cinchoo.Core.Configuration
 		}
 
 		#endregion Finalizer
-}
+    }
 }

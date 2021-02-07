@@ -4,6 +4,7 @@ namespace Cinchoo.Core.Reflection
 
     using System;
     using System.IO;
+    using System.Linq;
     using System.Reflection;
     using System.Collections;
 
@@ -13,6 +14,7 @@ namespace Cinchoo.Core.Reflection
     using System.Collections.Generic;
     using Cinchoo.Core.Text.RegularExpressions;
     using System.Web;
+    using System.Diagnostics;
 
     #endregion NameSpaces
 
@@ -42,6 +44,7 @@ namespace Cinchoo.Core.Reflection
 
         static ChoAssembly()
         {
+            ChoAssemblyResolver.Attach();
             //if (ChoCodeBase.Me != null)
             //    _paths = ChoCodeBase.Me.Paths;
 
@@ -101,11 +104,52 @@ namespace Cinchoo.Core.Reflection
 
         internal static void Initialize()
         {
-            ChoAssemblyResolver.Attach();
         }
 
         private static readonly object _entryAssemblyLock = new object();
         private static Assembly _entryAssembly;
+
+        public static string GetAssemblyCopyright()
+        {
+            if (GetEntryAssembly() == null) return null;
+
+            var attributes = GetEntryAssembly().GetCustomAttributes(typeof(AssemblyCopyrightAttribute), false);
+            if (attributes.Length > 0)
+            {
+                var titleAttribute = (AssemblyCopyrightAttribute)attributes[0];
+                if (titleAttribute != null && !titleAttribute.Copyright.IsNullOrWhiteSpace())
+                    return titleAttribute.Copyright;
+            }
+            return null; // System.IO.Path.GetFileNameWithoutExtension(GetEntryAssembly().CodeBase);
+        }
+
+        public static string GetAssemblyTitle()
+        {
+            if (GetEntryAssembly() == null) return null;
+
+            var attributes = GetEntryAssembly().GetCustomAttributes(typeof(AssemblyTitleAttribute), false);
+            if (attributes.Length > 0)
+            {
+                var titleAttribute = (AssemblyTitleAttribute)attributes[0];
+                if (titleAttribute != null && !titleAttribute.Title.IsNullOrWhiteSpace())
+                    return titleAttribute.Title;
+            }
+            return null; // System.IO.Path.GetFileNameWithoutExtension(GetEntryAssembly().CodeBase);
+        }
+
+        public static string GetAssemblyDescription()
+        {
+            if (GetEntryAssembly() == null) return null;
+
+            var attributes = GetEntryAssembly().GetCustomAttributes(typeof(AssemblyDescriptionAttribute), false);
+            if (attributes.Length > 0)
+            {
+                var titleAttribute = (AssemblyDescriptionAttribute)attributes[0];
+                if (titleAttribute != null && !titleAttribute.Description.IsNullOrWhiteSpace())
+                    return titleAttribute.Description;
+            }
+            return null; // System.IO.Path.GetFileNameWithoutExtension(GetEntryAssembly().CodeBase);
+        }
 
         public static string GetEntryAssemblyLocation()
         {
@@ -149,38 +193,102 @@ namespace Cinchoo.Core.Reflection
 
         #region GetAssemblies Overloads
 
+        private readonly static object _loadedAssemblyLock = new object();
+        private static List<Assembly> _loadedAssemblies = null;
+
+        internal static void AddToLoadedAssembly(Assembly assembly)
+        {
+            if (assembly == null) return;
+
+            lock (_loadedAssemblyLock)
+            {
+                _loadedAssemblies.Add(assembly);
+            }
+        }
+
         public static Assembly[] GetLoadedAssemblies()
         {
-            List<Assembly> assemblies = new List<Assembly>();
-            using (ChoBufferProfileEx profile = new ChoBufferProfileEx(ChoType.GetLogFileName(typeof(ChoExcludedAssembly)), String.Format("Below are the excluded assemblies...")))
+            if (_loadedAssemblies != null)
+                return _loadedAssemblies.ToArray();
+
+            lock (_loadedAssemblyLock)
             {
-                Assembly[] loadedAssemblies = null;
-                try
-                {
-                    loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies();
-                }
-                catch (System.Security.SecurityException)
-                {
-                    // Insufficient permissions to get the list of loaded assemblies
-                }
+                if (_loadedAssemblies != null)
+                    return _loadedAssemblies.ToArray();
 
-                if (loadedAssemblies != null)
-                {
-                    // Search the loaded assemblies for the type
-                    foreach (Assembly assembly in loadedAssemblies)
+                _loadedAssemblies = new List<Assembly>();
+
+                //using (ChoBufferProfileEx profile = new ChoBufferProfileEx(ChoType.GetLogFileName(typeof(ChoExcludedAssembly)), String.Format("Below are the excluded assemblies...")))
+                //{
+                    Assembly[] loadedAssemblies = null;
+                    try
                     {
-                        DiscoverNLoadAssemblies(profile, assembly, assemblies);
+                        LoadReferencedAssemblies();
+                        loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies();
                     }
-                }
+                    catch (System.Security.SecurityException)
+                    {
+                        // Insufficient permissions to get the list of loaded assemblies
+                    }
 
-                return assemblies.ToArray();
+                    if (loadedAssemblies != null)
+                    {
+                        // Search the loaded assemblies for the type
+                        foreach (Assembly assembly in loadedAssemblies)
+                        {
+                            DiscoverNLoadAssemblies(null, assembly, _loadedAssemblies);
+                        }
+                    }
+
+                    return _loadedAssemblies.ToArray();
+                //}
             }
+        }
+
+        private static void LoadReferencedAssemblies()
+        {
+            var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
+            var loadedPaths = loadedAssemblies.Select((a) =>
+                {
+                    if (!a.IsDynamic)
+                    {
+                        try
+                        {
+                            return a.Location;
+                        }
+                        catch (Exception ex)
+                        {
+                            Trace.TraceError(ex.ToString());
+                        }
+                    }
+                    return String.Empty;
+                }).ToArray();
+
+            var referencedPaths = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.dll", SearchOption.AllDirectories);
+            var toLoad = referencedPaths.Where(r => !loadedPaths.Contains(r, StringComparer.InvariantCultureIgnoreCase)).ToList();
+            toLoad.ForEach(path => 
+                {
+                    try
+                    {
+                        if (!IsExcludedAssembly(path))
+                        {
+                            Assembly ass = AppDomain.CurrentDomain.Load(AssemblyName.GetAssemblyName(path));
+                            loadedAssemblies.Add(ass);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Trace.TraceError(ex.ToString());
+                    }
+                });
         }
 
         private static void DiscoverNLoadAssemblies(ChoBufferProfileEx profile, Assembly assembly, List<Assembly> assemblies)
         {
             if (IsExcludedAssembly(assembly.FullName))
-                profile.Info(assembly.FullName);
+            {
+                //profile.Info(assembly.FullName);
+            }
             else
             {
                 assemblies.Add(assembly);
@@ -196,35 +304,36 @@ namespace Cinchoo.Core.Reflection
         {
             List<Assembly> assemblies = new List<Assembly>();
 
-            using (ChoBufferProfileEx fileProfile = new ChoBufferProfileEx(ChoType.GetLogFileName(typeof(ChoCodeBaseAssembly)), String.Format("Below are the assemblies loaded from files...")))
-            {
+            //using (ChoBufferProfileEx fileProfile = new ChoBufferProfileEx(ChoType.GetLogFileName(typeof(ChoCodeBaseAssembly)), String.Format("Below are the assemblies loaded from files...")))
+            //{
                 foreach (string directory in directories)
                 {
                     if (directory == null) continue;
-                    foreach (string file in Directory.GetFiles(directory, "*.dll;*.exe")) //TODO: Filter needs to be configurable
+                    foreach (string file in Directory.GetFiles(directory, "*.dll")) //TODO: Filter needs to be configurable
                     {
                         if (file == null) continue;
+                        if (IsExcludedAssembly(file)) continue;
 
                         try
                         {
                             Assembly assembly = Assembly.LoadFile(file);
                             if (assembly != null)
                             {
-                                DiscoverNLoadAssemblies(fileProfile, assembly, assemblies);
-                                fileProfile.Info(file);
+                                DiscoverNLoadAssemblies(null, assembly, assemblies);
+                                //fileProfile.Info(file);
                             }
                         }
                         catch (ChoFatalApplicationException)
                         {
                             throw;
                         }
-                        catch (Exception ex)
+                        catch (Exception) // ex)
                         {
-                            fileProfile.ErrorFormat("Error [{0}]: {1}", file, ex.Message);
+                            //fileProfile.ErrorFormat("Error [{0}]: {1}", file, ex.Message);
                         }
                     }
                 }
-            }
+            //}
             return assemblies.ToArray();
         }
 

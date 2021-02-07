@@ -6,6 +6,7 @@ namespace Cinchoo.Core
     using System.Text;
     using System.Reflection;
     using System.Collections.Generic;
+    using System.Linq;
 
     using Cinchoo.Core.Text;
     using Cinchoo.Core.Diagnostics;
@@ -14,7 +15,7 @@ namespace Cinchoo.Core
 
     #region ChoTypeObjectParseInfo Struct
 
-    internal struct ChoTypeObjectParseInfo
+    internal class ChoTypeObjectParseInfo
     {
         public Func<string, bool> CheckParse;
         public Func<string, object> Parse;
@@ -46,10 +47,11 @@ namespace Cinchoo.Core
     {
         #region Shared Data Members (Private)
 
-        private static List<ChoTypeObjectParseInfo> _typeObjectsParseInfo = new List<ChoTypeObjectParseInfo>();
-        private static List<ChoTypeObjectFormatInfo> _typeObjectsFormatInfo = new List<ChoTypeObjectFormatInfo>();
-        private static ChoTypeObjectParseInfo[] _typeObjectsParseInfoArr = null;
-        private static ChoTypeObjectFormatInfo[] _typeObjectsFormatInfoArr = null;
+        internal readonly static Dictionary<Type, ChoTypeObjectParseInfo> TypeObjectsParseInfo = new Dictionary<Type, ChoTypeObjectParseInfo>();
+        internal readonly static Dictionary<Type, ChoTypeObjectFormatInfo> TypeObjectsFormatInfo = new Dictionary<Type, ChoTypeObjectFormatInfo>();
+        private static ChoTypeObjectParseInfo[] _typeObjectsParseInfoArr = new ChoTypeObjectParseInfo[] {};
+        private static ChoTypeObjectFormatInfo[] _typeObjectsFormatInfoArr = new ChoTypeObjectFormatInfo[] { };
+        private static string _helpText;
 
         #endregion Shared Data Members (Private)
 
@@ -58,7 +60,9 @@ namespace Cinchoo.Core
         internal static void Initialize()
         {
 			//ChoStreamProfile.Clean(ChoReservedDirectoryName.Others, ChoType.GetLogFileName(typeof(ChoTypesManager)));
-            
+
+            StringBuilder topMsg = new StringBuilder();
+
             ChoStringMsgBuilder parseMethodsMsg = new ChoStringMsgBuilder("Below are the loaded parse methods");
             ChoStringMsgBuilder formatMethodsMsg = new ChoStringMsgBuilder("Below are the loaded format methods");
             ChoStringMsgBuilder msg = new ChoStringMsgBuilder("Below are the loaded type objects");
@@ -86,20 +90,26 @@ namespace Cinchoo.Core
                 LoadObjectFormatter(formatMethodsMsg, type, typeObjectFormatInfo);
             }
 
-            _typeObjectsParseInfoArr = _typeObjectsParseInfo.ToArray();
-            _typeObjectsFormatInfoArr = _typeObjectsFormatInfo.ToArray();
+            _typeObjectsParseInfoArr = TypeObjectsParseInfo.Values.ToArray();
+            _typeObjectsFormatInfoArr = TypeObjectsFormatInfo.Values.ToArray();
 
-            _typeObjectsParseInfo.Clear();
-            _typeObjectsFormatInfo.Clear();
+            //_typeObjectsParseInfo.Clear();
+            //_typeObjectsFormatInfo.Clear();
 
-			//ChoStreamProfile.WriteLine(ChoReservedDirectoryName.Others, ChoType.GetLogFileName(typeof(ChoTypesManager)), msg.ToString());
-			//ChoStreamProfile.WriteNewLine(ChoReservedDirectoryName.Others, ChoType.GetLogFileName(typeof(ChoTypesManager)));
-			//ChoStreamProfile.WriteLine(ChoReservedDirectoryName.Others, ChoType.GetLogFileName(typeof(ChoTypesManager)), parseMethodsMsg.ToString());
-			//ChoStreamProfile.WriteLine(ChoReservedDirectoryName.Others, ChoType.GetLogFileName(typeof(ChoTypesManager)), formatMethodsMsg.ToString());
+            topMsg.Append(parseMethodsMsg.ToString() + Environment.NewLine + Environment.NewLine);
+            topMsg.Append(formatMethodsMsg.ToString() + Environment.NewLine + Environment.NewLine);
+            topMsg.Append(msg.ToString() + Environment.NewLine + Environment.NewLine);
+            _helpText = topMsg.ToString();
+        }
+
+        internal static string GetHelpText()
+        {
+            return _helpText;
         }
 
         private static void LoadObjectParser(ChoStringMsgBuilder parseMethodsMsg, Type type, ChoTypeObjectParseInfo typeObjectParseInfo)
         {
+            ChoStringObjectFormattableAttribute attr = ChoType.GetAttribute<ChoStringObjectFormattableAttribute>(type);
             try
             {
                 MethodInfo isParseMethodInfo = ChoType.GetMethod(type, typeof(ChoIsStringToObjectConvertable), true);
@@ -128,7 +138,7 @@ namespace Cinchoo.Core
                         typeObjectParseInfo.CheckParse = isParseMethodInfo.CreateDelegate<Func<string, bool>>();
                         typeObjectParseInfo.Parse = parseMethodInfo.CreateDelegate<Func<string, object>>();
 
-                        parseMethodsMsg.AppendFormatLine(type.FullName);
+                        parseMethodsMsg.AppendFormatLine("{0} [EX: {1}]", type.FullName, ((IChoStringObjectFormatter)Activator.CreateInstance(type)).GetHelpText());
                     }
                 }
             }
@@ -141,12 +151,19 @@ namespace Cinchoo.Core
                 parseMethodsMsg.AppendFormatLine("{0}: [{1}]", type.FullName, ex.Message);
             }
 
+            Type type1 = attr.SupportedType == null ? type.GetType() : attr.SupportedType;
             if (typeObjectParseInfo.IsValid())
-                _typeObjectsParseInfo.Add(typeObjectParseInfo);
+            {
+                if (TypeObjectsParseInfo.ContainsKey(type1))
+                    TypeObjectsParseInfo[type1] = typeObjectParseInfo;
+                else
+                    TypeObjectsParseInfo.Add(type1, typeObjectParseInfo);
+            }
         }
 
         private static void LoadObjectFormatter(ChoStringMsgBuilder formatMethodsMsg, Type type, ChoTypeObjectFormatInfo typeObjectFormatInfo)
         {
+            ChoStringObjectFormattableAttribute attr = ChoType.GetAttribute<ChoStringObjectFormattableAttribute>(type);
 
             try
             {
@@ -193,8 +210,14 @@ namespace Cinchoo.Core
                 formatMethodsMsg.AppendFormatLine("{0}: [{1}]", type.FullName, ex.Message);
             }
 
+            Type type1 = attr.SupportedType == null ? type.GetType() : attr.SupportedType;
             if (typeObjectFormatInfo.IsValid())
-                _typeObjectsFormatInfo.Add(typeObjectFormatInfo);
+            {
+                if (TypeObjectsFormatInfo.ContainsKey(type1))
+                    TypeObjectsFormatInfo[type1] = typeObjectFormatInfo;
+                else
+                    TypeObjectsFormatInfo.Add(type1, typeObjectFormatInfo);
+            }
         }
 
         #endregion Shared Constructor

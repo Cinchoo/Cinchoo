@@ -13,6 +13,7 @@ namespace Cinchoo.Core.Diagnostics
     using Cinchoo.Core.Reflection;
     using Cinchoo.Core.Diagnostics;
     using Cinchoo.Core.IO;
+    using System.Xml.Serialization;
 
     #endregion NameSpaces
 
@@ -54,27 +55,28 @@ namespace Cinchoo.Core.Diagnostics
 			}
 		}
 
-		private string _startActions;
+        private string _startActions;
         public virtual string StartActions
         {
-			get { return _startActions; }
-			set { _startActions = value; }
+            get { return _startActions; }
+            set { _startActions = value; }
         }
 
         private string _stopActions;
-		public virtual string StopActions
-		{
-			get { return _stopActions; }
-			set { _stopActions = value; }
-		}
+        public virtual string StopActions
+        {
+            get { return _stopActions; }
+            set { _stopActions = value; }
+        }
 
-        private bool _condition = ChoTrace.ChoSwitch.TraceVerbose;
+        private bool? _condition = null;
         public bool Condition
         {
-            get { return _condition; }
+            get { return _condition == null ? ChoTraceSwitch.Switch.TraceVerbose : _condition.Value; }
         }
 
         private string _message;
+        [XmlIgnore]
         public string Message
         {
             get { return _message; }
@@ -89,10 +91,11 @@ namespace Cinchoo.Core.Diagnostics
         {
             _condition = condition;
             _message = message;
+            OuterProfileName = ChoProfile.CURRENT_CONTEXT_PROFILE;
         }
 
         public ChoProfileAttribute(string message)
-            : this(ChoTrace.ChoSwitch.TraceVerbose, message)
+            : this(ChoTraceSwitch.Switch.TraceVerbose, message)
         {
         }
 
@@ -103,5 +106,7 @@ namespace Cinchoo.Core.Diagnostics
 		public abstract IChoProfile ConstructProfile(object target, IChoProfile outerProfile);
         
         #endregion Instance Members (Public)
+
+        public string OuterProfileName { get; set; }
     }
 }

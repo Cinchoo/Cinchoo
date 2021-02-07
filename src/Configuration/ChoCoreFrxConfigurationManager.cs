@@ -13,13 +13,15 @@
     using System.Configuration;
     using Cinchoo.Core.IO;
     using Cinchoo.Core.Services;
+    using Cinchoo.Core.Collections.Generic;
+    using Cinchoo.Core.ServiceProcess;
 
     #endregion NameSpaces
 
     [ChoAppDomainEventsRegisterableType]
     public static class ChoCoreFrxConfigurationManager
     {
-        private static readonly Dictionary<Type, IChoConfigurationChangeWatcher> _dictService = new Dictionary<Type, IChoConfigurationChangeWatcher>();
+        private static readonly ChoDictionary<Type, IChoConfigurationChangeWatcher> _dictService = new ChoDictionary<Type, IChoConfigurationChangeWatcher>();
 
         public static T Register<T>()
         {
@@ -29,37 +31,40 @@
 
                 if (instance is IChoObjectChangeWatcheable)
                 {
-                    ChoConfigurationChangeFileWatcher fileWatcher = null;
-                    fileWatcher = new ChoConfigurationChangeFileWatcher("{0}_FileWatcher".FormatString(typeof(T).Name), coreFrxConfigurationManager.ConfigFilePath);
-                    fileWatcher.DoNotUseGlobalQueue = true;
-                    fileWatcher.SetConfigurationChangedEventHandler("{0}_FileWatcher".FormatString(typeof(T).Name), (sender1, e1) =>
+                    if (!ChoAppFrxSettings.Me.DisableFrxConfig)
                     {
-                        using (ChoCoreFrxConfigurationManager<T> coreFrxConfigurationManager1 = new ChoCoreFrxConfigurationManager<T>())
+                        ChoConfigurationChangeFileWatcher fileWatcher = null;
+                        fileWatcher = new ChoConfigurationChangeFileWatcher("{0}_FileWatcher".FormatString(typeof(T).Name), coreFrxConfigurationManager.ConfigFilePath);
+                        fileWatcher.DoNotUseGlobalQueue = true;
+                        fileWatcher.SetConfigurationChangedEventHandler("{0}_FileWatcher".FormatString(typeof(T).Name), (sender1, e1) =>
                         {
-                            T instance1 = coreFrxConfigurationManager1.ConfigObject;
-                            if (instance1 is IChoObjectChangeWatcheable)
+                            using (ChoCoreFrxConfigurationManager<T> coreFrxConfigurationManager1 = new ChoCoreFrxConfigurationManager<T>())
                             {
-                                ((IChoObjectChangeWatcheable)instance1).OnObjectChanged(instance1, null);
+                                T instance1 = coreFrxConfigurationManager1.ConfigObject;
+                                if (instance1 is IChoObjectChangeWatcheable)
+                                {
+                                    ((IChoObjectChangeWatcheable)instance1).OnObjectChanged(instance1, null);
+                                }
                             }
-                        }
-                    });
+                        });
 
-                    _dictService.Add(typeof(T), fileWatcher);
+                        _dictService.AddOrUpdate(typeof(T), fileWatcher);
 
-                    ChoEnvironmentSettings.SetEnvironmentChangedEventHandlerNoCall(typeof(T).Name, ((sender, e) =>
-                    {
-                        using (ChoCoreFrxConfigurationManager<T> coreFrxConfigurationManager1 = new ChoCoreFrxConfigurationManager<T>())
+                        ChoEnvironmentSettings.SetEnvironmentChangedEventHandlerNoCall(typeof(T).Name, ((sender, e) =>
                         {
-                            T instance1 = coreFrxConfigurationManager1.ConfigObject;
-                            if (instance1 is IChoObjectChangeWatcheable)
+                            using (ChoCoreFrxConfigurationManager<T> coreFrxConfigurationManager1 = new ChoCoreFrxConfigurationManager<T>())
                             {
-                                ((IChoObjectChangeWatcheable)instance1).OnObjectChanged(instance1, null);
+                                T instance1 = coreFrxConfigurationManager1.ConfigObject;
+                                if (instance1 is IChoObjectChangeWatcheable)
+                                {
+                                    ((IChoObjectChangeWatcheable)instance1).OnObjectChanged(instance1, null);
+                                }
                             }
-                        }
-                    }));
+                        }));
 
-                    if (fileWatcher != null)
-                        fileWatcher.StartWatching();
+                        if (fileWatcher != null)
+                            fileWatcher.StartWatching();
+                    }
                 }
 
                 return instance;
@@ -73,7 +78,7 @@
         {
             if (_dictService != null)
             {
-                foreach (IChoConfigurationChangeWatcher configurationChangeWatcher in _dictService.Values)
+                foreach (IChoConfigurationChangeWatcher configurationChangeWatcher in _dictService.ToValuesArray())
                 {
                     if (configurationChangeWatcher != null)
                         configurationChangeWatcher.StopWatching();
@@ -104,6 +109,11 @@
 
         #region Constructors
 
+        static ChoCoreFrxConfigurationManager()
+        {
+            ChoChooseEnvironmentFrm.ShowWnd();
+        }
+
         public ChoCoreFrxConfigurationManager()
         {
             if (typeof(T) == typeof(ChoGlobalApplicationSettings) || typeof(T) == typeof(ChoMetaDataFilePathSettings))
@@ -121,6 +131,7 @@
         private T ToObject()
         {
             T obj = default(T);
+            bool isInitialized = false;
 
             try
             {
@@ -129,22 +140,33 @@
 
                 _configSectionExists = obj != null;
                 if (obj == null)
+                {
                     obj = ChoActivator.CreateInstance<T>();
+                    isInitialized = true;
+                }
             }
             finally
             {
                 if (obj != null)
                 {
                     if (obj is IChoInitializable)
-                        ((IChoInitializable)obj).Initialize();
+                    {
+                        if (!isInitialized)
+                            ((IChoInitializable)obj).Initialize();
+                    }
 
                     _xmlDocument.DocumentElement.SaveAsChild(obj);
 
                     if (!_configSectionExists)
-                        _xmlDocument.Save(_configFilePath);
+                    {
+                        if (!ChoApplication.ServiceInstallation)
+                        {
+                            if (!ChoAppFrxSettings.Me.DisableFrxConfig)
+                                _xmlDocument.Save(_configFilePath);
+                        }
+                    }
 
-                    //if (typeof(T) != typeof(ChoGlobalApplicationSettings))
-                        ChoApplication.Trace(obj.ToString());
+                    ChoApplication.Trace(obj.ToString(), Path.Combine(ChoReservedDirectoryName.Settings, ChoPath.AddExtension(obj.GetType().FullName, ChoReservedFileExt.Log)));
                 }
             }
             return obj;
@@ -167,18 +189,19 @@
                 {
                     try
                     {
-                        ChoXmlDocument.CreateXmlFileIfEmpty(_configFilePath);
+                        if (!ChoAppFrxSettings.Me.DisableFrxConfig)
+                            ChoXmlDocument.CreateXmlFileIfEmpty(_configFilePath);
+
+                        _xmlDocument = new System.Xml.XmlDocument();
                         if (File.Exists(_configFilePath))
-                        {
-                            _xmlDocument = new System.Xml.XmlDocument();
                             _xmlDocument.Load(_configFilePath);
-                        }
 
                         _configObject = ToObject();
                     }
                     catch (Exception ex)
                     {
                         Trace.TraceError(ex.ToString());
+                        throw new ChoFatalApplicationException("Found error in configuration file.", ex);
                     }
                 }
             }

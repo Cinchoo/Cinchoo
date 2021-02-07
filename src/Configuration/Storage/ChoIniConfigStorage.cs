@@ -14,7 +14,7 @@ namespace Cinchoo.Core.Configuration
 
 	#endregion NameSpaces
 
-	public sealed class ChoIniConfigStorage : ChoConfigStorage, IChoNameValueConfigStorage
+	public class ChoIniConfigStorage : ChoConfigStorage, IChoNameValueConfigStorage
 	{
 		#region Instance Data Members (Private)
 

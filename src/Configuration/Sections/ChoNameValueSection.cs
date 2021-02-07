@@ -64,8 +64,8 @@ namespace Cinchoo.Core.Configuration
 		{
 			get 
 			{
-				if (!base.HasConfigSectionDefined)
-					return false;
+                //if (!base.HasConfigSectionDefined)
+                //    return false;
 
                 if (!IsValidCollection)
 					return false;

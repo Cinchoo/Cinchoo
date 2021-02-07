@@ -7,7 +7,7 @@
 
 	#endregion NameSpaces
 
-    public sealed class ChoNullConfigStorage : ChoBaseConfigStorage, IChoObjectConfigStorage
+    public class ChoNullConfigStorage : ChoBaseConfigStorage, IChoObjectConfigStorage
 	{
 		public override object Load(ChoBaseConfigurationElement configElement, XmlNode node)
 		{

@@ -7,6 +7,7 @@ namespace Cinchoo.Core.Configuration
 	using System.Threading;
 	using Cinchoo.Core.Diagnostics;
 	using Cinchoo.Core.Services;
+    using System.Threading.Tasks;
 
 	#endregion NameSpaces
 
@@ -18,7 +19,7 @@ namespace Cinchoo.Core.Configuration
 		private static readonly object _configurationChangedKey = new object();
 
 		private readonly object _padLockObj = new object();
-		private readonly int _pollDelayInMilliseconds = 100;
+		private readonly int _pollDelayInMilliseconds = 1000;
 		private Thread _pollingThread;
 		private DateTime _lastUpdatedTimeStamp = DateTime.MinValue;
 		private PollingStatus _pollingStatus;
@@ -28,11 +29,13 @@ namespace Cinchoo.Core.Configuration
 		private readonly string _threadName;
 		private Action<int, PollingStatus> _pollNow = null;
 		private bool _firstTime = true;
+        private bool _stopWatching = false;
 
+        private bool _doNotUseGlobalQueue = true;
 		internal bool DoNotUseGlobalQueue
 		{
-			get;
-			set;
+            get { return _doNotUseGlobalQueue; }
+            set { _doNotUseGlobalQueue = value; }
 		}
 
 		/// <summary>
@@ -47,9 +50,9 @@ namespace Cinchoo.Core.Configuration
 
 			_pollNow = new Action<int, PollingStatus>((pollDelayInMilliseconds, pollingStatus) =>
 			{
-				Thread.Sleep(pollDelayInMilliseconds);
 				Poller(pollingStatus);
-			});
+                Thread.Sleep(pollDelayInMilliseconds);
+            });
 		}
 
 		/// <summary>
@@ -88,6 +91,7 @@ namespace Cinchoo.Core.Configuration
 		/// </summary>
 		public virtual void StartWatching()
 		{
+            _stopWatching = false;
 			Thread pollingThread = _pollingThread;
 			if (pollingThread != null)
 				return;
@@ -100,23 +104,44 @@ namespace Cinchoo.Core.Configuration
 					_pollingStatus = new PollingStatus(true);
 					_pollingThread = new Thread(new ParameterizedThreadStart(Poller));
 
-					if (!DoNotUseGlobalQueue)
-						PollNow();
-					else
-					{
-						_pollingThread.IsBackground = true;
-						_pollingThread.Name = ThreadName;
-						_pollingThread.Start(_pollingStatus);
-						Thread.Sleep(100);
-					}
+                    if (!DoNotUseGlobalQueue)
+                    {
+                        Task.Factory.StartNew(() => PollNow());
+                    }
+                    else
+                    {
+                        _pollingThread.IsBackground = true;
+                        _pollingThread.Name = ThreadName;
+                        _pollingThread.Start(_pollingStatus);
+                        Thread.Sleep(100);
+                    }
 				}
 			}
 		}
 
 		private void PollNow()
 		{
-			if (!ChoFramework.ShutdownRequested)
-				ChoQueuedExecutionService.Global.Enqueue<int, PollingStatus>(_pollNow, _pollDelayInMilliseconds, _pollingStatus);
+            PollingStatus pollingStatus = null;
+            while (true)
+            {
+                pollingStatus = _pollingStatus;
+
+                //if (!ChoFramework.ShutdownRequested)
+                //    ChoQueuedExecutionService.Global.Enqueue<int, PollingStatus>(_pollNow, _pollDelayInMilliseconds, _pollingStatus);
+                if (pollingStatus != null && pollingStatus.Polling)
+                {
+                    if (!ChoFramework.ShutdownRequested)
+                    {
+                        IAsyncResult result = ChoQueuedExecutionService.Global.Enqueue<int, PollingStatus>(_pollNow, _pollDelayInMilliseconds, _pollingStatus);
+                        result.AsyncWaitHandle.WaitOne();
+                        Thread.Sleep(_pollDelayInMilliseconds);
+                    }
+                    else
+                        break;
+                }
+                else
+                    break;
+            }
 		}
 
 		/// <summary>
@@ -124,6 +149,12 @@ namespace Cinchoo.Core.Configuration
 		/// </summary>
 		public virtual void StopWatching()
 		{
+            _stopWatching = true;
+        }
+
+        private void DisposeWatcher()
+        {
+            _stopWatching = true;
 			Thread pollingThread = _pollingThread;
 			if (pollingThread == null)
 				return;
@@ -187,7 +218,8 @@ namespace Cinchoo.Core.Configuration
 		{
 			if (isDisposing)
 			{
-				StopWatching();
+				//StopWatching();
+                DisposeWatcher();
 
 				OrderedDictionary eventHandlerList = _eventHandlerList;
 				//_eventHandlerList = null;
@@ -231,7 +263,8 @@ namespace Cinchoo.Core.Configuration
 			}
 			catch (ChoFatalApplicationException)
 			{
-			}
+                throw;
+            }
 			catch (Exception ex)
 			{
 				ChoTrace.Write(ex);
@@ -296,43 +329,53 @@ namespace Cinchoo.Core.Configuration
 			{
 				while (pollingStatus.Polling)
 				{
-					currentLastWriteTime = GetCurrentLastWriteTime();
-					if (_firstTime)
-					{
-						_firstTime = false;
-						_lastUpdatedTimeStamp = currentLastWriteTime;
-					}
-					else
-					{
-						if (_lastUpdatedTimeStamp != currentLastWriteTime)
-						{
-							_lastUpdatedTimeStamp = currentLastWriteTime;
-							OnConfigurationChanged();
-						}
-					}
-
+                    if (!_stopWatching)
+                    {
+                        currentLastWriteTime = GetCurrentLastWriteTime();
+                        if (_firstTime)
+                        {
+                            _firstTime = false;
+                            _lastUpdatedTimeStamp = currentLastWriteTime;
+                        }
+                        else
+                        {
+                            if (_lastUpdatedTimeStamp != currentLastWriteTime)
+                            {
+                                if (ChoApplication.IsInitialized)
+                                {
+                                    _lastUpdatedTimeStamp = currentLastWriteTime;
+                                    OnConfigurationChanged();
+                                }
+                            }
+                        }
+                    }
 					Thread.Sleep(_pollDelayInMilliseconds);
 				}
 			}
 			else
 			{
-				currentLastWriteTime = GetCurrentLastWriteTime();
-				if (_firstTime)
-				{
-					_firstTime = false;
-					_lastUpdatedTimeStamp = currentLastWriteTime;
-				}
-				else
-				{
-					if (_lastUpdatedTimeStamp != currentLastWriteTime)
-					{
-						_lastUpdatedTimeStamp = currentLastWriteTime;
-						OnConfigurationChanged();
-					}
-				}
-
-				if (pollingStatus != null && pollingStatus.Polling)
-					PollNow();
+                if (!_stopWatching)
+                {
+                    currentLastWriteTime = GetCurrentLastWriteTime();
+                    if (_firstTime)
+                    {
+                        _firstTime = false;
+                        _lastUpdatedTimeStamp = currentLastWriteTime;
+                    }
+                    else
+                    {
+                        if (_lastUpdatedTimeStamp != currentLastWriteTime)
+                        {
+                            if (ChoApplication.IsInitialized)
+                            {
+                                _lastUpdatedTimeStamp = currentLastWriteTime;
+                                OnConfigurationChanged();
+                            }
+                        }
+                    }
+                }
+                //if (pollingStatus != null && pollingStatus.Polling)
+                //    PollNow();
 			}
 		}
 

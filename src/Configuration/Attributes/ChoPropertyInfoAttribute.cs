@@ -1,4 +1,4 @@
-namespace Cinchoo.Core.Configuration
+namespace Cinchoo.Core
 {
     #region NameSpaces
 
@@ -62,6 +62,12 @@ namespace Cinchoo.Core.Configuration
         {
             get { return _sourceType; }
             set { if (value != null) _sourceType = value; }
+        }
+
+        public bool IsExpression
+        {
+            get;
+            set;
         }
 
         internal bool IsDefaultValueSpecified { get; set; }

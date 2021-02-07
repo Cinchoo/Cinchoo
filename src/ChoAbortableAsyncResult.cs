@@ -15,13 +15,13 @@
         #region Instance Data Members (Private)
 
         private Thread _threadToKill;
-        private readonly ChoAsyncCallback _asyncCallback;
+        private readonly ChoAbortableAsyncCallback _asyncCallback;
 
         #endregion Instance Data Members (Private)
 
         #region Constructors
 
-        internal ChoAbortableAsyncResult(ChoAsyncCallback asyncCallback, Object state)
+        internal ChoAbortableAsyncResult(ChoAbortableAsyncCallback asyncCallback, Object state)
             : base(state)
         {
             _asyncCallback = asyncCallback;
@@ -71,8 +71,8 @@
             if (_threadToKill != null && _threadToKill.IsAlive)
             {
                 _threadToKill.AbortThread();
-                SetAsAborted(true);
             }
+            SetAsAborted(true);
         }
 
         #endregion IChoAbortableAsyncResult Members

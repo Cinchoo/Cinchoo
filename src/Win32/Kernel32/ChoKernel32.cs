@@ -104,17 +104,8 @@ namespace Cinchoo.Core.Win32
         [DllImport(Kernel32DllName, CharSet = CharSet.Auto)]
         public static extern bool GetComputerName(StringBuilder lpBuffer, int[] nSize);
         
-        [DllImport("gdi32.dll", CharSet = CharSet.Auto)]
-        public static extern IntPtr GetStockObject(int nIndex);
-        
-        [DllImport("gdi32.dll", CharSet = CharSet.Auto)]
-        public static extern bool GetTextMetrics(HandleRef hDC, [In, Out] TEXTMETRIC tm);
-        
         [DllImport(Kernel32DllName, CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern IntPtr LoadLibrary(string libFilename);
-        
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        public static extern int MessageBox(HandleRef hWnd, string text, string caption, int type);
         
         [DllImport(Kernel32DllName, CharSet = CharSet.Auto, SetLastError = true)]
         public static extern SafeWaitHandle OpenSemaphore(int desiredAccess, bool inheritHandle, string name);
@@ -133,5 +124,24 @@ namespace Cinchoo.Core.Win32
 
         [DllImport(Kernel32DllName, SetLastError = true)]
         public static extern bool SetConsoleCtrlHandler(ConsoleCtrlMessageHandler consoleCtrlRoutine, bool Add);
+
+        [DllImport(Kernel32DllName)]
+        public static extern int RegisterApplicationRestart(
+            [MarshalAs(UnmanagedType.BStr)] string commandLineArgs,
+            int flags);
+
+        [DllImport(Kernel32DllName)]
+        public static extern int UnregisterApplicationRestart();
+
+        [DllImport(Kernel32DllName, CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern int GetApplicationRestartSettings(
+            IntPtr process,
+            IntPtr commandLine,
+            ref uint size,
+            out uint flags);
+
+        [DllImport(Kernel32DllName)]
+        public static extern uint GetShortPathName(string lpszLongPath,
+            [Out] StringBuilder lpszShortPath, uint cchBuffer);
     }
 }

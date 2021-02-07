@@ -16,8 +16,15 @@ namespace Cinchoo.Core.IO
     using Cinchoo.Core.IO.IsolatedStorage;
     using System.Text.RegularExpressions;
     using Cinchoo.Core.Reflection;
+    using Cinchoo.Core.Win32;
 
     #endregion NameSpaces
+
+    //public class ChoPathEventArgs
+    //{
+    //    public string BaseDirectory;
+    //    public string FilePath;
+    //}
 
     public static class ChoPath
     {
@@ -36,6 +43,8 @@ namespace Cinchoo.Core.IO
         private static readonly Regex _fileNameCleaner = new Regex(_fileNameCleanerExpression, RegexOptions.Compiled);
 
         private static readonly string _assemblyBaseDirectory = null;
+
+        //public static event EventHandler<ChoEventArgs<ChoPathEventArgs>> ResolveFullPath;
 
         #endregion Shared Data Members (Private)
 
@@ -65,11 +74,45 @@ namespace Cinchoo.Core.IO
 
         #region Shared Member Functions (Public)
 
+        public static string ToShortName(string longName)
+        {
+            if (longName.IsNullOrWhiteSpace()) return longName;
+
+            StringBuilder s = new StringBuilder(1000);
+            longName = ChoPath.GetFullPath(longName);
+            uint iSize = (uint)s.Capacity;
+            uint iRet = ChoKernel32.GetShortPathName(longName, s, iSize);
+            return s.ToString();
+        }
+
+        public static string ToShortFileName(string filePath)
+        {
+            if (filePath.IsNullOrWhiteSpace()) return filePath;
+
+            StringBuilder s = new StringBuilder(1000);
+            filePath = ChoPath.GetFullPath(filePath);
+            string directory = Path.GetDirectoryName(filePath);
+            string fileName = Path.GetFileName(filePath);
+
+            uint iSize = (uint)s.Capacity;
+            uint iRet = ChoKernel32.GetShortPathName(directory, s, iSize);
+            return Path.Combine(s.ToString(), fileName);
+        }
+
         public static string AssemblyBaseDirectory
         {
             get 
-            { 
+            {
                 return _assemblyBaseDirectory; 
+                //ChoPathEventArgs e = new ChoPathEventArgs();
+                //ResolveFullPath.Raise(null, new ChoEventArgs<ChoPathEventArgs>(e));
+
+                //if (e.BaseDirectory.IsNullOrWhiteSpace())
+                //    return _assemblyBaseDirectory;
+                //else if (Path.IsPathRooted(e.BaseDirectory))
+                //    return e.BaseDirectory;
+                //else
+                //    return Path.Combine(_assemblyBaseDirectory, e.BaseDirectory);
             }
         }
 
@@ -165,18 +208,80 @@ namespace Cinchoo.Core.IO
             return fileName;
         }
 
-        public static string GetFullPath(string path)
+        public static string GetPathWithoutDriveOrNetworkShare(string path)
+        {
+            if (path.IsNullOrWhiteSpace())
+                return path;
+
+            string pathWithoutDriveOrNetworkShare = path; //  
+            
+            if ((path.IndexOf(":") == 1))
+                pathWithoutDriveOrNetworkShare = path.Substring(Path.GetPathRoot(path).Length);
+            else if (path.IndexOf("\\\\") == 0)
+                pathWithoutDriveOrNetworkShare = path.Substring(path.IndexOf("\\\\") + 2);
+
+            //if (pathWithoutDriveOrNetworkShare.IndexOf("\\") > 0)
+            //    pathWithoutDriveOrNetworkShare = pathWithoutDriveOrNetworkShare.Substring(pathWithoutDriveOrNetworkShare.IndexOf("\\"));
+
+            return pathWithoutDriveOrNetworkShare;
+        }
+
+        public static string GetDriveOrNetworkShare(string path)
+        {
+            if (path.IsNullOrWhiteSpace())
+                return path;
+
+            string pathWithoutDriveOrNetworkShare = path; // = path.Substring(Path.GetPathRoot(path).Length);
+
+            if ((path.IndexOf(":") == 1) || (path.IndexOf("\\\\") == 0))
+                pathWithoutDriveOrNetworkShare = path.Substring(2); 
+        
+            if (pathWithoutDriveOrNetworkShare.IndexOf("\\") > 0)
+                pathWithoutDriveOrNetworkShare = pathWithoutDriveOrNetworkShare.Substring(pathWithoutDriveOrNetworkShare.IndexOf("\\"));
+
+            return pathWithoutDriveOrNetworkShare;
+        }
+
+        public static string GetFullPath(string path, string baseDirectory = null)
         {
 			if (path.IsNullOrWhiteSpace())
 				return path;
 
             if (Path.IsPathRooted(path))
                 return path;
-            else if (!_assemblyBaseDirectory.IsNullOrEmpty())
-                return Path.Combine(_assemblyBaseDirectory, path);
             else
-                return Path.GetFullPath(path);
-                //return Path.GetFullPath(String.Format("{0}\\{1}", ChoApplication.ApplicationBaseDirectory, path));
+            {
+                if (baseDirectory.IsNull())
+                    baseDirectory = _assemblyBaseDirectory;
+
+                if (baseDirectory.IsNull())
+                    return Path.GetFullPath(path);
+                else
+                {
+                    if (!Path.IsPathRooted(baseDirectory))
+                        baseDirectory = Path.Combine(_assemblyBaseDirectory, baseDirectory);
+
+                    return Path.Combine(baseDirectory, path);
+                }
+
+                //ChoPathEventArgs e = new ChoPathEventArgs() { FilePath = path };
+                //ResolveFullPath.Raise(null, new ChoEventArgs<ChoPathEventArgs>(e));
+
+                //if (e.FilePath.IsNullOrWhiteSpace())
+                //    e.FilePath = path;
+                //if (e.BaseDirectory.IsNullOrWhiteSpace())
+                //    e.BaseDirectory = _assemblyBaseDirectory;
+                
+                //if (!Path.IsPathRooted(e.BaseDirectory))
+                //    e.BaseDirectory = Path.Combine(_assemblyBaseDirectory, e.BaseDirectory);
+
+                //if (Path.IsPathRooted(e.FilePath))
+                //    return e.FilePath;
+                //else if (!e.BaseDirectory.IsNullOrEmpty())
+                //    return Path.Combine(e.BaseDirectory, e.FilePath);
+                //else
+                //    return Path.GetFullPath(e.FilePath);
+            }
         }
 
         public static string GetTempFileName()
@@ -210,24 +315,24 @@ namespace Cinchoo.Core.IO
             }
         }
 
-        public static bool ValidatePath(string path)
+        public static bool IsValidPath(string path)
         {
             return _pathValidator.IsMatch(path);
         }
 
-        public static bool ValidateFileName(string fileName)
+        public static bool IsValidFileName(string fileName)
         {
             return _fileNameValidator.IsMatch(fileName);
         }
 
         public static string CleanPath(string path)
         {
-            return _pathCleaner.Replace(path, "");
+            return _pathCleaner.Replace(path, "_");
         }
 
         public static string CleanFileName(string fileName)
         {
-            return _fileNameCleaner.Replace(fileName, "");
+            return _fileNameCleaner.Replace(fileName, "_");
         }
 
         public static bool IsDirectory(string path)
@@ -247,6 +352,16 @@ namespace Cinchoo.Core.IO
         public static bool IsFile(string path)
         {
             return !IsDirectory(path);
+        }
+
+        public static bool HasExtension(string filePath, string extension)
+        {
+            ChoGuard.ArgumentNotNullOrEmpty(extension, "Extension");
+            if (filePath.IsNullOrWhiteSpace()) return false;
+            if (extension.StartsWith("."))
+                extension = extension.Substring(1);
+
+            return Path.GetExtension(filePath) == ".{0}".FormatString(extension);
         }
 
         #endregion

@@ -13,10 +13,15 @@
     {
 		#region Constructors
 
+        //public ChoCommandLineArgsObjectProxy(Type type)
+        //    : base(type)
+        //{
+        //}
+
         public ChoCommandLineArgsObjectProxy(MarshalByRefObject target, Type type)
             : base(target, type)
-		{
-		}
+        {
+        }
 
 		#endregion Constructors
 
@@ -25,9 +30,9 @@
 			base.DoObjectInitialize(target);
 
             Type objType = target.GetType();
-            ChoCommandLineArgObjectAttribute commandLineArgumentsObjectAttribute = ChoType.GetAttribute(objType, typeof(ChoCommandLineArgObjectAttribute)) as ChoCommandLineArgObjectAttribute;
+            ChoCommandLineArgObjectAttribute commandLineArgumentsObjectAttribute = objType.GetCustomAttribute(typeof(ChoCommandLineArgObjectAttribute)) as ChoCommandLineArgObjectAttribute;
             if (commandLineArgumentsObjectAttribute == null || commandLineArgumentsObjectAttribute.GetMe(objType) == null)
-                throw new ApplicationException("Missing ChoCommandLineArgumentsObjectAttribute attribute in {0} type.".FormatString(objType.FullName));
+                throw new ApplicationException("Missing ChoCommandLineArgObjectAttribute attribute in {0} type.".FormatString(objType.FullName));
 
             return commandLineArgumentsObjectAttribute.GetMe(objType).Construct(target);
 		}
@@ -35,6 +40,6 @@
 		protected override void Dispose(bool finalize)
 		{
 			base.Dispose(finalize);
-		}    
+		}
     }
 }

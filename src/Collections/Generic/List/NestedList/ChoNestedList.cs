@@ -91,7 +91,8 @@ namespace Cinchoo.Core.Collections.Generic
                             reader.ReadStartElement(); //Move to next element
                         else
                         {
-                            XmlSerializer serializer1 = new XmlSerializer(typeof(T1));
+                            //XmlSerializer serializer1 = new XmlSerializer(typeof(T1));
+                            XmlSerializer serializer1 = XmlSerializer.FromTypes(new[] { typeof(T1) }).GetNValue(0);
                             First = (T1)serializer1.Deserialize(reader);
                             reader.ReadEndElement(); //First Content
                         }
@@ -108,14 +109,16 @@ namespace Cinchoo.Core.Collections.Generic
                                 reader.ReadStartElement(); //Move to next element
                             else
                             {
-                                XmlSerializer serializer21 = new XmlSerializer(typeof(ChoNestedList<T1>));
+                                //XmlSerializer serializer21 = new XmlSerializer(typeof(ChoNestedList<T1>));
+                                XmlSerializer serializer21 = XmlSerializer.FromTypes(new[] { typeof(ChoNestedList<T1>) }).GetNValue(0);
                                 Second = (T2)serializer21.Deserialize(reader);
                                 reader.ReadEndElement(); //Second Content
                             }
                         }
                         else
                         {
-                            XmlSerializer serializer22 = new XmlSerializer(typeof(List<T1>));
+                            //XmlSerializer serializer22 = new XmlSerializer(typeof(List<T1>));
+                            XmlSerializer serializer22 = XmlSerializer.FromTypes(new[] { typeof(List<T1>) }).GetNValue(0);
                             Second = (T2)serializer22.Deserialize(reader);
                         }
                         reader.ReadEndElement();

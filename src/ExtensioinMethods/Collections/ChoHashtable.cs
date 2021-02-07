@@ -36,10 +36,30 @@
 
             StringBuilder xmlString = new StringBuilder(String.Format("<{0}>", rootElementName));
             foreach (string key in nameValues.Keys)
-                xmlString.AppendFormat("<add key=\"{0}\" value=\"{1}\" />", key, nameValues[key]);
+            {
+                if (nameValues[key] == null)
+                    xmlString.AppendFormat("<add key=\"{0}\" value=\"\" />", key);
+                else
+                {
+                    string value = nameValues[key].ToString();
+                    if (value.IsNullOrWhiteSpace())
+                        xmlString.AppendFormat("<add key=\"{0}\" value=\"\" />", key);
+                    else if (value.ContainsXml())
+                        xmlString.AppendFormat("<add key=\"{0}\"><value>{1}</value></add>", key, value);
+                    else
+                        xmlString.AppendFormat("<add key=\"{0}\" value=\"{1}\" />", key, value);
+                }
+            }
             xmlString.Append(String.Format("</{0}>", rootElementName));
 
             return xmlString.ToString();
+        }
+
+        public static Dictionary<K, V> ToDictionary<K, V>(this Hashtable table)
+        {
+            return table
+              .Cast<DictionaryEntry>()
+              .ToDictionary(kvp => (K)kvp.Key, kvp => (V)kvp.Value);
         }
     }
 }

@@ -19,5 +19,22 @@
             if (!dir.IsNullOrEmpty())
                 Directory.CreateDirectory(Path.GetDirectoryName(filePath));
         }
+
+        public static IEnumerable<string> GetFiles(string path, string searchPattern = null, SearchOption searchOption = SearchOption.TopDirectoryOnly)
+        {
+            if (searchPattern.IsNullOrWhiteSpace())
+            {
+                foreach (string file in Directory.GetFiles(path))
+                    yield return file;
+            }
+            else
+            {
+                foreach (string pattern in searchPattern.SplitNTrim())
+                {
+                    foreach (string file in Directory.GetFiles(path, pattern, searchOption))
+                        yield return file;
+                }
+            }
+        }
     }
 }

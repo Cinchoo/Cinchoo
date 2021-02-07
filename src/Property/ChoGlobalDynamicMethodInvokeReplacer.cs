@@ -15,6 +15,8 @@ namespace Cinchoo.Core
     using System.CodeDom.Compiler;
     using System.Reflection;
     using System.IO;
+    using Cinchoo.Core.Compiler;
+    using System.Diagnostics;
 
     #endregion NameSpaces
 
@@ -26,23 +28,23 @@ namespace Cinchoo.Core
 
         public bool Format(object target, ref string msg)
         {
-            try
-            {
+            //try
+            //{
                 if (msg.IndexOf("~") == -1)
                     return true;
 
-                msg = ChoString.ExpandProperties(target, msg, '~', '~', '^', _customKeyValuePropertyReplacer);
+                msg = ChoString.ExpandPropertiesInternal(target, msg, '~', '~', '^', new IChoPropertyReplacer[] { _customKeyValuePropertyReplacer });
                 return true;
-            }
-            catch (ChoFatalApplicationException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                msg = ChoPropertyManager.FormatException(msg, ex);
-                return false;
-            }
+            //}
+            //catch (ChoFatalApplicationException)
+            //{
+            //    throw;
+            //}
+            //catch (Exception ex)
+            //{
+            //    msg = ChoPropertyManager.FormatException(msg, ex);
+            //    return false;
+            //}
         }
 
         public string Name
@@ -60,28 +62,16 @@ namespace Cinchoo.Core
         [Serializable]
         private class ChoCustomKeyValuePropertyReplacer : IChoKeyValuePropertyReplacer
         {
-            #region Shared Data Members (Private)
-
-            private readonly static CompilerParameters _compilerParameters;
-
-            #endregion Shared Data Members (Private)
+            private static IEnumerable<string> _refAssemblies;
 
             #region Constructors
 
             static ChoCustomKeyValuePropertyReplacer()
             {
-                _compilerParameters = new CompilerParameters();
-                _compilerParameters.GenerateExecutable = false;
-                _compilerParameters.GenerateInMemory = true;
-                _compilerParameters.IncludeDebugInformation = true;
-
-                var assemblies = AppDomain.CurrentDomain
+                _refAssemblies = AppDomain.CurrentDomain
                                             .GetAssemblies()
                                             .Where(a => !a.IsDynamic)
                                             .Select(a => a.Location);
-
-                foreach (string s in assemblies)
-                    _compilerParameters.ReferencedAssemblies.Add(Path.GetFileName(s));
             }
 
             public ChoCustomKeyValuePropertyReplacer()
@@ -92,41 +82,49 @@ namespace Cinchoo.Core
 
             #region IChoKeyValuePropertyReplacer Members
 
-            public bool ContainsProperty(string propertyName)
+            public bool ContainsProperty(string propertyName, object context = null)
             {
-                return true;
+                //return true;
+                try
+                {
+                    object output = null;
+                    string codeBlock = propertyName.Trim();
+                    if (!codeBlock.Contains(";") && !codeBlock.StartsWith("return"))
+                        codeBlock = "return {0};".FormatString(codeBlock);
+
+                    using (ChoCodeDomProvider cs = new ChoCodeDomProvider(new string[] { codeBlock }))
+                        output = cs.ExecuteFunc(context);
+
+                    return true;
+                }
+                catch (ChoFatalApplicationException)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    Trace.TraceError(ex.ToString());
+                    return false;
+                }
             }
 
-            public string ReplaceProperty(string propertyName, string format)
+            public string ReplaceProperty(string propertyName, string format, object context)
             {
                 //try
                 //{
                     object output = null;
-                    string className = "ChoClass_{0}".FormatString(ChoRandom.NextRandom(0, Int32.MaxValue));
-                    string statement = String.Format("public class {0} {{ public object Execute() {{ return {1}; }} }}", className, propertyName);
+                    string codeBlock = propertyName.Trim();
+                    if (!codeBlock.Contains(";") && !codeBlock.StartsWith("return"))
+                        codeBlock = "return {0};".FormatString(codeBlock);
 
-                    using (Microsoft.CSharp.CSharpCodeProvider foo =
-                               new Microsoft.CSharp.CSharpCodeProvider())
-                    {
-                        var res = foo.CompileAssemblyFromSource(_compilerParameters,statement);
-
-                        if (res.Errors.Count > 0)
-                        {
-                            StringBuilder errors = new StringBuilder();
-                            foreach (CompilerError CompErr in res.Errors)
-                                errors.AppendFormat("Line number {0}, Error Number: {1}, {2}{3}", CompErr.Line, CompErr.ErrorNumber, CompErr.ErrorText, Environment.NewLine);
-
-                            throw new ChoApplicationException("Exception compiling dynamic statement {1}{1}{0}{1}{1}{2}".FormatString(
-                                propertyName, Environment.NewLine, errors.ToString()));
-                        }
-
-                        var type = res.CompiledAssembly.GetType(className);
-                        var obj = Activator.CreateInstance(type);
-
-                        output = type.GetMethod("Execute").Invoke(obj, new object[] { });
-                    }
+                    using (ChoCodeDomProvider cs = new ChoCodeDomProvider(new string[] { codeBlock }))
+                        output = cs.ExecuteFunc(context);
 
                     return ChoObject.ToString(output, format);
+                //}
+                //catch (ChoFatalApplicationException)
+                //{
+                //    throw;
                 //}
                 //catch (Exception ex)
                 //{

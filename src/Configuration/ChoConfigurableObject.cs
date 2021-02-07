@@ -19,6 +19,7 @@ namespace Cinchoo.Core.Configuration
     using Cinchoo.Core.Diagnostics;
     using Cinchoo.Core.Properties;
     using System.Runtime.Serialization;
+    using System.Globalization;
 
     #endregion NameSpaces
 
@@ -39,14 +40,22 @@ namespace Cinchoo.Core.Configuration
         public ChoConfigurableObject()
         {
             _configurationElementAttribute = ChoType.GetAttribute(GetType(), typeof(ChoConfigurationSectionAttribute)) as ChoConfigurationSectionAttribute;
+            if (_configurationElementAttribute == null)
+                throw new ChoFatalApplicationException("Missing configuration object attribute defined for '{0}' type.".FormatString(GetType().Name));
 
             //Discover and Hook the event handlers
             if (BeforeConfigurationObjectMemberLoaded == null)
                 EventHandlerEx.LoadHandlers<ChoPreviewConfigurationObjectMemberEventArgs>(ref BeforeConfigurationObjectMemberLoaded, ChoType.GetMethods(GetType(), typeof(ChoBeforeConfigurationObjectMemberLoadedHandlerAttribute)), this);
+            if (BeforeConfigurationObjectMemberSet == null)
+                EventHandlerEx.LoadHandlers<ChoPreviewConfigurationObjectMemberEventArgs>(ref BeforeConfigurationObjectMemberSet, ChoType.GetMethods(GetType(), typeof(ChoBeforeConfigurationObjectMemberSetHandlerAttribute)), this);
             if (AfterConfigurationObjectMemberLoaded == null)
                 EventHandlerEx.LoadHandlers<ChoConfigurationObjectMemberEventArgs>(ref AfterConfigurationObjectMemberLoaded, ChoType.GetMethods(GetType(), typeof(ChoAfterConfigurationObjectMemberLoadedHandlerAttribute)), this);
+            if (AfterConfigurationObjectMemberSet == null)
+                EventHandlerEx.LoadHandlers<ChoConfigurationObjectMemberEventArgs>(ref AfterConfigurationObjectMemberSet, ChoType.GetMethods(GetType(), typeof(ChoAfterConfigurationObjectMemberSetHandlerAttribute)), this);
             if (ConfigurationObjectMemberLoadError == null)
                 EventHandlerEx.LoadHandlers<ChoConfigurationObjectMemberErrorEventArgs>(ref ConfigurationObjectMemberLoadError, ChoType.GetMethods(GetType(), typeof(ChoConfigurationObjectMemberLoadErrorHandlerAttribute)), this);
+            if (ConfigurationObjectMemberSetError == null)
+                EventHandlerEx.LoadHandlers<ChoConfigurationObjectMemberErrorEventArgs>(ref ConfigurationObjectMemberSetError, ChoType.GetMethods(GetType(), typeof(ChoConfigurationObjectMemberSetErrorHandlerAttribute)), this);
 
             if (BeforeConfigurationObjectPersisted == null)
                 EventHandlerEx.LoadHandlers<ChoPreviewConfigurationObjectEventArgs>(ref BeforeConfigurationObjectPersisted, ChoType.GetMethods(GetType(), typeof(ChoBeforeConfigurationObjectPersistedHandlerAttribute)), this);
@@ -58,10 +67,19 @@ namespace Cinchoo.Core.Configuration
             if (AfterConfigurationObjectMemberPersist == null)
                 EventHandlerEx.LoadHandlers<ChoConfigurationObjectMemberEventArgs>(ref AfterConfigurationObjectMemberPersist, ChoType.GetMethods(GetType(), typeof(ChoAfterConfigurationObjectMemberPersistHandlerAttribute)), this);
 
+            if (BeforeConfigurationObjectLoadedInternal == null)
+                EventHandlerEx.LoadHandlers<ChoPreviewConfigurationObjectEventArgs>(ref BeforeConfigurationObjectLoadedInternal, ChoType.GetMethods(GetType(), typeof(ChoBeforeConfigurationObjectLoadedHandlerAttribute)), this);
             if (AfterConfigurationObjectLoadedInternal == null)
                 EventHandlerEx.LoadHandlers<ChoConfigurationObjectEventArgs>(ref AfterConfigurationObjectLoadedInternal, ChoType.GetMethods(GetType(), typeof(ChoAfterConfigurationObjectLoadedHandlerAttribute)), this);
             if (ConfigurationObjectLoadError == null)
                 EventHandlerEx.LoadHandlers<ChoConfigurationObjectErrorEventArgs>(ref ConfigurationObjectLoadError, ChoType.GetMethods(GetType(), typeof(ChoConfigurationObjectLoadErrorHandlerAttribute)), this);
+
+            //Type configObjType = GetType();
+            //ChoConfigurationSectionAttribute configurationElement = ChoType.GetAttribute(configObjType, typeof(ChoConfigurationSectionAttribute)) as ChoConfigurationSectionAttribute;
+            //if (configurationElement == null || configurationElement.GetMe(configObjType) == null)
+            //    throw new ChoConfigurationException(String.Format(CultureInfo.InvariantCulture, Resources.ES1001, configObjType.Name));
+
+            //configurationElement.GetMe(configObjType).Construct(this);
         }
 
         #endregion Constructors
@@ -72,10 +90,36 @@ namespace Cinchoo.Core.Configuration
         public event EventHandler<ChoPreviewConfigurationObjectMemberEventArgs> BeforeConfigurationObjectMemberLoaded;
 
         [ChoHiddenMember]
+        public event EventHandler<ChoPreviewConfigurationObjectMemberEventArgs> BeforeConfigurationObjectMemberSet;
+
+        [ChoHiddenMember]
         public event EventHandler<ChoConfigurationObjectMemberEventArgs> AfterConfigurationObjectMemberLoaded;
 
         [ChoHiddenMember]
+        public event EventHandler<ChoConfigurationObjectMemberEventArgs> AfterConfigurationObjectMemberSet;
+
+        [ChoHiddenMember]
         public event EventHandler<ChoConfigurationObjectMemberErrorEventArgs> ConfigurationObjectMemberLoadError;
+
+        [ChoHiddenMember]
+        public event EventHandler<ChoConfigurationObjectMemberErrorEventArgs> ConfigurationObjectMemberSetError;
+
+        [ChoHiddenMember]
+        internal event EventHandler<ChoPreviewConfigurationObjectEventArgs> BeforeConfigurationObjectLoadedInternal;
+        [ChoHiddenMember]
+        public event EventHandler<ChoPreviewConfigurationObjectEventArgs> BeforeConfigurationObjectLoaded
+        {
+            add
+            {
+                BeforeConfigurationObjectLoadedInternal += value;
+                //if (value != null && Initialized)
+                //    value(this, new ChoPreviewConfigurationObjectEventArgs());
+            }
+            remove
+            {
+                BeforeConfigurationObjectLoadedInternal -= value;
+            }
+        }
 
         [ChoHiddenMember]
         internal event EventHandler<ChoConfigurationObjectEventArgs> AfterConfigurationObjectLoadedInternal;
@@ -184,14 +228,19 @@ namespace Cinchoo.Core.Configuration
 
                     try
                     {
-                        bool handled = RaiseBeforeConfigurationObjectMemberLoaded(memberInfo.Name, propertyName, oldValue, ref newValue);
-                        memberInfo.Value = newValue;
-                        return !handled;
+                        bool cancel = RaiseBeforeConfigurationObjectMemberSet(memberInfo.Name, propertyName, oldValue, ref newValue);
+                        //if (!cancel)
+                        //{
+                        //    //memberInfo.Value = newValue;
+                        //    ChoType.SetMemberValue(this, memberInfo.Info, newValue);
+                        //    this.OnPropertyChanged(memberInfo.Name);
+                        //}
+                        return !cancel;
                     }
                     catch (Exception ex)
                     {
-                        if (!RaiseConfigurationObjectMemberLoadError(memberInfo.Name, propertyName, newValue, ex))
-                            throw;
+                        if (!RaiseConfigurationObjectMemberSetError(memberInfo.Name, propertyName, newValue, ex))
+                            throw new ChoConfigurationObjectPostInvokeException("Error while setting configuration member value.", memberInfo.Exception);
                     }
                 }
                 return true;
@@ -210,16 +259,19 @@ namespace Cinchoo.Core.Configuration
                 string propertyName = ChoType.GetMemberName(memberInfo.Info);
 
                 if (memberInfo.Exception == null)
-                    RaiseAfterConfigurationObjectMemberLoaded(memberInfo.Name, propertyName, newValue);
+                {
+                    RaiseAfterConfigurationObjectMemberSet(memberInfo.Name, propertyName, newValue);
+                    OnPropertyChanged(memberInfo.Name);
+                }
                 else
                 {
-                    if (!RaiseConfigurationObjectMemberLoadError(memberInfo.Name, propertyName, newValue, memberInfo.Exception))
-                        throw new ChoConfigurationObjectPostInvokeException("Error while loading configuration member load operation.", memberInfo.Exception);
+                    if (!RaiseConfigurationObjectMemberSetError(memberInfo.Name, propertyName, newValue, memberInfo.Exception))
+                        memberInfo.Exception = new ChoConfigurationObjectPostInvokeException("Error while setting '{0}' configuration member value.".FormatString(memberInfo.Name), memberInfo.Exception);
                     else
-                        memberInfo.ReturnMessage = new ReturnMessage(null, memberInfo.MethodCallMsg);
+                        memberInfo.Exception = null;
                 }
             }
-            if (memberInfo.DirtyOperation && Dirty && !IsReadOnly() && Initialized)
+            if (memberInfo.DirtyOperation /*&& Dirty */&& !IsReadOnly() && Initialized)
             {
                 ChoPropertyInfoAttribute memberInfoAttribute = ChoType.GetMemberAttribute(memberInfo.Info, typeof(ChoPropertyInfoAttribute)) as ChoPropertyInfoAttribute;
                 if (memberInfoAttribute == null || memberInfoAttribute.Persistable)
@@ -232,6 +284,15 @@ namespace Cinchoo.Core.Configuration
         #endregion ChoIntercerptableObject Overrides
 
         #region Instance Members (Public)
+
+        internal void InvokeOverrideMetaDataInfo(ChoBaseConfigurationMetaDataInfo metaDataInfo)
+        {
+            OverrideMetaDataInfo(metaDataInfo);
+        }
+
+        protected virtual void OverrideMetaDataInfo(ChoBaseConfigurationMetaDataInfo metaDataInfo)
+        {
+        }
 
         public void ResetToMemberDefaultValue(string memberName)
         {
@@ -277,6 +338,57 @@ namespace Cinchoo.Core.Configuration
 
         #region Instance Members (Internal)
 
+        protected virtual bool OnBeforeConfigurationObjectLoaded()
+        {
+            return false;
+        }
+
+        [ChoHiddenMember]
+        internal bool RaiseBeforeConfigurationObjectLoaded()
+        {
+            //Wire INotifyPropertyChanged members for any changes
+            UnwireNotifyPropertyChangedMembersForChanges(GetType());
+
+            bool cancel = OnBeforeConfigurationObjectLoaded();
+            if (cancel) return cancel;
+
+            EventHandler<ChoPreviewConfigurationObjectEventArgs> beforeConfigurationObjectLoadedInternal = BeforeConfigurationObjectLoadedInternal;
+            if (beforeConfigurationObjectLoadedInternal != null)
+            {
+                ChoPreviewConfigurationObjectEventArgs previewConfigurationObjectEventArgs = new ChoPreviewConfigurationObjectEventArgs();
+
+                beforeConfigurationObjectLoadedInternal(this, previewConfigurationObjectEventArgs);
+                return previewConfigurationObjectEventArgs.Cancel;
+            }
+
+            return false;
+        }
+
+        private void UnwireNotifyPropertyChangedMembersForChanges(Type type)
+        {
+            MemberInfo[] memberInfos = ChoTypeMembersCache.GetAllMemberInfos(type);
+            if (memberInfos != null && memberInfos.Length > 0)
+            {
+                //Set member values
+                INotifyPropertyChanged memberValue = null;
+                ChoPropertyInfoAttribute memberInfoAttribute = null;
+                foreach (MemberInfo memberInfo in memberInfos)
+                {
+                    if (memberInfo.GetCustomAttribute<ChoIgnorePropertyAttribute>() != null)
+                        continue;
+
+                    memberInfoAttribute = (ChoPropertyInfoAttribute)ChoType.GetMemberAttribute(memberInfo, typeof(ChoPropertyInfoAttribute));
+
+                    memberValue = ChoType.GetMemberValue(this, memberInfo.Name) as INotifyPropertyChanged;
+                    if (memberValue == null)
+                        continue;
+
+                    memberValue.PropertyChanged -= MemberValuePropertyChanged;
+                    UnwireNotifyPropertyChangedMembersForChanges(memberValue.GetType());
+                }
+            }
+        }
+
         protected virtual void OnAfterConfigurationObjectLoaded()
         {
         }
@@ -284,6 +396,11 @@ namespace Cinchoo.Core.Configuration
         [ChoHiddenMember]
         internal void RaiseAfterConfigurationObjectLoaded()
         {
+            Initialized = true;
+
+            //Wire INotifyPropertyChanged members for any changes
+            WireNotifyPropertyChangedMembersForChanges(GetType());
+
             OnAfterConfigurationObjectLoaded();
 
             EventHandler<ChoConfigurationObjectEventArgs> afterConfigurationObjectLoadedInternal = AfterConfigurationObjectLoadedInternal;
@@ -294,6 +411,37 @@ namespace Cinchoo.Core.Configuration
             }
         }
 
+        private void WireNotifyPropertyChangedMembersForChanges(Type type)
+        {
+            MemberInfo[] memberInfos = ChoTypeMembersCache.GetAllMemberInfos(type);
+            if (memberInfos != null && memberInfos.Length > 0)
+            {
+                //Set member values
+                INotifyPropertyChanged memberValue = null;
+                ChoPropertyInfoAttribute memberInfoAttribute = null;
+                foreach (MemberInfo memberInfo in memberInfos)
+                {
+                    if (memberInfo.GetCustomAttribute<ChoIgnorePropertyAttribute>() != null)
+                        continue;
+
+                    memberInfoAttribute = (ChoPropertyInfoAttribute)ChoType.GetMemberAttribute(memberInfo, typeof(ChoPropertyInfoAttribute));
+
+                    memberValue = ChoType.GetMemberValue(this, memberInfo.Name) as INotifyPropertyChanged;
+                    if (memberValue == null)
+                        continue;
+
+                    memberValue.PropertyChanged += MemberValuePropertyChanged;
+                    WireNotifyPropertyChangedMembersForChanges(memberValue.GetType());
+                }
+            }
+        }
+
+        private void MemberValuePropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (Initialized)
+                Persist();
+        }
+
         protected virtual bool OnConfigurationObjectLoadError(Exception ex)
         {
             return false;
@@ -302,6 +450,9 @@ namespace Cinchoo.Core.Configuration
         [ChoHiddenMember]
         internal bool RaiseConfigurationObjectLoadError(Exception ex, ref bool isDirty)
         {
+            //Wire INotifyPropertyChanged members for any changes
+            WireNotifyPropertyChangedMembersForChanges(GetType());
+            
             bool handled = OnConfigurationObjectLoadError(ex);
             if (handled) return handled;
 
@@ -318,23 +469,46 @@ namespace Cinchoo.Core.Configuration
             return false;
         }
 
-        protected virtual bool OnBeforeConfigurationObjectMemberLoaded(string memberName, string propertyName, object originalState)
+        protected virtual bool OnBeforeConfigurationObjectMemberLoaded(string memberName, string propertyName, ref object value)
         {
             return false;
         }
 
         [ChoHiddenMember]
-        internal bool RaiseBeforeConfigurationObjectMemberLoaded(string memberName, string propertyName, object originalState, ref object state)
+        internal bool RaiseBeforeConfigurationObjectMemberLoaded(string memberName, string propertyName, object originalValue, ref object value)
         {
-            bool cancel = OnBeforeConfigurationObjectMemberLoaded(memberName, propertyName, originalState);
+            bool cancel = OnBeforeConfigurationObjectMemberLoaded(memberName, propertyName, ref value);
             if (cancel) return cancel;
 
             EventHandler<ChoPreviewConfigurationObjectMemberEventArgs> beforeConfigurationObjectMemberLoaded = BeforeConfigurationObjectMemberLoaded;
             if (beforeConfigurationObjectMemberLoaded != null)
             {
-                ChoPreviewConfigurationObjectMemberEventArgs previewConfigurationObjectMemberEventArgs = new ChoPreviewConfigurationObjectMemberEventArgs(memberName, propertyName, state, originalState);
+                ChoPreviewConfigurationObjectMemberEventArgs previewConfigurationObjectMemberEventArgs = new ChoPreviewConfigurationObjectMemberEventArgs(memberName, propertyName, value, originalValue);
                 beforeConfigurationObjectMemberLoaded(this, previewConfigurationObjectMemberEventArgs);
-                state = previewConfigurationObjectMemberEventArgs.State;
+                value = previewConfigurationObjectMemberEventArgs.Value;
+                return previewConfigurationObjectMemberEventArgs.Cancel;
+            }
+
+            return false;
+        }
+
+        protected virtual bool OnBeforeConfigurationObjectMemberSet(string memberName, string propertyName, ref object value)
+        {
+            return false;
+        }
+
+        [ChoHiddenMember]
+        internal bool RaiseBeforeConfigurationObjectMemberSet(string memberName, string propertyName, object originalValue, ref object value)
+        {
+            bool cancel = OnBeforeConfigurationObjectMemberSet(memberName, propertyName, ref value);
+            if (cancel) return cancel;
+
+            EventHandler<ChoPreviewConfigurationObjectMemberEventArgs> beforeConfigurationObjectMemberSet = BeforeConfigurationObjectMemberSet;
+            if (beforeConfigurationObjectMemberSet != null)
+            {
+                ChoPreviewConfigurationObjectMemberEventArgs previewConfigurationObjectMemberEventArgs = new ChoPreviewConfigurationObjectMemberEventArgs(memberName, propertyName, value, originalValue);
+                beforeConfigurationObjectMemberSet(this, previewConfigurationObjectMemberEventArgs);
+                value = previewConfigurationObjectMemberEventArgs.Value;
                 return previewConfigurationObjectMemberEventArgs.Cancel;
             }
 
@@ -357,25 +531,66 @@ namespace Cinchoo.Core.Configuration
                 afterConfigurationObjectMemberLoaded(this, configurationObjectMemberEventArgs);
             }
 
-            OnPropertyChanged(memberName);
+            //OnPropertyChanged(memberName);
         }
 
-        protected virtual bool OnConfigurationObjectMemberLoadError(string memberName, string propertyName, object unformattedValue, Exception ex)
+        protected virtual void OnAfterConfigurationObjectMemberSet(string memberName, string propertyName, object value)
+        {
+        }
+
+        [ChoHiddenMember]
+        internal void RaiseAfterConfigurationObjectMemberSet(string memberName, string propertyName, object value)
+        {
+            OnAfterConfigurationObjectMemberSet(memberName, propertyName, value);
+
+            EventHandler<ChoConfigurationObjectMemberEventArgs> afterConfigurationObjectMemberSet = AfterConfigurationObjectMemberSet;
+            if (afterConfigurationObjectMemberSet != null)
+            {
+                ChoConfigurationObjectMemberEventArgs configurationObjectMemberEventArgs = new ChoConfigurationObjectMemberEventArgs(memberName, propertyName, value);
+                afterConfigurationObjectMemberSet(this, configurationObjectMemberEventArgs);
+            }
+
+            //OnPropertyChanged(memberName);
+        }
+
+        protected virtual bool OnConfigurationObjectMemberLoadError(string memberName, string propertyName, object value, Exception ex)
         {
             return false;
         }
 
         [ChoHiddenMember]
-        internal bool RaiseConfigurationObjectMemberLoadError(string memberName, string propertyName, object unformattedValue, Exception ex)
+        internal bool RaiseConfigurationObjectMemberLoadError(string memberName, string propertyName, object value, Exception ex)
         {
-            bool handled = OnConfigurationObjectMemberLoadError(memberName, propertyName, unformattedValue, ex);
+            bool handled = OnConfigurationObjectMemberLoadError(memberName, propertyName, value, ex);
             if (handled) return handled;
 
             EventHandler<ChoConfigurationObjectMemberErrorEventArgs> configurationObjectMemberLoadError = ConfigurationObjectMemberLoadError;
             if (configurationObjectMemberLoadError != null)
             {
-                ChoConfigurationObjectMemberErrorEventArgs configurationObjectMemberErrorEventArgs = new ChoConfigurationObjectMemberErrorEventArgs(memberName, propertyName, unformattedValue, ex);
+                ChoConfigurationObjectMemberErrorEventArgs configurationObjectMemberErrorEventArgs = new ChoConfigurationObjectMemberErrorEventArgs(memberName, propertyName, value, ex);
                 configurationObjectMemberLoadError(this, configurationObjectMemberErrorEventArgs);
+                return configurationObjectMemberErrorEventArgs.Handled;
+            }
+
+            return false;
+        }
+
+        protected virtual bool OnConfigurationObjectMemberSetError(string memberName, string propertyName, object value, Exception ex)
+        {
+            return false;
+        }
+
+        [ChoHiddenMember]
+        internal bool RaiseConfigurationObjectMemberSetError(string memberName, string propertyName, object value, Exception ex)
+        {
+            bool handled = OnConfigurationObjectMemberSetError(memberName, propertyName, value, ex);
+            if (handled) return handled;
+
+            EventHandler<ChoConfigurationObjectMemberErrorEventArgs> configurationObjectMemberSetError = ConfigurationObjectMemberSetError;
+            if (configurationObjectMemberSetError != null)
+            {
+                ChoConfigurationObjectMemberErrorEventArgs configurationObjectMemberErrorEventArgs = new ChoConfigurationObjectMemberErrorEventArgs(memberName, propertyName, value, ex);
+                configurationObjectMemberSetError(this, configurationObjectMemberErrorEventArgs);
                 return configurationObjectMemberErrorEventArgs.Handled;
             }
 
@@ -405,42 +620,42 @@ namespace Cinchoo.Core.Configuration
             return false;
         }
 
-        protected virtual bool OnBeforeConfigurationObjectMemberPersist(string memberName, string propertyName)
+        protected virtual bool OnBeforeConfigurationObjectMemberPersist(string memberName, string propertyName, ref object value)
         {
             return false;
         }
 
         [ChoHiddenMember]
-        internal bool RaiseBeforeConfigurationObjectMemberPersist(string memberName, string propertyName, ref object state)
+        internal bool RaiseBeforeConfigurationObjectMemberPersist(string memberName, string propertyName, ref object value)
         {
-            bool cancel = OnBeforeConfigurationObjectMemberPersist(memberName, propertyName);
+            bool cancel = OnBeforeConfigurationObjectMemberPersist(memberName, propertyName, ref value);
             if (cancel) return cancel;
 
             EventHandler<ChoPreviewConfigurationObjectMemberEventArgs> beforeConfigurationObjectMemberPersist = BeforeConfigurationObjectMemberPersist;
             if (beforeConfigurationObjectMemberPersist != null)
             {
-                ChoPreviewConfigurationObjectMemberEventArgs previewConfigurationObjectMemberEventArgs = new ChoPreviewConfigurationObjectMemberEventArgs(memberName, propertyName, state, null);
+                ChoPreviewConfigurationObjectMemberEventArgs previewConfigurationObjectMemberEventArgs = new ChoPreviewConfigurationObjectMemberEventArgs(memberName, propertyName, value, null);
                 beforeConfigurationObjectMemberPersist(this, previewConfigurationObjectMemberEventArgs);
-                state = previewConfigurationObjectMemberEventArgs.State;
+                value = previewConfigurationObjectMemberEventArgs.Value;
                 return previewConfigurationObjectMemberEventArgs.Cancel;
             }
 
             return false;
         }
 
-        protected virtual void OnAfterConfigurationObjectMemberPersist(string memberName, string propertyName, object state)
+        protected virtual void OnAfterConfigurationObjectMemberPersist(string memberName, string propertyName, object value)
         {
         }
 
         [ChoHiddenMember]
-        internal void RaiseAfterConfigurationObjectMemberPersist(string memberName, string propertyName, object state)
+        internal void RaiseAfterConfigurationObjectMemberPersist(string memberName, string propertyName, object value)
         {
-            OnAfterConfigurationObjectMemberPersist(memberName, propertyName, state);
+            OnAfterConfigurationObjectMemberPersist(memberName, propertyName, value);
 
             EventHandler<ChoConfigurationObjectMemberEventArgs> afterConfigurationObjectMemberPersist = AfterConfigurationObjectMemberPersist;
             if (afterConfigurationObjectMemberPersist != null)
             {
-                ChoConfigurationObjectMemberEventArgs configurationObjectMemberEventArgs = new ChoConfigurationObjectMemberEventArgs(memberName, propertyName, state);
+                ChoConfigurationObjectMemberEventArgs configurationObjectMemberEventArgs = new ChoConfigurationObjectMemberEventArgs(memberName, propertyName, value);
 
                 afterConfigurationObjectMemberPersist(this, configurationObjectMemberEventArgs);
             }
@@ -503,10 +718,27 @@ namespace Cinchoo.Core.Configuration
                     }
                     catch (ChoFatalApplicationException)
                     {
+                        throw;
                     }
                     catch (Exception ex)
                     {
                         ChoTrace.Error(ex);
+                    }
+
+                    foreach (string depends in ChoPropertyDependsOnCache.Instance.GetDependsOn(GetType(), name))
+                    {
+                        try
+                        {
+                            propertyChangedEventHandler((MarshalByRefObject)this, new PropertyChangedEventArgs(depends));
+                        }
+                        catch (ChoFatalApplicationException)
+                        {
+                            throw;
+                        }
+                        catch (Exception ex)
+                        {
+                            ChoTrace.Error(ex);
+                        }
                     }
                 }
             }
@@ -536,6 +768,46 @@ namespace Cinchoo.Core.Configuration
         public virtual object Clone()
         {
             return this;
+        }
+
+        #endregion
+
+        #region AsDictionary Overrides
+
+        public IEnumerable<KeyValuePair<string, object>> AsDictionary()
+        {
+            MemberInfo[] memberInfos = ChoTypeMembersCache.GetAllMemberInfos(GetType());
+            if (memberInfos != null && memberInfos.Length > 0)
+            {
+                //Set member values
+                string name;
+                ChoPropertyInfoAttribute memberInfoAttribute = null;
+                foreach (MemberInfo memberInfo in memberInfos)
+                {
+                    if (memberInfo.GetCustomAttribute<ChoIgnorePropertyAttribute>() != null)
+                        continue;
+
+                    memberInfoAttribute = (ChoPropertyInfoAttribute)ChoType.GetMemberAttribute(memberInfo, typeof(ChoPropertyInfoAttribute));
+                    name = ChoType.GetMemberName(memberInfo);
+
+                    yield return new KeyValuePair<string, object>(name, ChoType.GetMemberValue(GetType(), memberInfo));
+                }
+            }
+        }
+
+        #endregion AsDictionary Overrides
+
+        #region Helper Methods
+
+        public string ToXml()
+        {
+            return ChoObjectEx.ToXml(this);
+        }
+
+        public void LoadXml(string xml)
+        {
+            if (xml.IsNullOrWhiteSpace()) return;
+            xml.ToObjectFromXml(GetType());
         }
 
         #endregion

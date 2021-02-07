@@ -9,7 +9,7 @@
 
     #endregion NameSpaces
 
-    public class ChoIdleTask : ChoDisposableObject
+    public class ChoIdleTask : ChoSyncDisposableObject
     {
         #region Instance Data Members (Private)
 
@@ -60,7 +60,14 @@
 
         protected override void Dispose(bool finalize)
         {
-            Stop();
+            try
+            {
+                if (_idleThread.IsAlive)
+                {
+                    _idleThread.AbortThread();
+                }
+            }
+            catch { }
         }
 
         #endregion IDisposable Overrides

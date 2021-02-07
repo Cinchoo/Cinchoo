@@ -229,6 +229,31 @@
 				SetValue(key, stateInfo[key]);
 		}
 
+        public void MergeIfDefaultValue(object source)
+        {
+            Merge(source, (val1, val2) =>  default(TValue).Equals(val1));
+        }
+
+        public void Merge(object source, Func<TValue, TValue, bool> condition)
+        {
+            if (source == null
+                || !(source is ChoDictionaryService<TKey, TValue>)
+                || Object.ReferenceEquals(this, source))
+                return;
+
+            ChoDictionaryService<TKey, TValue> stateInfo = source as ChoDictionaryService<TKey, TValue>;
+            foreach (TKey key in stateInfo._cacheKeyValues.Keys)
+            {
+                if (condition != null)
+                {
+                    if (condition(this[key], stateInfo[key]))
+                        SetValue(key, stateInfo[key]);
+                }
+                else
+                    SetValue(key, stateInfo[key]);
+            }
+        }
+
 		#endregion
 	}
 }

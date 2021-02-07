@@ -251,6 +251,8 @@ namespace Cinchoo.Core.Diagnostics
                     {
                         if (File.Exists(GetBackupFileName(fileIndex)))
                             _nextFileIndex = fileIndex + 1;
+                        else
+                            break;
                     }
 
                     //if the file count reaches the max file count, back those up
@@ -303,6 +305,7 @@ namespace Cinchoo.Core.Diagnostics
                 if (File.Exists(sourceFileName))
                 {
                     string strPath = Path.Combine(backupDirName, Path.GetFileName(sourceFileName));// GetBackupFileNameOnly(fileIndex));
+                    Directory.CreateDirectory(backupDirName);
                     if (File.Exists(strPath)) File.Delete(strPath);
                     File.Move(sourceFileName, strPath);
                     backupDirEmpty = false;
@@ -323,7 +326,11 @@ namespace Cinchoo.Core.Diagnostics
         /// <returns></returns>
         string GetBackupDirName()
         {
-            string baseBackupDir = Path.Combine(_fileDir, _lastBackupTime.ToString("MM-dd-yyyy"));
+            string baseBackupDir = ChoProfileBackupManager.GetBackupDir();
+            if (!baseBackupDir.IsNullOrWhiteSpace())
+                return baseBackupDir;
+
+            baseBackupDir = Path.Combine(_fileDir, _lastBackupTime.ToString("MM-dd-yyyy"));
             string backupDir = baseBackupDir;
             int index = 0;
 
@@ -335,6 +342,7 @@ namespace Cinchoo.Core.Diagnostics
 
             Directory.CreateDirectory(backupDir);
 
+            ChoProfileBackupManager.Register(backupDir);
             return backupDir;
         }
 

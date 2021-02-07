@@ -20,27 +20,27 @@ namespace Cinchoo.Core.Configuration
 
 	public class ChoConfigurationManagementFactory
 	{
-		public static T CreateInstance<T>() where T : class
-		{
-			Type configObjType = typeof(T);
+        //public static T CreateInstance<T>() where T : class
+        //{
+        //    Type configObjType = typeof(T);
 
-			if (typeof(ContextBoundObject).IsAssignableFrom(configObjType))
-				return ChoSingleton<T>.GetInstance(SingletonTypeValidationRules.AllowAll);
-			else
-			{
-				if (!ChoObjectManagementFactory.IsCached(configObjType))
-				{
-					//Load config file and assign values to object memebers
-					ChoConfigurationSectionAttribute configurationElement = ChoType.GetAttribute(configObjType, typeof(ChoConfigurationSectionAttribute)) as ChoConfigurationSectionAttribute;
-					if (configurationElement == null || configurationElement.GetMe(configObjType) == null)
-						throw new ChoConfigurationException(String.Format(CultureInfo.InvariantCulture, Resources.ES1001, configObjType.Name));
+        //    if (typeof(ContextBoundObject).IsAssignableFrom(configObjType))
+        //        return ChoSingleton<T>.GetInstance(SingletonTypeValidationRules.AllowAll);
+        //    else
+        //    {
+        //        if (!ChoObjectManagementFactory.IsCached(configObjType))
+        //        {
+        //            //Load config file and assign values to object memebers
+        //            ChoConfigurationSectionAttribute configurationElement = ChoType.GetAttribute(configObjType, typeof(ChoConfigurationSectionAttribute)) as ChoConfigurationSectionAttribute;
+        //            if (configurationElement == null || configurationElement.GetMe(configObjType) == null)
+        //                throw new ChoConfigurationException(String.Format(CultureInfo.InvariantCulture, Resources.ES1001, configObjType.Name));
 
-					return (T)configurationElement.GetMe(configObjType).Construct(configObjType);
-				}
-				else
-					return (T)ChoObjectManagementFactory.GetObject(configObjType);
-			}
+        //            return (T)configurationElement.GetMe(configObjType).Construct(configObjType);
+        //        }
+        //        else
+        //            return (T)ChoObjectManagementFactory.GetObject(configObjType);
+        //    }
 
-		}
+        //}
 	}
 }

@@ -7,16 +7,25 @@ namespace Cinchoo.Core.Reflection
     using System.Reflection;
     using System.Collections.Generic;
     using Cinchoo.Core.Collections.Generic;
+    using Cinchoo.Core.Configuration;
 
     #endregion NameSpaces
 
-    [ChoObjectFactory(ChoObjectConstructionType.Singleton)]
+    //[ChoObjectFactory(ChoObjectConstructionType.Singleton)]
     [ChoTypeFormatter("Global Assembly Factory")]
-    public class ChoGlobalAssemblyFactory : IChoObjectInitializable
+    public class ChoGlobalAssemblyFactory : IChoInitializable
     {
+        #region Shared Data Members (Private)
+
+        private static readonly object _padLock = new object();
+        private static ChoGlobalAssemblyFactory _instance;
+
+        #endregion Shared Data Members (Private)
+
         #region Instance Data Members (Private)
 
-        private ChoDictionary<string, Assembly> _loadedAssemblies = ChoDictionary<string, Assembly>.Synchronized(new ChoDictionary<string, Assembly>());
+        private readonly Dictionary<string, Assembly> _loadedAssemblies = new Dictionary<string, Assembly>();
+        public event EventHandler<ChoEventArgs<Assembly>> AssemblyLoaded;
 
         #endregion Instance Data Members (Private)
 
@@ -33,10 +42,14 @@ namespace Cinchoo.Core.Reflection
         {
             if (!ChoGuard.IsArgumentNotNullOrEmpty(directories)) return;
 
-            foreach (Assembly assembly in ChoAssembly.GetAssemblies(directories))
+            lock (_padLock)
             {
-                if (_loadedAssemblies.ContainsKey(assembly.FullName)) continue;
-                _loadedAssemblies.Add(assembly.FullName, assembly);
+                foreach (Assembly assembly in ChoAssembly.GetAssemblies(directories))
+                {
+                    if (_loadedAssemblies.ContainsKey(assembly.FullName)) continue;
+                    _loadedAssemblies.Add(assembly.FullName, assembly);
+                    AssemblyLoaded.Raise(null, new ChoEventArgs<Assembly>(assembly));
+                }
             }
         }
 
@@ -44,9 +57,9 @@ namespace Cinchoo.Core.Reflection
 
         #region Instance Properties (Public)
 
-        public Assembly[] Assemblies
+        public IEnumerable<Assembly> Assemblies
         {
-            get { return _loadedAssemblies.ToValuesArray(); }
+            get { return _loadedAssemblies.Values; }
         }
 
         #endregion Instance Properties (Public)
@@ -55,17 +68,30 @@ namespace Cinchoo.Core.Reflection
 
         public static ChoGlobalAssemblyFactory Me
         {
-            get { return ChoObjectManagementFactory.CreateInstance(typeof(ChoGlobalAssemblyFactory)) as ChoGlobalAssemblyFactory; }
+            get
+            {
+                if (_instance != null)
+                    return _instance;
+
+                lock (_padLock)
+                {
+                    if (_instance == null)
+                    {
+                        _instance = new ChoGlobalAssemblyFactory(); // ChoCoreFrxConfigurationManager.Register<ChoGlobalAssemblyFactory>();
+                        _instance.Initialize();
+                    }
+                }
+
+                return _instance;
+            }
         }
 
         #endregion Shared Properties
 
-        #region IChoObjectInitializable Members
+        #region IChoInitializable Members
 
-        public bool Initialize(bool beforeFieldInit, object state)
+        public void Initialize()
         {
-            if (beforeFieldInit) return false;
-
             //Load Default Assemblies
             foreach (Assembly assembly in ChoAssembly.GetLoadedAssemblies())
             {
@@ -74,8 +100,6 @@ namespace Cinchoo.Core.Reflection
             }
 
             LoadAssemblies(ChoCodeBase.Me.Paths);
-
-            return false;
         }
 
         #endregion

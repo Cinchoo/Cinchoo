@@ -59,5 +59,10 @@ namespace Cinchoo.Core
         }
 
         #endregion Instance Properties (Public)
+
+        public override string ToString()
+        {
+            return "{0}{1}{2}".FormatString(Message, Environment.NewLine, ValidationResults != null && ValidationResults.Count > 0 ? ValidationResults.ToString() : String.Empty);
+        }
     }
 }

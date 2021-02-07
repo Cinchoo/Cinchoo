@@ -25,7 +25,18 @@ namespace Cinchoo.Core
 		#region Instance Data Members (Public)
 
 		[XmlAttribute("name")]
-		public string Name;
+		public string Name
+        {
+            get;
+            set;
+        }
+
+        [XmlAttribute("comment")]
+        public string Comment
+        {
+            get;
+            set;
+        }
 
 		[XmlAttribute("freeze")]
 		public bool Freeze;
@@ -110,7 +121,7 @@ namespace Cinchoo.Core
 
         #region Constructors
 
-        public ChoSharedEnvironmentManager(string sharedEnvironmentConfigFilePath)
+        public ChoSharedEnvironmentManager(string sharedEnvironmentConfigFilePath = null)
         {
             Load(sharedEnvironmentConfigFilePath);
         }
@@ -127,6 +138,37 @@ namespace Cinchoo.Core
 		#endregion Object Overrides
 
 		#region Instance Members (Internal)
+        
+        internal static string SharedEnvironmentConfigFilePath
+        {
+            get
+            {
+                string sharedEnvironmentConfigFilePath = ChoPath.GetFullPath(ChoAppFrxSettings.Me.SharedEnvironmentConfgiFilePath);
+                if (sharedEnvironmentConfigFilePath.IsNullOrWhiteSpace())
+                {
+                    string defaultSharedEnvironmentConfigFilePath = ChoPath.GetFullPath(ChoReservedFileName.SharedEnvironmentConfigFileName);
+                    //if (File.Exists(defaultSharedEnvironmentConfigFilePath))
+                        sharedEnvironmentConfigFilePath = defaultSharedEnvironmentConfigFilePath;
+                }
+
+                return sharedEnvironmentConfigFilePath;
+            }
+        }
+
+        internal static string AppFrxFilePath
+        {
+            get
+            {
+                string appFrxFilePath = ChoPath.GetFullPath(ChoAppFrxSettings.Me.AppFrxFilePath);
+                if (appFrxFilePath.IsNullOrWhiteSpace())
+                {
+                    string defaultAppFrxFilePath = ChoPath.GetFullPath(ChoReservedFileName.CoreFrxConfigFileName);
+                    appFrxFilePath = defaultAppFrxFilePath;
+                }
+
+                return appFrxFilePath;
+            }
+        }
 
 		internal ChoEnvironmentDetails GetEnvironmentDetails()
 		{
@@ -258,6 +300,9 @@ namespace Cinchoo.Core
 
         private void Load(string sharedEnvironmentConfigFilePath)
         {
+            if (sharedEnvironmentConfigFilePath.IsNullOrWhiteSpace())
+                sharedEnvironmentConfigFilePath = SharedEnvironmentConfigFilePath;
+
             BaseAppConfigDirectory = null;
             DefaultEnvironment = null;
             EnvironmentDetails = null;
@@ -268,33 +313,33 @@ namespace Cinchoo.Core
                 && File.Exists(sharedEnvironmentConfigFilePath))
             {
                 ChoApplication.Trace(true, "Using shared environment config file: {0}".FormatString(sharedEnvironmentConfigFilePath));
-                backupSharedEnvironmentConfigFilePath = "{0}.{1}".FormatString(sharedEnvironmentConfigFilePath, ChoReservedFileExt.Cho);
+                //backupSharedEnvironmentConfigFilePath = "{0}.{1}".FormatString(sharedEnvironmentConfigFilePath, ChoReservedFileExt.Cho);
 
                 try
                 {
-                    if (File.Exists(backupSharedEnvironmentConfigFilePath))
-                        File.SetAttributes(backupSharedEnvironmentConfigFilePath, FileAttributes.Archive);
+                    //if (File.Exists(backupSharedEnvironmentConfigFilePath))
+                    //    File.SetAttributes(backupSharedEnvironmentConfigFilePath, FileAttributes.Archive);
                     using (ChoXmlDocument xmlDoc = new ChoXmlDocument(sharedEnvironmentConfigFilePath))
                     {
                         doc = xmlDoc.XmlDocument;
                     }
                     //doc.Load(sharedEnvironmentConfigFilePath);
-                    doc.Save(backupSharedEnvironmentConfigFilePath);
-                    if (File.Exists(backupSharedEnvironmentConfigFilePath))
-                        File.SetAttributes(backupSharedEnvironmentConfigFilePath, FileAttributes.Hidden);
+                    //doc.Save(backupSharedEnvironmentConfigFilePath);
+                    //if (File.Exists(backupSharedEnvironmentConfigFilePath))
+                    //    File.SetAttributes(backupSharedEnvironmentConfigFilePath, FileAttributes.Hidden);
                 }
                 catch (Exception ex)
                 {
                     ChoApplication.Trace(true, "Error loading shared environment config file: {0}.".FormatString(sharedEnvironmentConfigFilePath));
                     ChoApplication.Trace(true, ex.ToString());
 
-                    doc = LoadBackupSharedEnvironmentConfigFile(backupSharedEnvironmentConfigFilePath);
+                    //doc = LoadBackupSharedEnvironmentConfigFile(backupSharedEnvironmentConfigFilePath);
                 }
             }
             else if (ChoApplication.GetSharedEnvironmentConfigXml != null)
             {
                 string xml = ChoApplication.GetSharedEnvironmentConfigXml();
-                backupSharedEnvironmentConfigFilePath = "SharedEnvironments.{0}.{1}".FormatString(ChoReservedFileExt.Xml, ChoReservedFileExt.Cho);
+                backupSharedEnvironmentConfigFilePath = ChoPath.ChangeExtension(ChoReservedFileName.SharedEnvironmentConfigFileName, ChoReservedFileExt.Cho);
 
                 if (!xml.IsNullOrWhiteSpace())
                 {
@@ -361,6 +406,12 @@ namespace Cinchoo.Core
                         if (envNode.Attributes["name"] != null)
                         {
                             environmentDetails.Name = envNode.Attributes["name"].Value;
+                            if (envNode.Attributes["comment"] != null)
+                                environmentDetails.Comment = envNode.Attributes["comment"].Value;
+                            if (environmentDetails.Comment.IsNullOrWhiteSpace())
+                            {
+                                environmentDetails.Comment = "{0} Environment".FormatString(environmentDetails.Name);
+                            }
 
                             if (!environmentDetails.Name.IsNullOrWhiteSpace())
                             {
@@ -372,16 +423,13 @@ namespace Cinchoo.Core
                                     environmentDetails.AppFrxFilePath = envNode.Attributes["appFrxFilePath"].Value;
                                     if (!environmentDetails.AppFrxFilePath.IsNullOrWhiteSpace())
                                     {
+                                        environmentDetails.AppFrxFilePath = ChoString.ExpandProperties(environmentDetails.AppFrxFilePath, ChoEnvironmentVariablePropertyReplacer.Instance);
                                         if (!Path.IsPathRooted(environmentDetails.AppFrxFilePath))
-                                        {
-                                            environmentDetails.AppFrxFilePath = ChoString.ExpandProperties(environmentDetails.AppFrxFilePath, ChoEnvironmentVariablePropertyReplacer.Instance);
-
-                                            if (!Path.IsPathRooted(environmentDetails.AppFrxFilePath))
-                                                environmentDetails.AppFrxFilePath = Path.Combine(BaseAppConfigDirectory, environmentDetails.AppFrxFilePath);
-
-                                            if (ChoPath.IsDirectory(environmentDetails.AppFrxFilePath))
-                                                environmentDetails.AppFrxFilePath = Path.Combine(environmentDetails.AppFrxFilePath, ChoReservedFileName.CoreFrxConfigFileName);
-                                        }
+                                            environmentDetails.AppFrxFilePath = Path.Combine(BaseAppConfigDirectory, environmentDetails.AppFrxFilePath);
+                                     
+                                        if (ChoPath.IsDirectory(environmentDetails.AppFrxFilePath)
+                                            || !Path.HasExtension((environmentDetails.AppFrxFilePath)))
+                                            environmentDetails.AppFrxFilePath = Path.Combine(environmentDetails.AppFrxFilePath, ChoReservedFileName.CoreFrxConfigFileName);
                                     }
                                     else
                                         environmentDetails.AppFrxFilePath = Path.Combine(BaseAppConfigDirectory, environmentDetails.Name, ChoReservedFileName.CoreFrxConfigFileName);

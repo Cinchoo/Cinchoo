@@ -85,7 +85,7 @@ namespace Cinchoo.Core.Win32
         #endregion ChoIntSecurity Class
 
         // Fields
-        private readonly int nativeErrorCode;
+        private readonly int _nativeErrorCode;
 
         // Methods
         [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
@@ -110,28 +110,28 @@ namespace Cinchoo.Core.Win32
         public ChoWin32Exception(int error, string message)
             : base(GetErrorMessage(error, message))
         {
-            this.nativeErrorCode = error;
+            this._nativeErrorCode = error;
         }
 
         [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
         public ChoWin32Exception(string message, Exception innerException)
             : base(GetErrorMessage(Marshal.GetLastWin32Error(), message), innerException)
         {
-            this.nativeErrorCode = Marshal.GetLastWin32Error();
+            this._nativeErrorCode = Marshal.GetLastWin32Error();
         }
 
         [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
         private ChoWin32Exception(int error, string message, bool dummy)
             : base(message)
         {
-            this.nativeErrorCode = error;
+            this._nativeErrorCode = error;
         }
 
         protected ChoWin32Exception(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
             ChoIntSecurity.UnmanagedCode.Demand();
-            this.nativeErrorCode = info.GetInt32("NativeErrorCode");
+            this._nativeErrorCode = info.GetInt32("NativeErrorCode");
         }
 
         private static string GetErrorMessage(int error)
@@ -142,7 +142,8 @@ namespace Cinchoo.Core.Win32
         private static string GetErrorMessage(int error, string customErrMsg)
         {
             string lastErrMsg = null;
-            customErrMsg = customErrMsg.Trim(); //.NTrim();
+            if (!customErrMsg.IsNull())
+                customErrMsg = customErrMsg.Trim(); //.NTrim();
 
             try
             {
@@ -183,7 +184,7 @@ namespace Cinchoo.Core.Win32
             {
                 throw new ArgumentNullException("info");
             }
-            info.AddValue("NativeErrorCode", this.nativeErrorCode);
+            info.AddValue("NativeErrorCode", this._nativeErrorCode);
             base.GetObjectData(info, context);
         }
 
@@ -192,8 +193,16 @@ namespace Cinchoo.Core.Win32
         {
             get
             {
-                return this.nativeErrorCode;
+                return this._nativeErrorCode;
             }
+        }
+
+        public static void CheckNThrowException()
+        {
+            int err = Marshal.GetLastWin32Error();
+            if (err == 0) return;
+
+            throw new ChoWin32Exception(err);
         }
     }
 }

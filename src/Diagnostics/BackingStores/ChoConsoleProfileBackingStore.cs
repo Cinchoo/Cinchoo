@@ -13,19 +13,19 @@
     {
         #region IChoProfileBackingStore Members
 
-        public void Start()
+        public void Start(string actionCmds)
         {
             //using (ChoConsoleSession session = new ChoConsoleSession(ConsoleColor.DarkGreen))
             //    session.WriteLine("Starting...");
         }
 
-        public void Stop()
+        public void Stop(string actionCmds)
         {
             //using (ChoConsoleSession session = new ChoConsoleSession(ConsoleColor.DarkBlue))
             //    session.WriteLine("Stopping...");
         }
 
-        public void Write(string msg)
+        public void Write(string msg, object tag)
         {
             Console.Write(msg);
         }

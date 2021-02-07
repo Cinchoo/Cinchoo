@@ -57,7 +57,7 @@ namespace Cinchoo.Core.Collections
 						for (int index = 0; index < Count; index++)
 						{
 							writer.WriteStartElement("Item");
-							writer.WriteAttributeString("type", this[index].GetType().AssemblyQualifiedName);
+                            writer.WriteAttributeString("type", this[index].GetType().SimpleQualifiedName());
 							ChoNullNSXmlSerializer xmlSerializer = new ChoNullNSXmlSerializer(this[index].GetType());
 							xmlSerializer.Serialize(writer, this[index]);
 							writer.WriteEndElement();
@@ -65,7 +65,7 @@ namespace Cinchoo.Core.Collections
 					}
 					else
 					{
-						writer.WriteAttributeString("type", this[0].GetType().AssemblyQualifiedName);
+                        writer.WriteAttributeString("type", this[0].GetType().SimpleQualifiedName());
 						ChoNullNSXmlSerializer xmlSerializer = new ChoNullNSXmlSerializer(this[0].GetType());
 						for (int index = 0; index < Count; index++)
 							xmlSerializer.Serialize(writer, this[index]);
@@ -109,8 +109,9 @@ namespace Cinchoo.Core.Collections
 								try
 								{
 									index++;
-									XmlSerializer xmlSerializer = new XmlSerializer(type);
-									Add(xmlSerializer.Deserialize(reader));
+                                    //XmlSerializer xmlSerializer = new XmlSerializer(type);
+                                    XmlSerializer xmlSerializer = XmlSerializer.FromTypes(new[] { type }).GetNValue(0);
+                                    Add(xmlSerializer.Deserialize(reader));
 								}
 								catch (Exception ex)
 								{
@@ -133,8 +134,9 @@ namespace Cinchoo.Core.Collections
 						{
 							//if (reader.IsStartElement(type.Name))
 							//{
-							XmlSerializer xmlSerializer = new XmlSerializer(ChoType.GetType(objectType));
-							Add(xmlSerializer.Deserialize(reader));
+                            //XmlSerializer xmlSerializer = new XmlSerializer(ChoType.GetType(objectType));
+                            XmlSerializer xmlSerializer = XmlSerializer.FromTypes(new[] { ChoType.GetType(objectType) }).GetNValue(0);
+                            Add(xmlSerializer.Deserialize(reader));
 							//}
 						}
 						reader.ReadEndElement();
@@ -188,10 +190,10 @@ namespace Cinchoo.Core.Collections
 			if (!_isMixedCollection)
 			{
 				if (_elementType == null)
-					_elementType = value.GetType().AssemblyQualifiedName;
+                    _elementType = value.GetType().SimpleQualifiedName();
 				else
 				{
-					if (_elementType != value.GetType().AssemblyQualifiedName)
+                    if (_elementType != value.GetType().SimpleQualifiedName())
 						_isMixedCollection = true;
 				}
 			}

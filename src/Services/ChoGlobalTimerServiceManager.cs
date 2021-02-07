@@ -160,6 +160,14 @@ namespace Cinchoo.Core.Services
             }
         }
 
+        public static bool Contains(string name)
+        {
+            lock (_padLock)
+            {
+                return _callbacks.ContainsKey(name);
+            }
+        }
+
         public static void Unregister(string name)
         {
             ChoGuard.ArgumentNotNullOrEmpty(name, "Name");
@@ -171,7 +179,7 @@ namespace Cinchoo.Core.Services
             }
         }
 
-        [ChoAppDomainUnloadMethod("Shuting-down the Global Timer Service...")]
+        [ChoAppDomainUnloadMethod("Shutting down the Global Timer Service...")]
         private static void Shutdown()
         {
             lock (_padLock)
@@ -194,7 +202,7 @@ namespace Cinchoo.Core.Services
             _timerService = new ChoTimerService<object>("GlobalTimer", OnTimerServiceCallback, null, DEFAULT_PERIOD, false);
             _timerService.Silent = true;
             _timerService.Timeout = Timeout.Infinite;
-            //_timerService.Start();
+            _timerService.Start();
         }
 
         private static void CheckState()
@@ -230,7 +238,7 @@ namespace Cinchoo.Core.Services
                                 //ChoProfile.RegisterIfNotExists(globalTimerServiceData.Name, new ChoBufferProfileEx(ChoFileProfileSettings.GetFullPath(ChoReservedDirectoryName.Others,
                                 //    ChoPath.AddExtension(typeof(ChoGlobalTimerServiceManager).FullName, ChoReservedFileExt.Err)),
                                 //    "Errors found..."));
-                                //ChoProfile.GetContext(globalTimerServiceData.Name).AppendIf(ChoTrace.ChoSwitch.TraceError, ex);
+                                //ChoProfile.GetContext(globalTimerServiceData.Name).AppendIf(ChoTraceSwitch.Switch.TraceError, ex);
                             }
                         }
                     }

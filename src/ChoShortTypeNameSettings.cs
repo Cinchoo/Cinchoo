@@ -12,11 +12,11 @@ namespace Cinchoo.Core
     [ChoDoObjectValidationAfterInitialization(false)]
     public class ChoTypsShortName : IChoObjectInitializable
     {
-        [ChoNotNulOrEmptyValidator()]
+        [ChoNotNullOrEmptyValidator()]
         [XmlAttribute("type")]
         public string TypeName;
 
-        [ChoNotNulOrEmptyValidator()]
+        [ChoNotNullOrEmptyValidator()]
         [ChoRegexStringValidator(@"^\w\w+$")]
         [XmlAttribute("shortName")]
         public string TypeShortName;
@@ -65,6 +65,8 @@ namespace Cinchoo.Core
     [XmlRoot("typeShortNames")]
     public class ChoShortTypeNameSettings : IChoObjectInitializable
     {
+        private static readonly ChoShortTypeNameSettings _instance = new ChoShortTypeNameSettings();
+
         #region Instance Data Members (Public)
 
         [XmlElement("typeShortName", typeof(ChoTypsShortName))]
@@ -82,7 +84,7 @@ namespace Cinchoo.Core
 
         public static ChoShortTypeNameSettings Me
         {
-            get { return ChoConfigurationManagementFactory.CreateInstance<ChoShortTypeNameSettings>(); }
+            get { return _instance; }
         }
 
         #endregion Shared Properties

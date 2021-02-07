@@ -3,14 +3,24 @@
 	#region NameSpaces
 
     using System.Xml.Serialization;
+    using System;
+    using Cinchoo.Core.Diagnostics;
 
     #endregion NameSpaces
 
     [ChoTypeFormatter("Log Information")]
-    public class ChoConfigurationMetaDataLogInfo : ChoEquatableObject<ChoConfigurationMetaDataLogInfo>
+    public class ChoConfigurationMetaDataLogInfo : ChoEquatableObject<ChoConfigurationMetaDataLogInfo>, ICloneable<ChoConfigurationMetaDataLogInfo>
 	{
-		[XmlAttribute("condition")]
-		public bool LogCondition;
+        [XmlElement("condition")]
+        public ChoNullable<bool> LogCondition;
+
+        [ChoIgnoreMemberFormatter]
+        [XmlIgnore]
+        public bool XmlLogCondition
+        {
+            get { return !LogCondition.HasValue ? ChoTraceSwitch.Switch.TraceVerbose : LogCondition.Value; }
+            set { LogCondition = value; }
+        }
 
 		[XmlAttribute("timeStampFormat")]
 		public string LogTimeStampFormat;
@@ -50,6 +60,22 @@
         }
 
         #endregion
+
+        public ChoConfigurationMetaDataLogInfo Clone()
+        {
+            ChoConfigurationMetaDataLogInfo info = new ChoConfigurationMetaDataLogInfo();
+            info.LogCondition = LogCondition;
+            info.LogTimeStampFormat = LogTimeStampFormat;
+            info.LogDirectory = LogDirectory;
+            info.LogFileName = LogFileName;
+
+            return info;
+        }
+
+        object ICloneable.Clone()
+        {
+            return Clone();
+        }
     }
 
 	[ChoTypeFormatter("MetaData Information")]
@@ -70,6 +96,12 @@
 
 		[XmlElement("logInfo")]
 		public ChoConfigurationMetaDataLogInfo ConfigurationMetaDataLogInfo;
+
+        [XmlElement("parameters")]
+        public string Parameters;
+
+        [XmlElement("configFilePath")]
+        public string ConfigFilePath;
 
 		protected override void Initialize()
 		{
@@ -105,6 +137,12 @@
                 if (Silent != other.Silent)
                     return false;
 
+                if (Parameters != other.Parameters)
+                    return false;
+
+                if (ConfigFilePath != other.ConfigFilePath)
+                    return false;
+
                 if (!ChoObject.Equals<ChoConfigurationMetaDataLogInfo>(ConfigurationMetaDataLogInfo, other.ConfigurationMetaDataLogInfo))
                     return false;
             }
@@ -125,5 +163,21 @@
         }
 
         #endregion
+
+        public override ChoBaseConfigurationMetaDataInfo Clone()
+        {
+            ChoStandardConfigurationMetaDataInfo info = new ChoStandardConfigurationMetaDataInfo();
+
+            info.ConfigStorageType = ConfigStorageType;
+            info.BindingMode = BindingMode;
+            info.Defaultable = Defaultable;
+            info.Silent = Silent;
+            info.IgnoreCase = IgnoreCase;
+            info.ConfigurationMetaDataLogInfo = ConfigurationMetaDataLogInfo != null ? ConfigurationMetaDataLogInfo.Clone() : null;
+            info.Parameters = Parameters;
+            info.ConfigFilePath = ConfigFilePath;
+
+            return info;
+        }
     }
 }

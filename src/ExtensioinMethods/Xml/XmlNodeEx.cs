@@ -10,6 +10,7 @@
 	using System.Xml.Serialization;
 	using System.Collections;
 	using System.Collections.Specialized;
+    using System.Xml.Linq;
 
 	#endregion NameSpaces
 
@@ -118,8 +119,9 @@
 			if (node == null)
 				throw new ArgumentNullException("XmlNode");
 
-			XmlSerializer serializer = new XmlSerializer(typeof(T));
-			return (T)serializer.Deserialize(new XmlNodeReader(node));
+            //XmlSerializer serializer = new XmlSerializer(typeof(T));
+            XmlSerializer serializer = XmlSerializer.FromTypes(new[] { typeof(T) }).GetNValue(0);
+            return (T)serializer.Deserialize(new XmlNodeReader(node));
 		}
 
 		public static object ToObject(this XmlNode node, Type type)
@@ -135,7 +137,7 @@
 			if (type == null)
 				throw new ArgumentException("Type");
 
-			XmlSerializer serializer = overrides != null ? new XmlSerializer(type, overrides) : new XmlSerializer(type);
+            XmlSerializer serializer = overrides != null ? new XmlSerializer(type, overrides) : XmlSerializer.FromTypes(new[] { type }).GetNValue(0);
 			return serializer.Deserialize(new XmlNodeReader(node));
 		}
 
@@ -171,6 +173,8 @@
 
 		public static XmlNode MakeXPath(this XmlNode node, XmlNode parent, string xpath)
 		{
+            if (parent == null) return null;
+
 			//// grab the next node name in the xpath; or return parent if empty
 			//string[] partsOfXPath = xpath.Trim('/').Split('/');
 			//string nextNodeInXPath = partsOfXPath.First();
@@ -188,6 +192,9 @@
 			XmlNode selectNode = parent;
 			foreach (string part in xpath.Trim('/').Split('/'))
 			{
+                if (selectNode == null)
+                    break;
+
 				XmlNodeList nodes = selectNode.SelectNodes(part);
 				if (nodes.Count > 1)
 					throw new ApplicationException("Xpath '" + xpath + "' was found multiple times!");
@@ -340,7 +347,7 @@
 				{
 					if (attribute == null)
 						continue;
-					result[attribute.Name] = attribute.Value;
+					result[attribute.Name] = attribute.Value.UnescapeXml();
 				}
 			}
 
@@ -445,13 +452,23 @@
 						throw new XmlException("Required attribute is empty");
 
 					valueNode = node.Attributes[valueAtt]; //.RemoveNamedItem(valueAtt);
-					if (valueNode == null)
-						throw new XmlException("Required attribute not found");
-
-					//if (node.Attributes.Count != 0)
+                    if (valueNode == null)
+                    {
+                        //has value element
+                        string xpath = "//add[@{0}='{1}']/value".FormatString(nameAtt, keyNode.Value);
+                        XmlElement valueElement = region.SelectSingleNode(xpath) as XmlElement;
+                        if (valueElement == null)
+                            throw new XmlException("Required attribute not found");
+                        else
+                        {
+                            result[keyNode.Value] = valueElement.InnerXml;
+                        }
+                    }
+                    else
+                        result[keyNode.Value] = valueNode.Value;
+                    //if (node.Attributes.Count != 0)
 					//    throw new ChoConfigurationException("Unknown attribute", node);
 
-					result[keyNode.Value] = valueNode.Value;
 				}
 				else
 				{

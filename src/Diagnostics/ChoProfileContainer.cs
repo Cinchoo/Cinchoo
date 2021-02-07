@@ -20,6 +20,11 @@ namespace Cinchoo.Core.Diagnostics
 
 		#region Constructors
 
+        static ChoProfileContainer()
+        {
+            ChoFramework.Initialize();
+        }
+
 		public ChoProfileContainer()
 			: base(true)
 		{

@@ -23,11 +23,11 @@
 
         #region Instance Data Members (Public)
 
-        [XmlAttribute("nameValueSeperator")]
-        public string NameValueSeperatorText = "=";
+        [XmlAttribute("nameValueSeparator")]
+        public string NameValueSeparatorText = "=";
 
         [XmlIgnore]
-        public char NameValueSeperator = '=';
+        public char NameValueSeparator = '=';
 
         [XmlAttribute("commentChars")]
         public string CommentChars = ";#";
@@ -43,7 +43,7 @@
         {
             ChoStringMsgBuilder msg = new ChoStringMsgBuilder("INI Settings");
 
-            msg.AppendFormatLine("NameValueDelimiter: {0}", NameValueSeperator);
+            msg.AppendFormatLine("NameValueDelimiter: {0}", NameValueSeparator);
             msg.AppendFormatLine("CommantChars: {0}", CommentChars);
             msg.AppendFormatLine("IgnoreValueWhiteSpaces: {0}", IgnoreValueWhiteSpaces);
 
@@ -77,9 +77,9 @@
 
         public void Initialize()
         {
-            NameValueSeperatorText = NameValueSeperatorText.NTrim();
-            if (NameValueSeperatorText != null)
-                NameValueSeperator = NameValueSeperatorText[0];
+            NameValueSeparatorText = NameValueSeparatorText.NTrim();
+            if (NameValueSeparatorText != null)
+                NameValueSeparator = NameValueSeparatorText[0];
         }
 
         #endregion

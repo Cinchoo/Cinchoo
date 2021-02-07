@@ -23,7 +23,9 @@
 		public ChoSingletonObject()
 		{
 			_singletonAttribute = ChoType.GetAttribute(GetType(), typeof(ChoSingletonAttribute)) as ChoSingletonAttribute;
-		}
+            if (_singletonAttribute == null)
+                throw new ChoFatalApplicationException("Missing singleton attribute defined for '{0}' type.".FormatString(GetType().Name));
+        }
 
 		#endregion Constructors
 

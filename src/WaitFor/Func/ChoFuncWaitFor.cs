@@ -22,6 +22,7 @@
 
 		private readonly Func<TResult> _func;
 		private readonly Func<Thread, TResult> _wrappedFunc;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
 		#endregion Instance Data Members (Private)
 
@@ -33,6 +34,7 @@
 			_wrappedFunc = (@thread) =>
 			{
 				@thread = Thread.CurrentThread;
+                _event.Set();
 				return _func();
 			};
 		}
@@ -71,10 +73,13 @@
 						return _func();
 					else
 					{
+                        _event.Reset();
+
 						Thread threadToKill = null;
 						IAsyncResult result = _wrappedFunc.BeginInvoke(threadToKill, null, null);
 						TResult retValue = default(TResult);
 
+                        _event.WaitOne();
 						if (!result.AsyncWaitHandle.WaitOne(timeout, true))
 						{
 							if (threadToKill != null)
@@ -113,6 +118,7 @@
 
 		private readonly Func<T, TResult> _func;
 		private readonly Func<Thread, T, TResult> _wrappedFunc;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
 		#endregion Instance Data Members (Private)
 
@@ -125,7 +131,8 @@
 			_wrappedFunc = (@thread, @T) =>
 			{
 				@thread = Thread.CurrentThread;
-				return _func(@T);
+                _event.Set();
+                return _func(@T);
 			};
 		}
 
@@ -163,11 +170,13 @@
 						return _func(arg);
 					else
 					{
+                        _event.Reset();
 						Thread threadToKill = null;
 						IAsyncResult result = _wrappedFunc.BeginInvoke(threadToKill, arg, null, null);
 						TResult retValue = default(TResult);
 
-						if (!result.AsyncWaitHandle.WaitOne(timeout, true))
+                        _event.WaitOne();
+                        if (!result.AsyncWaitHandle.WaitOne(timeout, true))
 						{
 							if (threadToKill != null)
 								threadToKill.Abort();
@@ -205,6 +214,7 @@
 
 		private readonly Func<T1, T2, TResult> _func;
 		private readonly Func<Thread, T1, T2, TResult> _wrappedFunc;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
 		#endregion Instance Data Members (Private)
 
@@ -217,7 +227,8 @@
 			_wrappedFunc = (@thread, @T1, @T2) =>
 			{
 				@thread = Thread.CurrentThread;
-				return _func(@T1, @T2);
+                _event.Set();
+                return _func(@T1, @T2);
 			};
 		}
 
@@ -255,11 +266,14 @@
 						return _func(arg1, arg2);
 					else
 					{
+                        _event.Reset();
+
 						Thread threadToKill = null;
 						IAsyncResult result = _wrappedFunc.BeginInvoke(threadToKill, arg1, arg2, null, null);
 						TResult retValue = default(TResult);
 
-						if (!result.AsyncWaitHandle.WaitOne(timeout, true))
+                        _event.WaitOne();
+                        if (!result.AsyncWaitHandle.WaitOne(timeout, true))
 						{
 							if (threadToKill != null)
 								threadToKill.Abort();
@@ -297,6 +311,7 @@
 
 		private readonly Func<T1, T2, T3, TResult> _func;
 		private readonly Func<Thread, T1, T2, T3, TResult> _wrappedFunc;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
 		#endregion Instance Data Members (Private)
 
@@ -309,7 +324,8 @@
 			_wrappedFunc = (@thread, @T1, @T2, @T3) =>
 			{
 				@thread = Thread.CurrentThread;
-				return _func(@T1, @T2, @T3);
+                _event.Set();
+                return _func(@T1, @T2, @T3);
 			};
 		}
 
@@ -347,11 +363,14 @@
 						return _func(arg1, arg2, arg3);
 					else
 					{
+                        _event.Reset();
+
 						Thread threadToKill = null;
 						IAsyncResult result = _wrappedFunc.BeginInvoke(threadToKill, arg1, arg2, arg3, null, null);
 						TResult retValue = default(TResult);
 
-						if (!result.AsyncWaitHandle.WaitOne(timeout, true))
+                        _event.WaitOne();
+                        if (!result.AsyncWaitHandle.WaitOne(timeout, true))
 						{
 							if (threadToKill != null)
 								threadToKill.Abort();
@@ -389,6 +408,7 @@
 
 		private readonly Func<T1, T2, T3, T4, TResult> _func;
 		private readonly Func<Thread, T1, T2, T3, T4, TResult> _wrappedFunc;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
 		#endregion Instance Data Members (Private)
 
@@ -401,7 +421,8 @@
 			_wrappedFunc = (@thread, @T1, @T2, @T3, @T4) =>
 			{
 				@thread = Thread.CurrentThread;
-				return _func(@T1, @T2, @T3, @T4);
+                _event.Set();
+                return _func(@T1, @T2, @T3, @T4);
 			};
 		}
 
@@ -439,11 +460,14 @@
 						return _func(arg1, arg2, arg3, arg4);
 					else
 					{
+                        _event.Reset();
+
 						Thread threadToKill = null;
 						IAsyncResult result = _wrappedFunc.BeginInvoke(threadToKill, arg1, arg2, arg3, arg4, null, null);
 						TResult retValue = default(TResult);
 
-						if (!result.AsyncWaitHandle.WaitOne(timeout, true))
+                        _event.WaitOne();
+                        if (!result.AsyncWaitHandle.WaitOne(timeout, true))
 						{
 							if (threadToKill != null)
 								threadToKill.Abort();
@@ -481,6 +505,7 @@
 
         private readonly Func<T1, T2, T3, T4, T5, TResult> _func;
         private readonly Func<Thread, T1, T2, T3, T4, T5, TResult> _wrappedFunc;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
         #endregion Instance Data Members (Private)
 
@@ -493,6 +518,7 @@
             _wrappedFunc = (@thread, @T1, @T2, @T3, @T4, @T5) =>
             {
                 @thread = Thread.CurrentThread;
+                _event.Set();
                 return _func(@T1, @T2, @T3, @T4, @T5);
             };
         }
@@ -531,10 +557,13 @@
                         return _func(arg1, arg2, arg3, arg4, arg5);
                     else
                     {
+                        _event.Reset();
+
                         Thread threadToKill = null;
                         IAsyncResult result = _wrappedFunc.BeginInvoke(threadToKill, arg1, arg2, arg3, arg4, arg5, null, null);
                         TResult retValue = default(TResult);
 
+                        _event.WaitOne();
                         if (!result.AsyncWaitHandle.WaitOne(timeout, true))
                         {
                             if (threadToKill != null)
@@ -573,6 +602,7 @@
 
         private readonly Func<T1, T2, T3, T4, T5, T6, TResult> _func;
         private readonly Func<Thread, T1, T2, T3, T4, T5, T6, TResult> _wrappedFunc;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
         #endregion Instance Data Members (Private)
 
@@ -585,6 +615,7 @@
             _wrappedFunc = (@thread, @T1, @T2, @T3, @T4, @T5, @T6) =>
             {
                 @thread = Thread.CurrentThread;
+                _event.Set();
                 return _func(@T1, @T2, @T3, @T4, @T5, @T6);
             };
         }
@@ -623,10 +654,13 @@
                         return _func(arg1, arg2, arg3, arg4, arg5, arg6);
                     else
                     {
+                        _event.Reset();
+
                         Thread threadToKill = null;
                         IAsyncResult result = _wrappedFunc.BeginInvoke(threadToKill, arg1, arg2, arg3, arg4, arg5, arg6, null, null);
                         TResult retValue = default(TResult);
 
+                        _event.WaitOne();
                         if (!result.AsyncWaitHandle.WaitOne(timeout, true))
                         {
                             if (threadToKill != null)
@@ -665,6 +699,7 @@
 
         private readonly Func<T1, T2, T3, T4, T5, T6, T7, TResult> _func;
         private readonly Func<Thread, T1, T2, T3, T4, T5, T6, T7, TResult> _wrappedFunc;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
         #endregion Instance Data Members (Private)
 
@@ -677,6 +712,7 @@
             _wrappedFunc = (@thread, @T1, @T2, @T3, @T4, @T5, @T6, @T7) =>
             {
                 @thread = Thread.CurrentThread;
+                _event.Set();
                 return _func(@T1, @T2, @T3, @T4, @T5, @T6, @T7);
             };
         }
@@ -715,10 +751,13 @@
                         return _func(arg1, arg2, arg3, arg4, arg5, arg6, arg7);
                     else
                     {
+                        _event.Reset();
+
                         Thread threadToKill = null;
                         IAsyncResult result = _wrappedFunc.BeginInvoke(threadToKill, arg1, arg2, arg3, arg4, arg5, arg6, arg7, null, null);
                         TResult retValue = default(TResult);
 
+                        _event.WaitOne();
                         if (!result.AsyncWaitHandle.WaitOne(timeout, true))
                         {
                             if (threadToKill != null)
@@ -757,6 +796,7 @@
 
         private readonly Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult> _func;
         private readonly Func<Thread, T1, T2, T3, T4, T5, T6, T7, T8, TResult> _wrappedFunc;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
         #endregion Instance Data Members (Private)
 
@@ -769,6 +809,7 @@
             _wrappedFunc = (@thread, @T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8) =>
             {
                 @thread = Thread.CurrentThread;
+                _event.Set();
                 return _func(@T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8);
             };
         }
@@ -807,10 +848,13 @@
                         return _func(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
                     else
                     {
+                        _event.Reset();
+
                         Thread threadToKill = null;
                         IAsyncResult result = _wrappedFunc.BeginInvoke(threadToKill, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, null, null);
                         TResult retValue = default(TResult);
 
+                        _event.WaitOne();
                         if (!result.AsyncWaitHandle.WaitOne(timeout, true))
                         {
                             if (threadToKill != null)
@@ -849,6 +893,7 @@
 
         private readonly Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult> _func;
         private readonly Func<Thread, T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult> _wrappedFunc;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
         #endregion Instance Data Members (Private)
 
@@ -861,6 +906,7 @@
             _wrappedFunc = (@thread, @T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9) =>
             {
                 @thread = Thread.CurrentThread;
+                _event.Set();
                 return _func(@T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9);
             };
         }
@@ -899,10 +945,13 @@
                         return _func(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
                     else
                     {
+                        _event.Reset();
+
                         Thread threadToKill = null;
                         IAsyncResult result = _wrappedFunc.BeginInvoke(threadToKill, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, null, null);
                         TResult retValue = default(TResult);
 
+                        _event.WaitOne();
                         if (!result.AsyncWaitHandle.WaitOne(timeout, true))
                         {
                             if (threadToKill != null)
@@ -941,6 +990,7 @@
 
         private readonly Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult> _func;
         private readonly Func<Thread, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult> _wrappedFunc;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
         #endregion Instance Data Members (Private)
 
@@ -953,6 +1003,7 @@
             _wrappedFunc = (@thread, @T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9, @T10) =>
             {
                 @thread = Thread.CurrentThread;
+                _event.Set();
                 return _func(@T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9, @T10);
             };
         }
@@ -991,10 +1042,13 @@
                         return _func(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
                     else
                     {
+                        _event.Reset();
+
                         Thread threadToKill = null;
                         IAsyncResult result = _wrappedFunc.BeginInvoke(threadToKill, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, null, null);
                         TResult retValue = default(TResult);
 
+                        _event.WaitOne();
                         if (!result.AsyncWaitHandle.WaitOne(timeout, true))
                         {
                             if (threadToKill != null)
@@ -1033,6 +1087,7 @@
 
         private readonly Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult> _func;
         private readonly Func<Thread, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult> _wrappedFunc;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
         #endregion Instance Data Members (Private)
 
@@ -1045,6 +1100,7 @@
             _wrappedFunc = (@thread, @T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9, @T10, @T11) =>
             {
                 @thread = Thread.CurrentThread;
+                _event.Set();
                 return _func(@T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9, @T10, @T11);
             };
         }
@@ -1083,10 +1139,13 @@
                         return _func(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
                     else
                     {
+                        _event.Reset();
+
                         Thread threadToKill = null;
                         IAsyncResult result = _wrappedFunc.BeginInvoke(threadToKill, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, null, null);
                         TResult retValue = default(TResult);
 
+                        _event.WaitOne();
                         if (!result.AsyncWaitHandle.WaitOne(timeout, true))
                         {
                             if (threadToKill != null)
@@ -1125,6 +1184,7 @@
 
         private readonly Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult> _func;
         private readonly Func<Thread, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult> _wrappedFunc;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
         #endregion Instance Data Members (Private)
 
@@ -1137,6 +1197,7 @@
             _wrappedFunc = (@thread, @T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9, @T10, @T11, @T12) =>
             {
                 @thread = Thread.CurrentThread;
+                _event.Set();
                 return _func(@T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9, @T10, @T11, @T12);
             };
         }
@@ -1175,10 +1236,13 @@
                         return _func(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
                     else
                     {
+                        _event.Reset();
+
                         Thread threadToKill = null;
                         IAsyncResult result = _wrappedFunc.BeginInvoke(threadToKill, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, null, null);
                         TResult retValue = default(TResult);
 
+                        _event.WaitOne();
                         if (!result.AsyncWaitHandle.WaitOne(timeout, true))
                         {
                             if (threadToKill != null)
@@ -1217,6 +1281,7 @@
 
         private readonly Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TResult> _func;
         private readonly Func<Thread, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TResult> _wrappedFunc;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
         #endregion Instance Data Members (Private)
 
@@ -1229,6 +1294,7 @@
             _wrappedFunc = (@thread, @T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9, @T10, @T11, @T12, @T13) =>
             {
                 @thread = Thread.CurrentThread;
+                _event.Set();
                 return _func(@T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9, @T10, @T11, @T12, @T13);
             };
         }
@@ -1267,10 +1333,13 @@
                         return _func(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
                     else
                     {
+                        _event.Reset();
+
                         Thread threadToKill = null;
                         IAsyncResult result = _wrappedFunc.BeginInvoke(threadToKill, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, null, null);
                         TResult retValue = default(TResult);
 
+                        _event.WaitOne();
                         if (!result.AsyncWaitHandle.WaitOne(timeout, true))
                         {
                             if (threadToKill != null)
@@ -1309,6 +1378,7 @@
 
         private readonly Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TResult> _func;
         private readonly Func<Thread, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TResult> _wrappedFunc;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
         #endregion Instance Data Members (Private)
 
@@ -1321,6 +1391,7 @@
             _wrappedFunc = (@thread, @T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9, @T10, @T11, @T12, @T13, @T14) =>
             {
                 @thread = Thread.CurrentThread;
+                _event.Set();
                 return _func(@T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9, @T10, @T11, @T12, @T13, @T14);
             };
         }
@@ -1359,10 +1430,13 @@
                         return _func(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
                     else
                     {
+                        _event.Reset();
+
                         Thread threadToKill = null;
                         IAsyncResult result = _wrappedFunc.BeginInvoke(threadToKill, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, null, null);
                         TResult retValue = default(TResult);
 
+                        _event.WaitOne();
                         if (!result.AsyncWaitHandle.WaitOne(timeout, true))
                         {
                             if (threadToKill != null)
@@ -1401,6 +1475,7 @@
 
         private readonly Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TResult> _func;
         private readonly Func<Thread, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TResult> _wrappedFunc;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
         #endregion Instance Data Members (Private)
 
@@ -1413,6 +1488,7 @@
             _wrappedFunc = (@thread, @T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9, @T10, @T11, @T12, @T13, @T14, @T15) =>
             {
                 @thread = Thread.CurrentThread;
+                _event.Set();
                 return _func(@T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9, @T10, @T11, @T12, @T13, @T14, @T15);
             };
         }
@@ -1451,10 +1527,13 @@
                         return _func(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15);
                     else
                     {
+                        _event.Reset();
+
                         Thread threadToKill = null;
                         IAsyncResult result = _wrappedFunc.BeginInvoke(threadToKill, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, null, null);
                         TResult retValue = default(TResult);
 
+                        _event.WaitOne();
                         if (!result.AsyncWaitHandle.WaitOne(timeout, true))
                         {
                             if (threadToKill != null)
@@ -1493,6 +1572,7 @@
 
         private readonly Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TResult> _func;
         private readonly Func<Thread, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TResult> _wrappedFunc;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
         #endregion Instance Data Members (Private)
 
@@ -1505,6 +1585,7 @@
             _wrappedFunc = (@thread, @T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9, @T10, @T11, @T12, @T13, @T14, @T15, @T16) =>
             {
                 @thread = Thread.CurrentThread;
+                _event.Set();
                 return _func(@T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9, @T10, @T11, @T12, @T13, @T14, @T15, @T16);
             };
         }
@@ -1543,10 +1624,13 @@
                         return _func(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16);
                     else
                     {
+                        _event.Reset();
+
                         Thread threadToKill = null;
                         IAsyncResult result = _wrappedFunc.BeginInvoke(threadToKill, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, null, null);
                         TResult retValue = default(TResult);
 
+                        _event.WaitOne();
                         if (!result.AsyncWaitHandle.WaitOne(timeout, true))
                         {
                             if (threadToKill != null)

@@ -86,4 +86,14 @@ namespace Cinchoo.Core.Win32
         CTRL_LOGOFF_EVENT = 5,
         CTRL_SHUTDOWN_EVENT
     }
+
+    [Flags]
+    public enum RestartRestrictions
+    {
+        None = 0,
+        NotOnCrash = 1,
+        NotOnHang = 2,
+        NotOnPatch = 4,
+        NotOnReboot = 8
+    }
 }

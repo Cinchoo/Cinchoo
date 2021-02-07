@@ -22,6 +22,7 @@ namespace System
     #region NameSpaces
 
     using System;
+    using System.Linq;
     using System.Text;
     using System.Collections.Generic;
     using System.Text.RegularExpressions;
@@ -33,6 +34,8 @@ namespace System
     using System.IO;
     using Cinchoo.Core;
     using Cinchoo.Core.Text.RegularExpressions;
+    using System.Xml.Linq;
+    using System.Security;
 
     #endregion NameSpaces
 
@@ -47,7 +50,13 @@ namespace System
         #region Shared Data Members (Private)
 
         private static readonly Regex _splitNameRegex = new Regex(@"[\W_]+", RegexOptions.Compiled);
-        private static Regex _headerRegex = new Regex(@"^\W*{0}.*".FormatString(HeaderDelimiter), RegexOptions.Compiled | RegexOptions.Singleline);
+        private static readonly Regex _headerRegex = new Regex(@"^\W*{0}.*".FormatString(HeaderDelimiter), RegexOptions.Compiled | RegexOptions.Singleline);
+        private static readonly Regex _whiteSpaceRegex = new Regex(@"\s");
+        private static readonly Regex _openBraceRegex = new Regex(@"([^\\])[\{]", RegexOptions.Compiled);
+        private static readonly Regex _closeBraceRegex = new Regex(@"([^\\])[\}]", RegexOptions.Compiled);
+        private static readonly Regex _percentageRegex = new Regex(@"([^\\])[\%]", RegexOptions.Compiled);
+        private static readonly Regex _tiltaRegex = new Regex(@"([^\\])[\~]", RegexOptions.Compiled);
+        private static readonly Regex _caretRegex = new Regex(@"([^\\])[\^]", RegexOptions.Compiled);
 
         #endregion Shared Data Members (Private)
 
@@ -98,7 +107,14 @@ namespace System
 
         public static string FormatString(this string format, params object[] args)
         {
-            return string.Format(format, args);
+            try
+            {
+                return string.Format(format, args);
+            }
+            catch (Exception ex)
+            {
+                throw new ChoApplicationException(String.Format("Error formatting '{0}' text.", format), ex);
+            }
         }
 
         #endregion Format Overloads
@@ -168,6 +184,16 @@ namespace System
         }
 
         #endregion ToEnumValue Overloads
+
+        #region ContainsWhiteSpace Overloads
+
+        public static bool ContainsWhitespaces(this string text)
+        {
+            if (text == null) return false;
+            return _whiteSpaceRegex.IsMatch(text);
+        }
+
+        #endregion
 
         #region Indent Overloads
 
@@ -388,7 +414,7 @@ namespace System
         #region SplitNTrim Overloads (Public)
 
         /// <summary>
-        /// Split the string into multiple strings by a ',', ';' seperators and trim them each.
+        /// Split the string into multiple strings by a ',', ';' separators and trim them each.
         /// </summary>
         /// <param name="text">A string value to be splited and trim.</param>
         /// <returns>A string array contains splitted and trimmed string values, if the input text is null/empty, an empty array will be returned.</returns>
@@ -398,25 +424,283 @@ namespace System
         }
 
         /// <summary>
-        /// Split the string into multiple strings by the seperators and trim the each one.
+        /// Split the string into multiple strings by the separators and trim the each one.
         /// </summary>
         /// <param name="text">A string value to be splited and trim.</param>
-        /// <param name="seperators">List of seperators used to split the string.</param>
+        /// <param name="separators">List of separators used to split the string.</param>
         /// <returns>A string array contains splitted and trimmed string values, if the input text is null/empty, an empty array will be returned.</returns>
-        public static string[] SplitNTrim(this string text, char seperator)
+        public static string[] SplitNTrim(this string text, char separator)
         {
-            return SplitNTrim(text, new char[] { seperator });
+            return SplitNTrim(text, new char[] { separator });
+        }
+
+        public static IEnumerable<string> SplitNTrimEx(this string inString, char separator)
+        {
+            if (inString.IsNullOrEmpty())
+                yield return inString;
+
+            string msg = inString;
+            if (inString.IndexOf(separator) != -1)
+            {
+                int index = -1;
+                bool hasEscapeChar = false;
+                StringBuilder message = new StringBuilder();
+
+                while (++index < inString.Length)
+                {
+                    if (inString[index] == ChoChar.Backslash)
+                    {
+                        if (!hasEscapeChar) //if first slash char found, flag and ignore
+                        {
+                            hasEscapeChar = true;
+                        }
+                        else  //if second slash char found, just append the char
+                        {
+                            hasEscapeChar = false;
+                            message.Append(inString[index]);
+                        }
+                        continue;
+                    }
+
+                    if (hasEscapeChar) //if backslash char preceded by it, add and continue
+                    {
+                        hasEscapeChar = false;
+                        message.Append(inString[index]);
+                        continue;
+                    }
+
+                    if (inString[index] == separator)
+                    {
+                        yield return message.ToString();
+                        message.Clear();
+
+                        continue;
+                    }
+                    else
+                    {
+                        message.Append(inString[index]);
+                    }
+                }
+                yield return message.ToString();
+                message.Clear();
+            }
+            else
+                yield return msg;
+        }
+
+        public static int IndexOfEx(this string inString, char separator)
+        {
+            if (inString.IsNullOrEmpty())
+                return -1;
+
+            string msg = inString;
+            if (inString.IndexOf(separator) != -1)
+            {
+                int index = -1;
+                bool hasEscapeChar = false;
+
+                while (++index < inString.Length)
+                {
+                    if (inString[index] == ChoChar.Backslash)
+                    {
+                        if (!hasEscapeChar) //if first slash char found, flag and ignore
+                        {
+                            hasEscapeChar = true;
+                        }
+                        else  //if second slash char found, just append the char
+                        {
+                            hasEscapeChar = false;
+                        }
+                        continue;
+                    }
+
+                    if (hasEscapeChar) //if backslash char preceded by it, add and continue
+                    {
+                        hasEscapeChar = false;
+                        continue;
+                    }
+
+                    if (inString[index] == separator)
+                    {
+                        return index;
+                    }
+                }
+            }
+                
+            return -1;
+        }
+
+        public static int IndexOfEx(this string inString, string value)
+        {
+            ChoGuard.ArgumentNotNull(value, "Value");
+
+            if (inString.IsNullOrEmpty())
+                return -1;
+
+            string msg = inString;
+            if (inString.IndexOf(value) != -1)
+            {
+                int index = -1;
+                bool hasEscapeChar = false;
+
+                while (++index < inString.Length)
+                {
+                    if (inString[index] == ChoChar.Backslash)
+                    {
+                        if (!hasEscapeChar) //if first slash char found, flag and ignore
+                        {
+                            hasEscapeChar = true;
+                        }
+                        else  //if second slash char found, just append the char
+                        {
+                            hasEscapeChar = false;
+                        }
+                        continue;
+                    }
+
+                    if (hasEscapeChar) //if backslash char preceded by it, add and continue
+                    {
+                        hasEscapeChar = false;
+                        continue;
+                    }
+
+                    if (inString[index] == value[0])
+                    {
+                        bool matchFound = false;
+                        for (int i = 0; i < value.Length; i++)
+                        {
+                            if (index + i < inString.Length && inString[index + i] == value[i])
+                            {
+                                matchFound = true;
+                                continue;
+                            }
+                            else
+                            {
+                                matchFound = false;
+                                index += i + 1;
+                                break;
+                            }
+                        }
+
+                        if (matchFound)
+                            return index;
+                    }
+                }
+            }
+
+            return -1;
+        }
+
+        //public static int LastIndexOfEx(this string inString, string value)
+        //{
+        //    ChoGuard.ArgumentNotNull(value, "Value");
+
+        //    if (inString.IsNullOrEmpty())
+        //        return -1;
+
+        //    string msg = inString;
+        //    if (inString.LastIndexOf(value) != -1)
+        //    {
+        //        int index = inString.Length;
+        //        bool hasEscapeChar = false;
+
+        //        while (--index >= 0)
+        //        {
+        //            if (inString[index] == value[value.Length - 1])
+        //            {
+        //                bool matchFound = false;
+        //                for (int i = value.Length - 1; i >= 0; i--)
+        //                {
+        //                    if (index + i < inString.Length && inString[index + i] == value[i])
+        //                    {
+        //                        matchFound = true;
+        //                        continue;
+        //                    }
+        //                    else
+        //                    {
+        //                        matchFound = false;
+        //                        index += i + 1;
+        //                        break;
+        //                    }
+        //                }
+
+        //                if (matchFound)
+        //                    return index;
+        //            }
+        //        }
+        //    }
+
+        //    return -1;
+        //}
+
+        public static bool ContainsEx(this string inString, string value)
+        {
+            return IndexOfEx(inString, value) >= 0;
+        }
+
+        public static bool StartsWithEx(this string inString, string value)
+        {
+            ChoGuard.ArgumentNotNullOrEmpty(value, "Value");
+            if (inString.IsNullOrEmpty()) return false;
+            if (value.Length == 1)
+                return inString.StartsWith(value);
+
+            return IndexOfEx(inString, value) == 0;
+        }
+
+        //public static bool EndsWithEx(this string inString, string value)
+        //{
+        //    ChoGuard.ArgumentNotNullOrEmpty(value, "Value");
+        //    if (inString.IsNullOrEmpty()) return false;
+        //    if (value.Length == 1)
+        //        return inString.EndsWithEx(value);
+
+        //    return LastIndexOfEx(inString, value) + value.Length + 1 == inString.Length;
+        //}
+
+        public static string Unescape(this string inString)
+        {
+            if (inString.IsNullOrEmpty())
+                return inString;
+
+            string msg = inString;
+            int index = -1;
+            bool hasEscapeChar = false;
+            StringBuilder message = new StringBuilder();
+
+            while (++index < inString.Length)
+            {
+                if (inString[index] == ChoChar.Backslash)
+                {
+                    if (!hasEscapeChar) //if first slash char found, flag and ignore
+                    {
+                        hasEscapeChar = true;
+                    }
+                    else  //if second slash char found, just append the char
+                    {
+                        hasEscapeChar = false;
+                        message.Append(inString[index]);
+                    }
+                    continue;
+                }
+
+                if (hasEscapeChar) //if backslash char preceded by it, add and continue
+                    hasEscapeChar = false;
+             
+                message.Append(inString[index]);
+            }
+            return message.ToString();
         }
 
         /// <summary>
-        /// Split the string into multiple strings by the seperators and trim the each one.
+        /// Split the string into multiple strings by the separators and trim the each one.
         /// </summary>
         /// <param name="text">A string value to be splited and trim.</param>
-        /// <param name="seperators">List of seperators used to split the string.</param>
+        /// <param name="separators">List of separators used to split the string.</param>
         /// <returns>A string array contains splitted and trimmed string values, if the input text is null/empty, an empty array will be returned.</returns>
-        public static string[] SplitNTrim(this string text, char[] seperators)
+        public static string[] SplitNTrim(this string text, char[] separators)
         {
-            return SplitNTrim(text, seperators, StringSplitOptions.None);
+            return SplitNTrim(text, separators, StringSplitOptions.None);
         }
 
         public static string[] SplitNTrim(this string text, string value)
@@ -445,13 +729,13 @@ namespace System
             return tokenList.ToArray();
         }
 
-        public static string[] SplitNTrim(this string text, char[] seperators, StringSplitOptions stringSplitOptions)
+        public static string[] SplitNTrim(this string text, char[] separators, StringSplitOptions stringSplitOptions)
         {
             if (text == null || text.Trim().Length == 0) return new string[] { };
 
             string word;
             List<string> tokenList = new List<string>();
-            foreach (string token in Split(text, seperators, stringSplitOptions))
+            foreach (string token in Split(text, separators, stringSplitOptions))
             {
                 word = token != null ? token.Trim() : token;
                 if (String.IsNullOrEmpty(word))
@@ -470,8 +754,27 @@ namespace System
 
         #region Split Overloads (Public)
 
+        public static object[] SplitNConvertToObjects(this string text)
+        {
+            return SplitNConvertToObjects(text, new char[] { ',', ';' });
+        }
+
+        public static object[] SplitNConvertToObjects(this string text, char separator)
+        {
+            return SplitNConvertToObjects(text, new char[] { separator });
+        }
+
+        public static object[] SplitNConvertToObjects(this string text, char[] separators)
+        {
+            if (text == null) return new object[] { };
+            if (text.IsNullOrWhiteSpace()) return new object[] { text };
+
+            return (from x in text.SplitNTrim(separators)
+                    select x.Evaluate()).ToArray();
+        }
+
         /// <summary>
-        /// Split the string into multiple strings by a ',', ';' seperators.
+        /// Split the string into multiple strings by a ',', ';' separators.
         /// </summary>
         /// <param name="text">A string value to be split.</param>
         /// <returns>A string array contains splitted values, if the input text is null/empty, an empty array will be returned.</returns>
@@ -481,25 +784,25 @@ namespace System
         }
 
         /// <summary>
-        /// Split the string into multiple strings by a seperator.
+        /// Split the string into multiple strings by a separator.
         /// </summary>
         /// <param name="text">A string value to be split.</param>
-        /// <param name="seperator">A seperator used to split the string.</param>
+        /// <param name="separator">A separator used to split the string.</param>
         /// <returns>A string array contains splitted values, if the input text is null/empty, an empty array will be returned.</returns>
-        public static string[] Split(this string text, char seperator)
+        public static string[] Split(this string text, char separator)
         {
-            return Split(text, new char[] { seperator });
+            return Split(text, new char[] { separator });
         }
 
         /// <summary>
-        /// Split the string into multiple strings by the seperators.
+        /// Split the string into multiple strings by the separators.
         /// </summary>
         /// <param name="text">A string value to be split.</param>
-        /// <param name="seperators">List of seperators used to split the string.</param>
+        /// <param name="separators">List of separators used to split the string.</param>
         /// <returns>A string array contains splitted values, if the input text is null/empty, an empty array will be returned.</returns>
-        public static string[] Split(this string text, char[] seperators)
+        public static string[] Split(this string text, char[] separators)
         {
-            return Split(text, seperators, StringSplitOptions.None);
+            return Split(text, separators, StringSplitOptions.None);
         }
 
         public static string[] Split(this string text, string value)
@@ -508,15 +811,15 @@ namespace System
         }
 
         /// <summary>
-        /// Split the string into multiple strings by the seperators.
+        /// Split the string into multiple strings by the separators.
         /// </summary>
         /// <param name="text">A string value to be split.</param>
-        /// <param name="seperators">List of seperators used to split the string.</param>
+        /// <param name="separators">List of separators used to split the string.</param>
         /// <param name="ignoreEmptyWord">true, to ignore the empry words in the output list</param>
         /// <returns>A string array contains splitted values, if the input text is null/empty, an empty array will be returned.</returns>
-        public static string[] Split(this string text, char[] seperators, StringSplitOptions stringSplitOptions)
+        public static string[] Split(this string text, char[] separators, StringSplitOptions stringSplitOptions)
         {
-            return Split(text, (object)seperators, stringSplitOptions);
+            return Split(text, (object)separators, stringSplitOptions);
         }
 
         public static string[] Split(this string text, string value, StringSplitOptions stringSplitOptions)
@@ -524,13 +827,13 @@ namespace System
             return Split(text, (object)value, stringSplitOptions);
         }
 
-        private static string[] Split(this string text, object seperators, StringSplitOptions stringSplitOptions)
+        private static string[] Split(this string text, object separators, StringSplitOptions stringSplitOptions)
         {
             if (String.IsNullOrEmpty(text)) return new string[0];
 
             List<string> splitStrings = new List<string>();
 
-            int len = seperators is char[] ? 0 : ((string)seperators).Length - 1;
+            int len = separators is char[] ? 0 : ((string)separators).Length - 1;
             int i = 0;
             int quotes = 0;
             int singleQuotes = 0;
@@ -542,11 +845,11 @@ namespace System
                 if (text[i] == '\"') { quotes++; }
                 else if (text[i] == '\'') { singleQuotes++; }
                 else if (text[i] == '\\'
-                    && i + 1 < text.Length && Contains(text, ++i, seperators))
+                    && i + 1 < text.Length && Contains(text, ++i, separators))
                     hasChar = true;
-                else if (Contains(text, i, seperators) &&
+                else if (Contains(text, i, separators) &&
                     ((quotes > 0 && quotes % 2 == 0) || (singleQuotes > 0 && singleQuotes % 2 == 0))
-                    || Contains(text, i, seperators) && quotes == 0 && singleQuotes == 0)
+                    || Contains(text, i, separators) && quotes == 0 && singleQuotes == 0)
                 {
                     if (hasChar)
                     {
@@ -584,7 +887,7 @@ namespace System
                 i++;
             }
 
-            if (offset < text.Length)
+            //if (offset < text.Length)
                 splitStrings.Add(hasChar ? NormalizeString(text.Substring(offset).Replace("\\", String.Empty)) : NormalizeString(text.Substring(offset)));
 
             return splitStrings.ToArray();
@@ -913,16 +1216,16 @@ namespace System
 
         #region ToKeyValuePairs Members
 
-        public static IEnumerable<Tuple<string, string>> ToKeyValuePairs(this string text, char seperator = ';', char keyValueSeperator = '=')
+        public static IEnumerable<Tuple<string, string>> ToKeyValuePairs(this string text, char separator = ';', char keyValueSeparator = '=')
         {
             if (!text.IsNullOrEmpty())
             {
-                foreach (string keyValue in text.SplitNTrim(seperator))
+                foreach (string keyValue in text.SplitNTrim(separator))
                 {
                     if (keyValue.IsNullOrEmpty())
                         continue;
 
-                    string[] keyValueTokens = keyValue.SplitNTrim(keyValueSeperator);
+                    string[] keyValueTokens = keyValue.SplitNTrim(keyValueSeparator);
                     if (keyValueTokens != null && keyValueTokens.Length > 0)
                     {
                         string key = keyValueTokens[0];
@@ -984,12 +1287,173 @@ namespace System
 
             using (StringReader reader = new StringReader(xml))
             {
-                XmlSerializer serializer = overrides != null ? new XmlSerializer(type, overrides) : new XmlSerializer(type);
+                XmlSerializer serializer = overrides != null ? new XmlSerializer(type, overrides) : XmlSerializer.FromTypes(new[] { type }).GetNValue(0);
                 return serializer.Deserialize(reader);
             }
         }
 
+        public static object ToObjectFromXml(this string xml)
+        {
+            if (xml.IsNullOrWhiteSpace()) return null;
+
+            XmlDocument xmlDoc = new XmlDocument();
+            xmlDoc.LoadXml(xml);
+            Type objectType = Type.GetType(xmlDoc.DocumentElement.Attributes["_type_"].Value);
+            if (objectType == null) return null;
+
+            return xml.ToObjectFromXml(objectType);
+        }
+
         #endregion ToObjectFromXml Overloads
+
+        #region ToObjectFromJson Overloads
+
+        //public static T ToObjectFromJson<T>(this string Json)
+        //{
+        //    return (T)ToObjectFromJson(Json, typeof(T));
+        //}
+
+        //public static object ToObjectFromJson(this string Json, Type type)
+        //{
+        //    if (Json.IsNullOrWhiteSpace())
+        //        return null;
+        //    if (type == null)
+        //        throw new ArgumentNullException("Missing type.");
+
+        //    using (StringReader reader = new StringReader(Json))
+        //    {
+        //        //JsonSerializer serializer = overrides != null ? new JsonSerializer(type, overrides) : JsonSerializer.FromTypes(new[] { type }).GetNValue(0);
+        //        //return serializer.Deserialize(reader);
+        //    }
+        //}
+
+        //public static object ToObjectFromJson(this string Json)
+        //{
+        //    if (Json.IsNullOrWhiteSpace()) return null;
+
+        //    JsonDocument JsonDoc = new JsonDocument();
+        //    JsonDoc.LoadJson(Json);
+        //    Type objectType = Type.GetType(JsonDoc.DocumentElement.Attributes["_type_"].Value);
+        //    if (objectType == null) return null;
+
+        //    return Json.ToObjectFromJson(objectType);
+        //}
+
+        #endregion ToObjectFromJson Overloads
+
+        #region Repeat Overloads
+
+        public static string Repeat(this string stringToRepeat, int repeat)
+        {
+            var builder = new StringBuilder(repeat * stringToRepeat.Length);
+            for (int i = 0; i < repeat; i++)
+            {
+                builder.Append(stringToRepeat);
+            }
+            return builder.ToString();
+        }
+
+        #endregion Repeat Overloads
+
+        #region Truncate Overloads
+
+        public static string Truncate(this string value, int maxLength)
+        {
+            if (string.IsNullOrEmpty(value)) { return value; }
+            return value.Length <= maxLength ? value : value.Substring(0, maxLength);
+        }
+
+        #endregion Truncate Overloads
+
+        #region ToSecureString Overloads
+
+        public static SecureString ToSecureString(this string text)
+        {
+            ChoGuard.ArgumentNotNullOrEmpty(text, "Text");
+
+            SecureString secureString = new SecureString();
+            text.ToCharArray().ToList().ForEach(p => secureString.AppendChar(p));
+            return secureString;
+        }
+
+        #endregion ToSecureString Overloads
+
+        #region ToSafeSql Overloads
+
+        public static string ToSafeSql(this string rawSql)
+        {
+            string cleanSql = String.Empty;
+            int pos = 0;
+
+            while (pos < rawSql.Length)
+            {
+                //** Double up single quotes, but only if they aren't already doubled ** 
+                if (rawSql.Substring(pos, 1) == "'")
+                {
+                    cleanSql = cleanSql + "''";
+                    if (pos != rawSql.Length)
+                    {
+                        if (rawSql.Substring(pos + 1, 1) == "'")
+                            pos = pos + 1;
+                    }
+                }
+                else
+                {
+                    cleanSql = cleanSql + rawSql.Substring(pos, 1);
+                }
+                pos++;
+            }
+
+            return cleanSql.Trim();
+        }
+
+        #endregion ToSafeSql Overloads
+
+        #region CreateInstance Overloads
+
+        public static T CreateInstance<T>(this string keyValueText)
+        {
+            if (keyValueText.IsNullOrWhiteSpace()) return default(T);
+
+            Type objType = typeof(T);
+            T obj = ChoActivator.CreateInstance<T>();
+            obj.Load(keyValueText);
+            return obj;
+        }
+
+        #endregion CreateInstance Overloads
+
+        #region IndentXml Overloads
+
+        //private static Lazy<XmlWriterSettings> xws = new Lazy<XmlWriterSettings>(() =>
+        //    {
+        //        XmlWriterSettings xws = new XmlWriterSettings();
+        //        xws.Indent = true;
+        //        xws.NewLineHandling = NewLineHandling.Replace;
+        //        xws.NewLineChars = Environment.NewLine;
+        //        xws.OmitXmlDeclaration = true;
+
+        //        return xws;
+        //    }, true);
+
+        //public static string IndentXml(this string xml)
+        //{
+        //    if (xml.IsNullOrWhiteSpace()) return xml;
+
+        //    StringBuilder sb = new StringBuilder();
+        //    using (StringWriter sw = new StringWriter(sb))
+        //    {
+        //        using (XmlWriter xtw = XmlTextWriter.Create(sb, xws.Value))
+        //        {
+        //            xtw.WriteRaw(xml);
+        //            xtw.Flush();
+        //        }
+        //    }
+
+        //    return sb.ToString();
+        //}
+
+        #endregion IndentXml Overloads
 
         public static bool ContainsHeader(this string msg)
         {
@@ -1008,6 +1472,17 @@ namespace System
         public static string GetCleanName(this string name)
         {
             return Regex.Replace(name, @"[\W]", "");
+        }
+
+        /// <summary>
+        /// Return a tab
+        /// </summary>
+        public static string Spaces(int length)
+        {
+            if (length < 0)
+                throw new ArgumentException("Length must be positive.");
+
+            return new string(' ', length);
         }
 
         /// <summary>
@@ -1112,6 +1587,8 @@ namespace System
             return Regex.IsMatch(name, @"(_ | [a-zA-Z])([a-zA-Z_0-9])*");
         }
 
+        #region WrapLongLines Overloads
+
         /// <summary>
         /// Wraps long lines at the specified column number breaking on the specified break
         /// character.
@@ -1194,6 +1671,9 @@ namespace System
 
                 // not at the end so get the position of the last space
                 int lastBreak = subString.LastIndexOf(breakCharacter);
+                if (lastBreak < 0)
+                    lastBreak = subString.Length - 1;
+
                 lastBreak++;
                 // check that we got one
                 result.Append(subString.Substring(0, lastBreak));
@@ -1207,6 +1687,8 @@ namespace System
 
             return result.ToString();
         }
+
+        #endregion WrapLongLines Overloads
 
         #region Contains Overloads (Public)
 
@@ -1264,6 +1746,8 @@ namespace System
 
         #endregion Contains Member (Private)
 
+        #region ContainsMultiLines Overloads
+
         public static bool ContainsMultiLines(this string inString)
         {
             if (inString.IsNullOrEmpty())
@@ -1271,6 +1755,10 @@ namespace System
 
             return inString.IndexOf(Environment.NewLine) != inString.LastIndexOf(Environment.NewLine);
         }
+
+        #endregion ContainsMultiLines Overloads
+
+        #region ToEnum Overloads
 
         /// <summary>
         /// Convert a description value to enum value
@@ -1282,6 +1770,8 @@ namespace System
         {
             return ChoEnumTypeDescCache.GetEnumValue<T>(description);
         }
+
+        #endregion ToEnum Overloads
 
         #region NTrim Method
 
@@ -1664,6 +2154,7 @@ namespace System
         }
 
         #endregion CompareOrdinal Overloads
+
         #region Expression Evaluator Methods
 
         public static object Evaluate(this string text)
@@ -1682,12 +2173,22 @@ namespace System
             if (ChoString.ContainsException(msg))
                 throw new ChoExpressionParseException(msg);
             else
-                return ChoObject.ConvertToObject(msg);
+                return ChoString.ToObject(msg); // ChoObject.ConvertToObject(msg);
         }
 
         public static string ExpandProperties(this string text, object state)
         {
             return ChoString.ExpandProperties(state, text);
+        }
+
+        public static string SplitNExpandProperties(this string text, object state)
+        {
+            object ctx = state;
+            foreach (string prop in text.SplitNTrim(';'))
+            {
+                ctx = ChoString.ExpandProperties(ctx, prop);
+            }
+            return ctx.ToNString();
         }
 
         #endregion Expression Evaluator Methods
@@ -1700,6 +2201,141 @@ namespace System
         }
 
         #endregion ToObject Method
+
+        public static IEnumerable<string> NSplit(this string inString, char delimiter, bool removeSeperator = true)
+        {
+            return NSplit(inString, delimiter, delimiter, removeSeperator);
+        }
+
+        public static IEnumerable<string> NSplit(this string inString, char startSeparator, char endSeparator, bool removeSeperator = true)
+        {
+            if (inString.IsNullOrEmpty())
+                yield break;
+
+            if (startSeparator == ChoChar.NUL)
+                startSeparator = ',';
+
+            if (endSeparator == ChoChar.NUL)
+                endSeparator = startSeparator;
+
+            string msg = inString;
+            if (inString.IndexOf(startSeparator) != -1)
+            {
+                int index = -1;
+                bool hasChoChar = false;
+                StringBuilder message = new StringBuilder();
+                StringBuilder token = new StringBuilder();
+                while (++index < inString.Length)
+                {
+                    if (!hasChoChar && inString[index] == ChoChar.Backslash /*startSeparator*/
+                        && index + 1 < inString.Length && inString[index + 1] == startSeparator)
+                    {
+                        index++;
+                        message.Append(inString[index]);
+                        //continue;
+                        hasChoChar = true;
+                    }
+                    else if (inString[index] == startSeparator)
+                    {
+                        if (hasChoChar)
+                        {
+                            bool hadEndChoChar = false;
+                            do
+                            {
+                                if (inString[index] == endSeparator && inString[index - 1] == ChoChar.Backslash /*endSeparator*/)
+                                {
+                                    if (!hadEndChoChar)
+                                    {
+                                        hadEndChoChar = true;
+                                        message.Remove(message.Length - 1, 1);
+                                        message.Append(inString[index]);
+                                    }
+                                    else
+                                        message.Append(inString[index]);
+
+                                    continue;
+                                }
+                                message.Append(inString[index]);
+                            }
+                            while (++index < inString.Length && inString[index] != startSeparator);
+
+                            index--;
+                            hasChoChar = false;
+                        }
+                        else
+                        {
+                            token.Remove(0, token.Length);
+                            index++;
+                            do
+                            {
+                                if (!hasChoChar && inString[index] == ChoChar.Backslash /*endSeparator*/
+                                    && index + 1 < inString.Length && inString[index + 1] == endSeparator)
+                                {
+                                    hasChoChar = true;
+                                }
+                                else if (inString[index] == endSeparator)
+                                {
+                                    if (hasChoChar)
+                                    {
+                                        message.Append(startSeparator);
+                                        message.Append(token);
+                                        message.Append(inString[index]);
+                                        bool hadEndChoChar = false;
+                                        do
+                                        {
+                                            if (inString[index] == endSeparator && inString[index - 1] == ChoChar.Backslash /*endSeparator*/)
+                                            {
+                                                if (!hadEndChoChar)
+                                                    hadEndChoChar = true;
+                                                else
+                                                    message.Append(inString[index]);
+
+                                                continue;
+                                            }
+                                            message.Append(inString[index]);
+                                        }
+                                        while (++index < inString.Length && inString[index] == endSeparator);
+                                    }
+                                    else
+                                    {
+                                        if (message.Length > 0)
+                                        {
+                                            yield return message.ToString();
+                                            message.Clear();
+                                        }
+                                        if (token.Length > 0)
+                                        {
+                                            if (removeSeperator)
+                                                yield return token.ToString();
+                                            else
+                                                yield return startSeparator + token.ToString() + endSeparator;
+                                            token.Clear();
+                                        }
+                                        else
+                                        {
+                                            if (removeSeperator)
+                                                yield return String.Empty;
+                                            else
+                                                yield return startSeparator.ToString() + endSeparator.ToString();
+                                        }
+                                    }
+
+                                    break;
+                                }
+                                else
+                                    token.Append(inString[index]);
+                            }
+                            while (++index < inString.Length);
+                        }
+                    }
+                    else
+                        message.Append(inString[index]);
+                }
+                yield return message.ToString();
+            }
+            else
+                yield return msg;
+        }
 
         #region Replace Method
 
@@ -1721,6 +2357,7 @@ namespace System
                     StringBuilder output = new StringBuilder();
 
                     char ch;
+                    bool backspaceFound = false;
                     replacePattern = Regex.Escape(replacePattern);
                     while (index < replacePattern.Length)
                     {
@@ -1731,6 +2368,14 @@ namespace System
                                 (replacePattern[index + 1] == '*' || replacePattern[index + 1] == '?')
                                 )
                             {
+                                if (index + 3 < replacePattern.Length && replacePattern[index + 1] == '*' &&
+                                    replacePattern[index + 2] == '\\' && replacePattern[index + 3] == '*')
+                                {
+                                    output.Append('*');
+                                    index = index + 4;
+                                    continue;
+                                }
+
                                 ++counter;
 
                                 string groupName = GetMatchingGroupName(match, replacePattern[index + 1] == '*' ? 'M' : 'S', ref counter);
@@ -1743,13 +2388,35 @@ namespace System
 
                                 index++;
                             }
-                            else if (replacePattern[index + 1] == '\\')
-                                output.Append(ch);
+                            //else if (replacePattern[index + 1] == '\\')
+                            //    output.Append(ch);
+                            else if (index + 2 < replacePattern.Length
+                                && replacePattern[index + 1] == '\\'
+                                && replacePattern[index + 2] == '\\'
+                                )
+                            {
+                                index++;
+                                index++;
+                                if (backspaceFound)
+                                {
+                                    output.Append(ch);
+                                    backspaceFound = false;
+                                }
+                                else
+                                    backspaceFound = true;
+
+                                continue;
+                            }
+                            else if (index + 1 < replacePattern.Length && replacePattern[index + 1] == '\\')
+                            {
+                                output.Append(replacePattern[index + 1]);
+                            }
                         }
                         else
                             output.Append(ch);
 
                         index++;
+                        backspaceFound = false;
                     }
 
                     return output.ToString();
@@ -1783,6 +2450,255 @@ namespace System
             return groupName;
         }
 
+        public static string ReplaceAt(this string input, int index, char newChar)
+        {
+            if (input == null)
+            {
+                throw new ArgumentNullException("input");
+            }
+            StringBuilder builder = new StringBuilder(input);
+            builder[index] = newChar;
+            return builder.ToString();
+        }
+
         #endregion Replace Method
+
+        #region ContainsXml Methods
+
+        public static bool ContainsXml(this string input)
+        {
+            if (input.IsNullOrWhiteSpace()) return false;
+
+            try
+            {
+                XElement x = XElement.Parse("<wrapper>" + input + "</wrapper>");
+                return !(x.DescendantNodes().Count() == 1 && x.DescendantNodes().First().NodeType == XmlNodeType.Text);
+            }
+            catch (XmlException)
+            {
+                return true;
+            }
+        }
+
+        #endregion ContainsHTML Methods
+
+        #region Unwrap Methods
+
+        public static string Unwrap(this string input)
+        {
+            if (input.IsNull()) return input;
+            if (input.StartsWith("\"") && input.EndsWith("\""))
+                return input.Substring(1, input.Length - 2).Replace('^', ' ');
+            if (input.StartsWith("'") && input.EndsWith("'"))
+                return input.Substring(1, input.Length - 2).Replace('^', ' ');
+
+            return input.Replace('^', ' ');
+        }
+
+        #endregion Unwrap Methods
+
+        #region Fixed Length String Overloads
+
+        public static string LeftJustifiedWithFilled(this string value, int length, char fillChar = ' ')
+        {
+            if (String.IsNullOrEmpty(value))
+                return new String(fillChar, length);
+
+            return value.PadRight(length).Left(length);
+        }
+
+        public static string RightJustifiedFilled(this string value, int length, char fillChar = ' ')
+        {
+            if (String.IsNullOrEmpty(value))
+                return new String(fillChar, length);
+
+            return value.PadLeft(length).Right(length);
+        }
+
+        public static string Right(this string value, int maxLength)
+        {
+            //Check if the value is valid
+            if (string.IsNullOrEmpty(value))
+            {
+                //Set valid empty string as string could be null
+                value = string.Empty;
+            }
+            else if (value.Length > maxLength)
+            {
+                //Make the string no longer than the max length
+                value = value.Substring(value.Length - maxLength, maxLength);
+            }
+
+            //Return the string
+            return value;
+        }
+
+        public static string Left(this string value, int maxLength)
+        {
+            //Check if the value is valid
+            if (string.IsNullOrEmpty(value))
+            {
+                //Set valid empty string as string could be null
+                value = string.Empty;
+            }
+            else if (value.Length > maxLength)
+            {
+                //Make the string no longer than the max length
+                value = value.Substring(0, maxLength);
+            }
+
+            //Return the string
+            return value;
+        }
+
+        #endregion Fixed Length String Overloads
+
+        #region Take Overloads
+
+        /// Like linq take - takes the first x characters
+        public static string Take(this string theString, int count, bool ellipsis = false)
+        {
+            int lengthToTake = Math.Min(count, theString.Length);
+            var cutDownString = theString.Substring(0, lengthToTake);
+
+            if (ellipsis && lengthToTake < theString.Length)
+                cutDownString += "...";
+
+            return cutDownString;
+        }
+
+        #endregion Take Overloads
+
+        #region Skip Overloads
+
+        //like linq skip - skips the first x characters and returns the remaining string
+        public static string Skip(this string theString, int count)
+        {
+            int startIndex = Math.Min(count, theString.Length);
+            var cutDownString = theString.Substring(startIndex - 1);
+
+            return cutDownString;
+        }
+
+        #endregion Skip Overloads
+
+        #region Right and Left Overloads
+
+        public static string Right(this string @this, char value)
+        {
+            if (@this.IsNullOrWhiteSpace()) return @this;
+            int index = @this.IndexOf(value);
+            if (index < 0) return @this;
+            return @this.Substring(index + 1);
+        }
+
+        public static string Right(this string @this, char[] anyOf)
+        {
+            if (@this.IsNullOrWhiteSpace()) return @this;
+            int index = @this.IndexOfAny(anyOf);
+            if (index < 0) return @this;
+            return @this.Substring(index + 1);
+        }
+
+        public static string Right(this string @this, string value, StringComparison comparision = StringComparison.CurrentCulture)
+        {
+            if (@this.IsNullOrWhiteSpace()) return @this;
+            int index = @this.IndexOf(value, comparision);
+            if (index < 0) return @this;
+            return @this.Substring(index + 1);
+        }
+
+        public static string Left(this string @this, char value)
+        {
+            if (@this.IsNullOrWhiteSpace()) return @this;
+            int index = @this.IndexOf(value);
+            if (index < 0) return @this;
+            return @this.Substring(0, index);
+        }
+
+        public static string Left(this string @this, char[] anyOf)
+        {
+            if (@this.IsNullOrWhiteSpace()) return @this;
+            int index = @this.IndexOfAny(anyOf);
+            if (index < 0) return @this;
+            return @this.Substring(0, index);
+        }
+
+        public static string Left(this string @this, string value, StringComparison comparision = StringComparison.CurrentCulture)
+        {
+            if (@this.IsNullOrWhiteSpace()) return @this;
+            int index = @this.IndexOf(value, comparision);
+            if (index < 0) return @this;
+            return @this.Substring(0, index);
+        }
+
+        #endregion
+
+        public static string LastLine(this string text, string newLineChars = null)
+        {
+            if (text.IsNull()) return text;
+            if (newLineChars.IsNull())
+                newLineChars = Environment.NewLine;
+
+            string[] lines = text.SplitNTrim(newLineChars);
+
+            text = null;
+            foreach (string line in lines)
+            {
+                if (line.IsNullOrWhiteSpace()) continue;
+                text = line;
+            }
+            return text;
+        }
+
+        public static string EscapeXml(this string s)
+        {
+            if (string.IsNullOrEmpty(s)) return s;
+
+            return !SecurityElement.IsValidText(s)
+                   ? SecurityElement.Escape(s) : s;
+        }
+
+        public static string UnescapeXml(this string s)
+        {
+            if (string.IsNullOrEmpty(s)) return s;
+
+            string returnString = s;
+            returnString = returnString.Replace("&apos;", "'");
+            returnString = returnString.Replace("&quot;", "\"");
+            returnString = returnString.Replace("&gt;", ">");
+            returnString = returnString.Replace("&lt;", "<");
+            returnString = returnString.Replace("&amp;", "&");
+
+            return returnString;
+        }
+
+        public static string EscapeSourceCode(this string s)
+        {
+            if (string.IsNullOrEmpty(s)) return s;
+
+            string returnString = s;
+            returnString = _openBraceRegex.Replace(returnString, "$1\\{");
+            returnString = _closeBraceRegex.Replace(returnString, "$1\\}");
+            //returnString = _percentageRegex.Replace(returnString, "$1\\%");
+            //returnString = _tiltaRegex.Replace(returnString, "$1\\~");
+            //returnString = _caretRegex.Replace(returnString, "$1\\^");
+
+            return returnString;
+        }
+
+        public static string UnescapeSourceCode(this string s)
+        {
+            if (string.IsNullOrEmpty(s)) return s;
+
+            string returnString = s;
+            returnString = returnString.Replace("\\{", "{");
+            returnString = returnString.Replace("\\}", "}");
+            //returnString = returnString.Replace("\\%", "%");
+            //returnString = returnString.Replace("\\~", "~");
+            //returnString = returnString.Replace("\\^", "^");
+
+            return returnString;
+        }
     }
 }

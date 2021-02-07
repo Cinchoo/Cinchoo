@@ -34,7 +34,7 @@
 
         #region IChoPropertyReplacer Members
 
-        public bool ContainsProperty(string propertyName)
+        public bool ContainsProperty(string propertyName, object context)
         {
             if (_availPropeties.ContainsKey(propertyName))
                 return true;
@@ -44,11 +44,23 @@
                 {
                     if (!propertyName.IsNullOrWhiteSpace())
                     {
+                        string envVar = Environment.GetEnvironmentVariable(propertyName);
+                        if (!envVar.IsNullOrWhiteSpace())
+                            return true;
+
                         Environment.SpecialFolder specialFolder;
                         if (Enum.TryParse<Environment.SpecialFolder>(propertyName, out specialFolder))
-                            return true;
-                        else
-                            return !Environment.GetEnvironmentVariable(propertyName).IsNullOrWhiteSpace();
+                        {
+                            try
+                            {
+                                Environment.GetFolderPath(specialFolder);
+                                return true;
+                            }
+                            catch
+                            {
+                            }
+                        }
+                        return false;
                     }
                     else
                         return false;
@@ -60,7 +72,7 @@
             }
         }
 
-        public string ReplaceProperty(string propertyName, string format)
+        public string ReplaceProperty(string propertyName, string format, object context)
         {
             if (String.IsNullOrEmpty(propertyName))
                 return propertyName;
@@ -91,11 +103,23 @@
                     return ChoObject.Format(Environment.WorkingSet, format);
                 default:
                     {
+                        string envVar = Environment.GetEnvironmentVariable(propertyName);
+                        if (!envVar.IsNullOrWhiteSpace())
+                            return ChoObject.Format(envVar, format);
+
                         Environment.SpecialFolder specialFolder;
                         if (Enum.TryParse<Environment.SpecialFolder>(propertyName, out specialFolder))
-                            return ChoObject.Format(Environment.GetFolderPath(specialFolder), format);
-                        else
-                            return ChoObject.Format(Environment.GetEnvironmentVariable(propertyName), format);
+                        {
+                            try
+                            {
+                                return ChoObject.Format(Environment.GetFolderPath(specialFolder), format);
+                            }
+                            catch
+                            {
+                            }
+                        }
+
+                        return propertyName;
                     }
             }
         }

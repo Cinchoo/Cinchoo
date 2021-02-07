@@ -13,7 +13,7 @@
 
 	#endregion NameSpaces
 
-    public sealed class ChoSingleTagConfigStorage : ChoConfigStorage, IChoNameValueConfigStorage
+    public class ChoSingleTagConfigStorage : ChoConfigStorage, IChoNameValueConfigStorage
 	{
         public override object Load(ChoBaseConfigurationElement configElement, XmlNode node)
 		{

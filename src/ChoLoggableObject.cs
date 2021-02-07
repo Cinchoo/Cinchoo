@@ -6,6 +6,7 @@
     using System.Diagnostics;
     using System.IO;
     using Cinchoo.Core.IO;
+    using Cinchoo.Core.Diagnostics;
 
 	#endregion NameSpaces
 
@@ -25,7 +26,8 @@
 					if (!Path.IsPathRooted(_logDirectory))
 					{
 						_logDirectory = Path.Combine(ChoApplication.ApplicationLogDirectory, _logDirectory);
-                        Directory.CreateDirectory(_logDirectory);
+                        if (XmlLogCondition)
+                            Directory.CreateDirectory(_logDirectory);
 					}
 				}
 				else
@@ -47,11 +49,22 @@
 			}
 		}
 
-		public bool LogCondition
+		public bool? LogCondition
 		{
 			get;
 			set;
 		}
+
+        internal bool XmlLogCondition
+        {
+            get
+            {
+                if (LogCondition == null)
+                    return ChoTraceSwitch.SettingsLogSwitch.TraceVerbose;
+                else
+                    return LogCondition.Value;
+            }
+        }
 
 		private string _logTimeStampFormat;
 		public string LogTimeStampFormat
@@ -70,6 +83,11 @@
 
         #region Constructors
 
+        static ChoLoggableObject()
+        {
+            ChoFramework.Initialize();
+        }
+
         public ChoLoggableObject()
         {
             _logFileName = ChoPath.AddExtension(GetType().FullName, ChoReservedFileExt.Log);
@@ -79,22 +97,23 @@
 
         public void Log(string msg)
 		{
-			Log(LogCondition, msg);
+			Log(XmlLogCondition, msg);
 		}
 
 		public virtual void Log(bool condition, string msg)
 		{
 			if (condition)
 			{
-				try
-				{
-					ChoFile.WriteLine(Path.Combine(LogDirectory, LogFileName), String.Format("{1}{0}{2}", Environment.NewLine,
-						DateTime.Now.ToString(LogTimeStampFormat), msg.ToString()));
-				}
-				catch (Exception ex)
-				{
-					ChoApplication.WriteToEventLog(ChoApplicationException.ToString(ex), EventLogEntryType.Error);
-				}
+                try
+                {
+                    //TODO: Rework
+                    ChoFile.WriteLine(Path.Combine(LogDirectory, LogFileName), String.Format("{1}{0}{2}", Environment.NewLine,
+                        DateTime.Now.ToString(LogTimeStampFormat), msg.ToString()));
+                }
+                catch (Exception ex)
+                {
+                    ChoApplication.WriteToEventLog(ChoApplicationException.ToString(ex), EventLogEntryType.Error);
+                }
 			}
 		}
 

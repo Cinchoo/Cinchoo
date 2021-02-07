@@ -17,22 +17,22 @@ namespace Cinchoo.Core
 
         public bool Format(object target, ref string msg)
         {
-            try
-            {
+            //try
+            //{
                 if (msg.IndexOf("{") == -1)
                     return true;
-                msg = ChoString.ExpandProperties(target, msg, '{', '}', '^', new ChoCustomKeyValuePropertyReplacer(target));
+                msg = ChoString.ExpandPropertiesInternal(target, msg, '{', '}', '^', new IChoPropertyReplacer[] { new ChoCustomKeyValuePropertyReplacer(target) });
                 return true;
-            }
-            catch (ChoFatalApplicationException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                msg = ChoPropertyManager.FormatException(msg, ex);
-                return false;
-            }
+            //}
+            //catch (ChoFatalApplicationException)
+            //{
+            //    throw;
+            //}
+            //catch (Exception ex)
+            //{
+            //    msg = ChoPropertyManager.FormatException(msg, ex);
+            //    return false;
+            //}
         }
 
         public string Name
@@ -67,12 +67,25 @@ namespace Cinchoo.Core
 
             #region IChoKeyValuePropertyReplacer Members
 
-            public bool ContainsProperty(string propertyName)
+            public bool ContainsProperty(string propertyName, object context)
             {
-                return true;
+                //return true;
+                try
+                {
+                    ChoString.Evaluate(_target, propertyName);
+                    return true;
+                }
+                catch (ChoFatalApplicationException)
+                {
+                    throw;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
             }
 
-            public string ReplaceProperty(string propertyName, string format)
+            public string ReplaceProperty(string propertyName, string format, object context)
             {
                 //try
                 //{

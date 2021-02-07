@@ -9,13 +9,20 @@ namespace Cinchoo.Core
 
     #endregion NameSpaces
 
-    public class ChoDbNull
+    [ChoStringObjectFormattable(typeof(DBNull))]
+    public class ChoDbNull : IChoStringObjectFormatter<DBNull>
     {
         #region Constants
 
         public const string DbNullString = "[DB_NULL]";
 
         #endregion Constants
+
+        #region Instance Data Members (Private)
+
+        private DBNull _value = DBNull.Value;
+
+        #endregion Instance Data Members (Private)
 
         #region Constructors
 
@@ -28,7 +35,7 @@ namespace Cinchoo.Core
             if (formattedValue == null || formattedValue.Length == 0)
                 throw new ArgumentNullException("formattedValue");
 
-            Parse(formattedValue);
+            _value = (DBNull)Parse(formattedValue);
         }
 
         #endregion Constructors
@@ -47,6 +54,17 @@ namespace Cinchoo.Core
         public string ToFormattedString()
         {
             return DbNullString;
+        }
+
+        public DBNull Value
+        {
+            get { return _value; }
+        }
+
+        public string GetHelpText()
+        {
+            ChoDbNull x = new ChoDbNull();
+            return x.ToFormattedString();
         }
 
         #endregion Instance Members (Public)

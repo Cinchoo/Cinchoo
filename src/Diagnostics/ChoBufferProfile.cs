@@ -27,26 +27,27 @@ namespace Cinchoo.Core.Diagnostics
 		}
 
 		public ChoBufferProfile(string msg)
-			: base(msg)
+            : base(msg, ChoProfile.GetContext(new StackFrame(1)))
 		{
 		}
 
-		public ChoBufferProfile(string msg, ChoBaseProfile outerProfile)
+		public ChoBufferProfile(string msg, IChoProfile outerProfile)
 			: base(msg, outerProfile)
 		{
 		}
 
-		public ChoBufferProfile(string name, string msg)
-			: base(name, msg)
+        public ChoBufferProfile(string name, string msg, IChoProfile outerProfile = null)
+            : base(name, msg, outerProfile == null ?
+                (name != ChoProfile.NULL_PROFILE_NAME && name != ChoProfile.DEFAULT_PROFILE_NAME ? ChoProfile.GetContext(new StackFrame(1)) : outerProfile) : outerProfile)
 		{
 		}
 
-		public ChoBufferProfile(bool condition, string name, string msg)
-			: base(condition, name, msg)
+        internal ChoBufferProfile(bool condition, string name, string msg)
+            : base(condition, name, msg, ChoProfile.GetContext(new StackFrame(1)))
 		{
 		}
 
-		internal ChoBufferProfile(bool condition, string name, string msg, ChoBaseProfile outerProfile, bool delayedStartProfile, string startActions, string stopActions)
+		internal ChoBufferProfile(bool condition, string name, string msg, IChoProfile outerProfile, bool delayedStartProfile, string startActions, string stopActions)
 			: base(condition, name, msg, outerProfile, delayedStartProfile, startActions, stopActions)
 		{
 		}
@@ -72,7 +73,7 @@ namespace Cinchoo.Core.Diagnostics
 		private const ChoProfileIntializationAction DefaultProfileMode = ChoProfileIntializationAction.Truncate;
 
 		private readonly object _padLock = new object();
-		private bool _condition = ChoTrace.GetChoSwitch().TraceVerbose;
+		private bool _condition = ChoTraceSwitch.Switch.TraceVerbose;
 		private string _name = ChoRandom.NextRandom().ToString();
 		private int _indent = 0;
 		private DateTime _startTime = DateTime.Now;
@@ -98,32 +99,32 @@ namespace Cinchoo.Core.Diagnostics
 		}
 
 		public ChoBufferProfileEx(string msg)
-			: this(ChoTrace.ChoSwitch.TraceVerbose, msg, (IChoProfile)null)
+			: this(ChoTraceSwitch.Switch.TraceVerbose, msg, (IChoProfile)null)
 		{
 		}
 
 		public ChoBufferProfileEx(string filePath, string msg)
-			: this(ChoTrace.ChoSwitch.TraceVerbose, filePath, msg, (IChoProfile)null)
+			: this(ChoTraceSwitch.Switch.TraceVerbose, filePath, msg, (IChoProfile)null)
 		{
 		}
 
 		public ChoBufferProfileEx(TextWriter streamWriter, string msg)
-			: this(ChoTrace.ChoSwitch.TraceVerbose, streamWriter, msg, (IChoProfile)null)
+			: this(ChoTraceSwitch.Switch.TraceVerbose, streamWriter, msg, (IChoProfile)null)
 		{
 		}
 
 		public ChoBufferProfileEx(string format, params object[] args)
-			: this(ChoTrace.ChoSwitch.TraceVerbose, String.Format(format, args), (IChoProfile)null)
+			: this(ChoTraceSwitch.Switch.TraceVerbose, String.Format(format, args), (IChoProfile)null)
 		{
 		}
 
 		public ChoBufferProfileEx(string filePath, string format, params object[] args)
-			: this(ChoTrace.ChoSwitch.TraceVerbose, filePath, String.Format(format, args), (IChoProfile)null)
+			: this(ChoTraceSwitch.Switch.TraceVerbose, filePath, String.Format(format, args), (IChoProfile)null)
 		{
 		}
 
 		public ChoBufferProfileEx(TextWriter streamWriter, string format, params object[] args)
-			: this(ChoTrace.ChoSwitch.TraceVerbose, streamWriter, String.Format(format, args), (IChoProfile)null)
+			: this(ChoTraceSwitch.Switch.TraceVerbose, streamWriter, String.Format(format, args), (IChoProfile)null)
 		{
 		}
 
@@ -158,47 +159,47 @@ namespace Cinchoo.Core.Diagnostics
 		}
 
 		public ChoBufferProfileEx(string msg, IChoProfile outerProfile)
-			: this(ChoTrace.ChoSwitch.TraceVerbose, msg, outerProfile)
+			: this(ChoTraceSwitch.Switch.TraceVerbose, msg, outerProfile)
 		{
 		}
 
 		public ChoBufferProfileEx(string filePath, string msg, IChoProfile outerProfile)
-			: this(ChoTrace.ChoSwitch.TraceVerbose, filePath, msg, outerProfile)
+			: this(ChoTraceSwitch.Switch.TraceVerbose, filePath, msg, outerProfile)
 		{
 		}
 
 		public ChoBufferProfileEx(TextWriter streamWriter, string msg, IChoProfile outerProfile)
-			: this(ChoTrace.ChoSwitch.TraceVerbose, streamWriter, msg, outerProfile)
+			: this(ChoTraceSwitch.Switch.TraceVerbose, streamWriter, msg, outerProfile)
 		{
 		}
 
 		public ChoBufferProfileEx(string format, object arg, IChoProfile outerProfile)
-			: this(ChoTrace.ChoSwitch.TraceVerbose, String.Format(format, new object[] { arg }), outerProfile)
+			: this(ChoTraceSwitch.Switch.TraceVerbose, String.Format(format, new object[] { arg }), outerProfile)
 		{
 		}
 
 		public ChoBufferProfileEx(string filePath, string format, object arg, IChoProfile outerProfile)
-			: this(ChoTrace.ChoSwitch.TraceVerbose, filePath, String.Format(format, new object[] { arg }), outerProfile)
+			: this(ChoTraceSwitch.Switch.TraceVerbose, filePath, String.Format(format, new object[] { arg }), outerProfile)
 		{
 		}
 
 		public ChoBufferProfileEx(TextWriter streamWriter, string format, object arg, IChoProfile outerProfile)
-			: this(ChoTrace.ChoSwitch.TraceVerbose, streamWriter, String.Format(format, new object[] { arg }), outerProfile)
+			: this(ChoTraceSwitch.Switch.TraceVerbose, streamWriter, String.Format(format, new object[] { arg }), outerProfile)
 		{
 		}
 
 		public ChoBufferProfileEx(string format, object[] args, IChoProfile outerProfile)
-			: this(ChoTrace.ChoSwitch.TraceVerbose, String.Format(format, args), outerProfile)
+			: this(ChoTraceSwitch.Switch.TraceVerbose, String.Format(format, args), outerProfile)
 		{
 		}
 
 		public ChoBufferProfileEx(string filePath, string format, object[] args, IChoProfile outerProfile)
-			: this(ChoTrace.ChoSwitch.TraceVerbose, filePath, String.Format(format, args), outerProfile)
+			: this(ChoTraceSwitch.Switch.TraceVerbose, filePath, String.Format(format, args), outerProfile)
 		{
 		}
 
 		public ChoBufferProfileEx(TextWriter streamWriter, string format, object[] args, IChoProfile outerProfile)
-			: this(ChoTrace.ChoSwitch.TraceVerbose, streamWriter, String.Format(format, args), outerProfile)
+			: this(ChoTraceSwitch.Switch.TraceVerbose, streamWriter, String.Format(format, args), outerProfile)
 		{
 		}
 
@@ -532,7 +533,7 @@ namespace Cinchoo.Core.Diagnostics
 				_filePath = null;
 				if (String.IsNullOrEmpty(value)) return;
 
-				if (String.IsNullOrEmpty(Path.GetDirectoryName(value)))
+				if (String.IsNullOrEmpty(Path.GetDirectoryName(ChoPath.GetFullPath(value))))
 					_filePath = ChoFileProfileSettings.GetFullPath(ChoReservedDirectoryName.Others, value);
 				else
 					_filePath = ChoFileProfileSettings.GetFullPath(value);
@@ -587,12 +588,12 @@ namespace Cinchoo.Core.Diagnostics
 		public virtual void Debug(object message)
 		{
 			if (message != null)
-				AppendLineIf(ChoTrace.ChoSwitch.TraceVerbose, message.ToString());
+				AppendLineIf(ChoTraceSwitch.Switch.TraceVerbose, message.ToString());
 		}
 
 		public virtual void Debug(Exception exception)
 		{
-			AppendIf(ChoTrace.ChoSwitch.TraceVerbose, exception);
+			AppendIf(ChoTraceSwitch.Switch.TraceVerbose, exception);
 		}
 
 		public virtual void Debug(object message, Exception exception)
@@ -603,23 +604,23 @@ namespace Cinchoo.Core.Diagnostics
 
 		public virtual void DebugFormat(string format, params object[] args)
 		{
-			AppendLineIf(ChoTrace.ChoSwitch.TraceVerbose, String.Format(format, args));
+			AppendLineIf(ChoTraceSwitch.Switch.TraceVerbose, String.Format(format, args));
 		}
 
 		public virtual void DebugFormat(IFormatProvider provider, string format, params object[] args)
 		{
-			AppendLineIf(ChoTrace.ChoSwitch.TraceVerbose, String.Format(provider, format, args));
+			AppendLineIf(ChoTraceSwitch.Switch.TraceVerbose, String.Format(provider, format, args));
 		}
 
 		public virtual void Error(object message)
 		{
 			if (message != null)
-				AppendLineIf(ChoTrace.ChoSwitch.TraceError, message.ToString());
+				AppendLineIf(ChoTraceSwitch.Switch.TraceError, message.ToString());
 		}
 
 		public virtual void Error(Exception exception)
 		{
-			AppendIf(ChoTrace.ChoSwitch.TraceError, exception);
+			AppendIf(ChoTraceSwitch.Switch.TraceError, exception);
 		}
 
 		public virtual void Error(object message, Exception exception)
@@ -630,23 +631,23 @@ namespace Cinchoo.Core.Diagnostics
 
 		public virtual void ErrorFormat(string format, params object[] args)
 		{
-			AppendLineIf(ChoTrace.ChoSwitch.TraceError, String.Format(format, args));
+			AppendLineIf(ChoTraceSwitch.Switch.TraceError, String.Format(format, args));
 		}
 
 		public virtual void ErrorFormat(IFormatProvider provider, string format, params object[] args)
 		{
-			AppendLineIf(ChoTrace.ChoSwitch.TraceError, String.Format(provider, format, args));
+			AppendLineIf(ChoTraceSwitch.Switch.TraceError, String.Format(provider, format, args));
 		}
 
 		public virtual void Info(object message)
 		{
 			if (message != null)
-				AppendLineIf(ChoTrace.ChoSwitch.TraceInfo, message.ToString());
+				AppendLineIf(ChoTraceSwitch.Switch.TraceInfo, message.ToString());
 		}
 
 		public virtual void Info(Exception exception)
 		{
-			AppendIf(ChoTrace.ChoSwitch.TraceInfo, exception);
+			AppendIf(ChoTraceSwitch.Switch.TraceInfo, exception);
 		}
 
 		public virtual void Info(object message, Exception exception)
@@ -657,23 +658,23 @@ namespace Cinchoo.Core.Diagnostics
 
 		public virtual void InfoFormat(string format, params object[] args)
 		{
-			AppendLineIf(ChoTrace.ChoSwitch.TraceInfo, String.Format(format, args));
+			AppendLineIf(ChoTraceSwitch.Switch.TraceInfo, String.Format(format, args));
 		}
 
 		public virtual void InfoFormat(IFormatProvider provider, string format, params object[] args)
 		{
-			AppendLineIf(ChoTrace.ChoSwitch.TraceInfo, String.Format(provider, format, args));
+			AppendLineIf(ChoTraceSwitch.Switch.TraceInfo, String.Format(provider, format, args));
 		}
 
 		public virtual void Warn(object message)
 		{
 			if (message != null)
-				AppendLineIf(ChoTrace.ChoSwitch.TraceWarning, message.ToString());
+				AppendLineIf(ChoTraceSwitch.Switch.TraceWarning, message.ToString());
 		}
 
 		public virtual void Warn(Exception exception)
 		{
-			AppendIf(ChoTrace.ChoSwitch.TraceWarning, exception);
+			AppendIf(ChoTraceSwitch.Switch.TraceWarning, exception);
 		}
 
 		public virtual void Warn(object message, Exception exception)
@@ -684,12 +685,12 @@ namespace Cinchoo.Core.Diagnostics
 
 		public virtual void WarnFormat(string format, params object[] args)
 		{
-			AppendLineIf(ChoTrace.ChoSwitch.TraceWarning, String.Format(format, args));
+			AppendLineIf(ChoTraceSwitch.Switch.TraceWarning, String.Format(format, args));
 		}
 
 		public virtual void WarnFormat(IFormatProvider provider, string format, params object[] args)
 		{
-			AppendLineIf(ChoTrace.ChoSwitch.TraceWarning, String.Format(provider, format, args));
+			AppendLineIf(ChoTraceSwitch.Switch.TraceWarning, String.Format(provider, format, args));
 		}
 
 		#endregion
@@ -759,7 +760,8 @@ namespace Cinchoo.Core.Diagnostics
 			{
 				IsDisposed = true;
 			}
-		}
+            ChoProfile.Unregister(this);
+        }
 
 		#endregion
 

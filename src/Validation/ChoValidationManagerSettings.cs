@@ -34,7 +34,7 @@ namespace Cinchoo.Core
 
 		#region Shared Data Members (Private)
 
-		private static string _buildInValidationManagerType = typeof(ChoValidationManager).AssemblyQualifiedName;
+        private static string _buildInValidationManagerType = typeof(ChoValidationManager).SimpleQualifiedName();
 
 		#endregion Shared Data Members (Private)
 

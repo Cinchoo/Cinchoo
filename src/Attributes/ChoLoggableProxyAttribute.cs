@@ -40,11 +40,18 @@
             }
         }
 
-        private bool _logCondition = true;
-        public bool LogCondition
+        private bool? _logCondition = null;
+        public bool? LogCondition
         {
-            get { return _logCondition; }
-            set { _logCondition = value; }
+            get 
+            {
+                //if (_logCondition == null)
+                //    return ChoTraceSwitch.Switch.TraceVerbose;
+                //else
+                //    return _logCondition.Value;
+                return _logCondition;
+            }
+            set {  _logCondition = value; }
         }
 
         public string LogTimeStampFormat

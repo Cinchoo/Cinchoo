@@ -829,7 +829,7 @@ namespace Cinchoo.Core.Threading
                 if (prevCount != workItemResults.Count)
                 {
                     prevCount = workItemResults.Count;
-                    ChoTrace.WriteLineIf(ChoTrace.ChoSwitch.TraceVerbose, String.Format("Waiting for {0} thread(s) to complete...", workItemResults.Count));
+                    ChoTrace.WriteLineIf(ChoTraceSwitch.Switch.TraceVerbose, String.Format("Waiting for {0} thread(s) to complete...", workItemResults.Count));
                     Thread.Sleep(1000);
                 }
                 else

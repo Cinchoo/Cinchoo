@@ -31,7 +31,13 @@ namespace Cinchoo.Core.Diagnostics
 			if (!String.IsNullOrEmpty(Message))
 				message = ChoPropertyManager.ExpandProperties(target, Message);
 
-			return new ChoBufferProfile(Condition, Name, message, (ChoBaseProfile)outerProfile, false, StartActions, StopActions);
+            IChoProfile profile = null;
+            
+            if (ChoProfile.TryGetProfile(Name, ref profile,
+                () => new ChoBufferProfile(Condition, Name, message, (ChoBaseProfile)outerProfile, false, StartActions, StopActions)))
+                return profile;
+            else
+                return null;
         }
 
         #endregion ChoProfileAttribute Overrides (Public)

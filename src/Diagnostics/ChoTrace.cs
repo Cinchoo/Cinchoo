@@ -9,26 +9,26 @@ namespace Cinchoo.Core.Diagnostics
 
 	#endregion NameSpaces
 
+    public static class ChoTraceSwitch
+    {
+        public readonly static TraceSwitch Switch = new TraceSwitch("ChoSwitch", "Cinchoo Trace Switch", "Verbose");
+        public readonly static TraceSwitch SettingsLogSwitch = new TraceSwitch("ChoSettingsLogSwitch", "Cinchoo Settings Log Switch", "Verbose");
+    }
+
 	[ChoAppDomainEventsRegisterableType]
 	public class ChoTrace : IChoProfile, IChoTrace
 	{
-		#region Shared Data Members (Public)
-
-        public static TraceSwitch ChoSwitch = new TraceSwitch("ChoSwitch", "Cinchoo Trace Switch", ChoGlobalApplicationSettings.Me.LogSettings.TraceLevel.ToString());
-
-		#endregion
-
 		#region Instance Data Members (Private)
 
 		private string _name = ChoRandom.NextRandom().ToString();
-		private bool _condition = ChoTrace.GetChoSwitch().TraceVerbose;
+		private bool _condition = ChoTraceSwitch.Switch.TraceVerbose;
 
 		#endregion Instance Data Members (Private)
 
 		#region Constants (Internal)
 
 		internal const string BACKUP = "${{^BACKUP}}";
-		internal const string SEPERATOR = "_______________________________________________";
+		internal const string SEPARATOR = "_______________________________________________";
 
 		#endregion
 
@@ -36,11 +36,11 @@ namespace Cinchoo.Core.Diagnostics
 
 		static ChoTrace()
 		{
-			ChoAppDomain.Initialize();
+            ChoAppDomain.Initialize();
 		}
 		
 		public ChoTrace(string msg)
-			: this(ChoTrace.ChoSwitch.TraceVerbose, msg)
+			: this(ChoTraceSwitch.Switch.TraceVerbose, msg)
 		{
 		}
 
@@ -59,6 +59,7 @@ namespace Cinchoo.Core.Diagnostics
 		{
 			try
 			{
+                ChoProfileBackupManager.Reset();
 				Trace.Write(BACKUP);
 			}
 			catch (Exception ex)
@@ -182,24 +183,24 @@ namespace Cinchoo.Core.Diagnostics
 
 		#endregion WriteLine Overloads
 
-		#region WriteSeperator Overloads
+		#region WriteSeparator Overloads
 
-		public static void WriteSeperator()
+		public static void WriteSeparator()
 		{
-			WriteSeperatorIf(true);
+			WriteSeparatorIf(true);
 		}
 
-		public static void WriteSeperatorIf(bool condition)
+		public static void WriteSeparatorIf(bool condition)
 		{
-			WriteSeperatorIf(condition, ChoStackTrace.GetStackFrame(typeof(ChoTrace)));
+			WriteSeparatorIf(condition, ChoStackTrace.GetStackFrame(typeof(ChoTrace)));
 		}
 
-		internal static void WriteSeperatorIf(bool condition, StackFrame callerStackFrame)
+		internal static void WriteSeparatorIf(bool condition, StackFrame callerStackFrame)
 		{
-            //if (condition) ChoLogger.Log(callerStackFrame, SEPERATOR + Environment.NewLine);
+            //if (condition) ChoLogger.Log(callerStackFrame, SEPARATOR + Environment.NewLine);
 			try
 			{
-				Trace.WriteLineIf(condition, SEPERATOR);
+				Trace.WriteLineIf(condition, SEPARATOR);
 			}
 			catch (Exception ex)
 			{
@@ -207,27 +208,27 @@ namespace Cinchoo.Core.Diagnostics
 			}
 		}
 
-		#endregion WriteSeperator Overloads
+		#endregion WriteSeparator Overloads
 
 		#region Write Exception Overloads
 
 		public static bool Write(Exception ex)
 		{
-			return Write(ex, ChoStackTrace.GetStackFrame(typeof(ChoTrace)));
-		}
+        //    return Write(ex, ChoStackTrace.GetStackFrame(typeof(ChoTrace)));
+        //}
 
-		internal static bool Write(Exception ex, StackFrame callerStackFrame)
-		{
+        //internal static bool Write(Exception ex, StackFrame callerStackFrame)
+        //{
 			if (ex == null) return false;
 
 			if (!ChoApplicationException.IsProcessed(ex))
 			{
-                //if (ChoTrace.ChoSwitch.TraceError)
+                //if (ChoTraceSwitch.Switch.TraceError)
                 //    ChoLogger.Log(callerStackFrame, String.Format("[{0}]: {1}{2}", ChoStackTrace.GetCallerName(), ex.Message, Environment.NewLine));
 
 				try
 				{
-					Trace.WriteLineIf(ChoTrace.ChoSwitch.TraceError, String.Format("[{0}]: {1}", ChoStackTrace.GetCallerName(), ChoApplicationException.ToString(ex)));
+					Trace.WriteLineIf(ChoTraceSwitch.Switch.TraceError, String.Format("[{0}]: {1}", ChoStackTrace.GetCallerName(), ChoApplicationException.ToString(ex)));
 					return true;
 				}
 				catch (Exception exception)
@@ -254,11 +255,9 @@ namespace Cinchoo.Core.Diagnostics
 
 		#region Flush Members
 
-		[ChoAppDomainUnloadMethod("Flushing the trace...")]
+		//[ChoAppDomainUnloadMethod("Flushing the trace...")]
 		internal static void FlushAll()
 		{
-			ChoProfile.DisposeAll();
-			//ChoStreamProfile.Shutdown();
 			foreach (TraceListener traceListener in Trace.Listeners)
 			{
 				if (traceListener == null) continue;
@@ -288,12 +287,12 @@ namespace Cinchoo.Core.Diagnostics
 		public static void Debug(object message)
 		{
 			if (message != null)
-				WriteLineIf(ChoTrace.ChoSwitch.TraceVerbose, message.ToString());
+				WriteLineIf(ChoTraceSwitch.Switch.TraceVerbose, message.ToString());
 		}
 
 		public static void Debug(Exception exception)
 		{
-			if (ChoSwitch.TraceVerbose)
+			if (ChoTraceSwitch.Switch.TraceVerbose)
 				Write(exception);
 		}
 
@@ -305,23 +304,23 @@ namespace Cinchoo.Core.Diagnostics
 
 		public static void DebugFormat(string format, params object[] args)
 		{
-			WriteLineIf(ChoTrace.ChoSwitch.TraceVerbose, String.Format(format, args));
+			WriteLineIf(ChoTraceSwitch.Switch.TraceVerbose, String.Format(format, args));
 		}
 
 		public static void DebugFormat(IFormatProvider provider, string format, params object[] args)
 		{
-			WriteLineIf(ChoTrace.ChoSwitch.TraceVerbose, String.Format(provider, format, args));
+			WriteLineIf(ChoTraceSwitch.Switch.TraceVerbose, String.Format(provider, format, args));
 		}
 
 		public static void Error(object message)
 		{
 			if (message != null)
-				WriteLineIf(ChoTrace.ChoSwitch.TraceError, message.ToString());
+				WriteLineIf(ChoTraceSwitch.Switch.TraceError, message.ToString());
 		}
 
 		public static void Error(Exception exception)
 		{
-			if (ChoSwitch.TraceError)
+			if (ChoTraceSwitch.Switch.TraceError)
 				Write(exception);
 		}
 
@@ -333,23 +332,23 @@ namespace Cinchoo.Core.Diagnostics
 
 		public static void ErrorFormat(string format, params object[] args)
 		{
-			WriteLineIf(ChoTrace.ChoSwitch.TraceError, String.Format(format, args));
+			WriteLineIf(ChoTraceSwitch.Switch.TraceError, String.Format(format, args));
 		}
 
 		public static void ErrorFormat(IFormatProvider provider, string format, params object[] args)
 		{
-			WriteLineIf(ChoTrace.ChoSwitch.TraceError, String.Format(provider, format, args));
+			WriteLineIf(ChoTraceSwitch.Switch.TraceError, String.Format(provider, format, args));
 		}
 
 		public static void Info(object message)
 		{
 			if (message != null)
-				WriteLineIf(ChoTrace.ChoSwitch.TraceInfo, message.ToString());
+				WriteLineIf(ChoTraceSwitch.Switch.TraceInfo, message.ToString());
 		}
 
 		public static void Info(Exception exception)
 		{
-			if (ChoSwitch.TraceInfo)
+			if (ChoTraceSwitch.Switch.TraceInfo)
 				Write(exception);
 		}
 
@@ -361,23 +360,23 @@ namespace Cinchoo.Core.Diagnostics
 
 		public static void InfoFormat(string format, params object[] args)
 		{
-			WriteLineIf(ChoTrace.ChoSwitch.TraceInfo, String.Format(format, args));
+			WriteLineIf(ChoTraceSwitch.Switch.TraceInfo, String.Format(format, args));
 		}
 
 		public static void InfoFormat(IFormatProvider provider, string format, params object[] args)
 		{
-			WriteLineIf(ChoTrace.ChoSwitch.TraceInfo, String.Format(provider, format, args));
+			WriteLineIf(ChoTraceSwitch.Switch.TraceInfo, String.Format(provider, format, args));
 		}
 
 		public static void Warn(object message)
 		{
 			if (message != null)
-				WriteLineIf(ChoTrace.ChoSwitch.TraceWarning, message.ToString());
+				WriteLineIf(ChoTraceSwitch.Switch.TraceWarning, message.ToString());
 		}
 
 		public static void Warn(Exception exception)
 		{
-			if (ChoSwitch.TraceWarning)
+			if (ChoTraceSwitch.Switch.TraceWarning)
 				Write(exception);
 		}
 
@@ -389,12 +388,12 @@ namespace Cinchoo.Core.Diagnostics
 
 		public static void WarnFormat(string format, params object[] args)
 		{
-			WriteLineIf(ChoTrace.ChoSwitch.TraceWarning, String.Format(format, args));
+			WriteLineIf(ChoTraceSwitch.Switch.TraceWarning, String.Format(format, args));
 		}
 
 		public static void WarnFormat(IFormatProvider provider, string format, params object[] args)
 		{
-			WriteLineIf(ChoTrace.ChoSwitch.TraceWarning, String.Format(provider, format, args));
+			WriteLineIf(ChoTraceSwitch.Switch.TraceWarning, String.Format(provider, format, args));
 		}
 
 		#endregion
@@ -486,12 +485,12 @@ namespace Cinchoo.Core.Diagnostics
 		void IChoTrace.Debug(object message)
 		{
 			if (message != null)
-				AppendLineIf(ChoTrace.ChoSwitch.TraceVerbose, message.ToString());
+				AppendLineIf(ChoTraceSwitch.Switch.TraceVerbose, message.ToString());
 		}
 
 		void IChoTrace.Debug(Exception exception)
 		{
-			AppendIf(ChoTrace.ChoSwitch.TraceVerbose, exception);
+			AppendIf(ChoTraceSwitch.Switch.TraceVerbose, exception);
 		}
 
 		void IChoTrace.Debug(object message, Exception exception)
@@ -502,23 +501,23 @@ namespace Cinchoo.Core.Diagnostics
 
 		void IChoTrace.DebugFormat(string format, params object[] args)
 		{
-			AppendLineIf(ChoTrace.ChoSwitch.TraceVerbose, String.Format(format, args));
+			AppendLineIf(ChoTraceSwitch.Switch.TraceVerbose, String.Format(format, args));
 		}
 
 		void IChoTrace.DebugFormat(IFormatProvider provider, string format, params object[] args)
 		{
-			AppendLineIf(ChoTrace.ChoSwitch.TraceVerbose, String.Format(provider, format, args));
+			AppendLineIf(ChoTraceSwitch.Switch.TraceVerbose, String.Format(provider, format, args));
 		}
 
 		void IChoTrace.Error(object message)
 		{
 			if (message != null)
-				AppendLineIf(ChoTrace.ChoSwitch.TraceError, message.ToString());
+				AppendLineIf(ChoTraceSwitch.Switch.TraceError, message.ToString());
 		}
 
 		void IChoTrace.Error(Exception exception)
 		{
-			AppendIf(ChoTrace.ChoSwitch.TraceError, exception);
+			AppendIf(ChoTraceSwitch.Switch.TraceError, exception);
 		}
 
 		void IChoTrace.Error(object message, Exception exception)
@@ -529,23 +528,23 @@ namespace Cinchoo.Core.Diagnostics
 
 		void IChoTrace.ErrorFormat(string format, params object[] args)
 		{
-			AppendLineIf(ChoTrace.ChoSwitch.TraceError, String.Format(format, args));
+			AppendLineIf(ChoTraceSwitch.Switch.TraceError, String.Format(format, args));
 		}
 
 		void IChoTrace.ErrorFormat(IFormatProvider provider, string format, params object[] args)
 		{
-			AppendLineIf(ChoTrace.ChoSwitch.TraceError, String.Format(provider, format, args));
+			AppendLineIf(ChoTraceSwitch.Switch.TraceError, String.Format(provider, format, args));
 		}
 
 		void IChoTrace.Info(object message)
 		{
 			if (message != null)
-				AppendLineIf(ChoTrace.ChoSwitch.TraceInfo, message.ToString());
+				AppendLineIf(ChoTraceSwitch.Switch.TraceInfo, message.ToString());
 		}
 
 		void IChoTrace.Info(Exception exception)
 		{
-			AppendIf(ChoTrace.ChoSwitch.TraceInfo, exception);
+			AppendIf(ChoTraceSwitch.Switch.TraceInfo, exception);
 		}
 
 		void IChoTrace.Info(object message, Exception exception)
@@ -556,23 +555,23 @@ namespace Cinchoo.Core.Diagnostics
 
 		void IChoTrace.InfoFormat(string format, params object[] args)
 		{
-			AppendLineIf(ChoTrace.ChoSwitch.TraceInfo, String.Format(format, args));
+			AppendLineIf(ChoTraceSwitch.Switch.TraceInfo, String.Format(format, args));
 		}
 
 		void IChoTrace.InfoFormat(IFormatProvider provider, string format, params object[] args)
 		{
-			AppendLineIf(ChoTrace.ChoSwitch.TraceInfo, String.Format(provider, format, args));
+			AppendLineIf(ChoTraceSwitch.Switch.TraceInfo, String.Format(provider, format, args));
 		}
 
 		void IChoTrace.Warn(object message)
 		{
 			if (message != null)
-				AppendLineIf(ChoTrace.ChoSwitch.TraceWarning, message.ToString());
+				AppendLineIf(ChoTraceSwitch.Switch.TraceWarning, message.ToString());
 		}
 
 		void IChoTrace.Warn(Exception exception)
 		{
-			AppendIf(ChoTrace.ChoSwitch.TraceWarning, exception);
+			AppendIf(ChoTraceSwitch.Switch.TraceWarning, exception);
 		}
 
 		void IChoTrace.Warn(object message, Exception exception)
@@ -583,23 +582,14 @@ namespace Cinchoo.Core.Diagnostics
 
 		void IChoTrace.WarnFormat(string format, params object[] args)
 		{
-			AppendLineIf(ChoTrace.ChoSwitch.TraceWarning, String.Format(format, args));
+			AppendLineIf(ChoTraceSwitch.Switch.TraceWarning, String.Format(format, args));
 		}
 
 		void IChoTrace.WarnFormat(IFormatProvider provider, string format, params object[] args)
 		{
-			AppendLineIf(ChoTrace.ChoSwitch.TraceWarning, String.Format(provider, format, args));
+			AppendLineIf(ChoTraceSwitch.Switch.TraceWarning, String.Format(provider, format, args));
 		}
 
 		#endregion
-
-		#region Shared Members (Public)
-
-		public static TraceSwitch GetChoSwitch()
-		{
-            return ChoSwitch;
-		}
-
-		#endregion Shared Members (Public)
 	}
 }

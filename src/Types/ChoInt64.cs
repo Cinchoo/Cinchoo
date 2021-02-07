@@ -9,8 +9,8 @@ namespace Cinchoo.Core
 
     #endregion NameSpaces
 
-    [ChoStringObjectFormattable]
-    public class ChoInt64
+    [ChoStringObjectFormattable(typeof(Int64))]
+    public class ChoInt64 : IChoStringObjectFormatter<Int64>
     {
         #region Constants
 
@@ -70,6 +70,12 @@ namespace Cinchoo.Core
         public Int64 Value
         {
             get { return _value; }
+        }
+
+        public string GetHelpText()
+        {
+            ChoInt64 x = new ChoInt64(99);
+            return x.ToFormattedString();
         }
 
         #endregion Instance Members (Public)

@@ -503,6 +503,7 @@ namespace Cinchoo.Core.Collections
             #region Instance Data Members (Private)
 
             private readonly ChoQueue _queue;
+            private readonly AutoResetEvent _newItemArrived = new AutoResetEvent(false);
 
             #endregion Instance Data Members (Private)
 
@@ -529,20 +530,15 @@ namespace Cinchoo.Core.Collections
 
             public override object Dequeue()
             {
+                while (_queue.Count == 0)
+                {
+                    _newItemArrived.WaitOne();
+                }
+
                 lock (_queue)
                 {
-                    while (_queue.Count == 0)
-                    {
-                        Monitor.Wait(_queue);
-                    }
                     return _queue.Dequeue();
                 }
-                //lock (_queue)
-                //{
-                //    while (_count <= 0) Monitor.Wait(_queue);
-                //    _count--;
-                //    return _queue.Dequeue();
-                //}
             }
 
             public override void Enqueue(object value)
@@ -550,15 +546,8 @@ namespace Cinchoo.Core.Collections
                 lock (_queue)
                 {
                     _queue.Enqueue(value);
-                    Monitor.Pulse(_queue);
                 }
-                //if (value == null) throw new ArgumentNullException("Value");
-                //lock (_queue)
-                //{
-                //    _queue.Enqueue(value);
-                //    _count++;
-                //    Monitor.PulseAll(_queue);
-                //}
+                _newItemArrived.Set();
             }
 
             public override IEnumerator GetEnumerator()

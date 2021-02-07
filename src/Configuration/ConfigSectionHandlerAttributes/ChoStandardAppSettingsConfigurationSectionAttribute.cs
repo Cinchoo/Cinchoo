@@ -6,6 +6,7 @@
 	using System.Collections.Generic;
 	using System.Text;
 	using Cinchoo.Core.Configuration;
+    using System.Xml.Serialization;
 
 	#endregion NameSpaces
 
@@ -28,7 +29,8 @@
 		#region Instance Properties (Public)
 
 		private Type _configSectionHandlerType = typeof(ChoNameValueSectionHandler);
-		public override Type ConfigSectionHandlerType
+        [XmlIgnore]
+        public override Type ConfigSectionHandlerType
 		{
 			get { return _configSectionHandlerType; }
 			protected set { _configSectionHandlerType = value; }

@@ -11,6 +11,20 @@
 
     public static class ChoDictionaryEx
     {
+        public static void AddOrUpdate<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue value)
+        {
+            if (dictionary.ContainsKey(key))
+                dictionary[key] = value;
+            else
+                dictionary.Add(key, value);
+        }
+
+        public static void Delete<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
+        {
+            if (dictionary.ContainsKey(key))
+                dictionary.Remove(key);
+        }
+
         public static void RemoveAllMatchingKeyItems<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, IEnumerable<TKey> itemsToBeRemoved)
         {
             if (itemsToBeRemoved == null) return;

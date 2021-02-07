@@ -3,6 +3,7 @@ namespace Cinchoo.Core.Reflection
     #region NameSpaces
 
     using System;
+    using System.Linq;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
@@ -12,7 +13,7 @@ namespace Cinchoo.Core.Reflection
 
     #endregion NameSpaces
 
-    [ChoStreamProfile("Missing Assemblies", NameFromTypeFullName = typeof(ChoMissingAssemblies), StartActions = "Truncate")]
+    [ChoStreamProfile("Missing Assemblies", NameFromTypeFullName = typeof(ChoMissingAssemblies))]
     [ChoObjectFactory(ChoObjectConstructionType.Singleton)]
     public class ChoMissingAssemblies : ChoContextProfiler
     {
@@ -26,7 +27,7 @@ namespace Cinchoo.Core.Reflection
         #endregion Shared Members (Public)
     }
 
-	[ChoStreamProfile("Loaded Assemblies", NameFromTypeFullName = typeof(ChoLoadedAssemblies), StartActions = "Truncate")]
+	[ChoStreamProfile("Loaded Assemblies", NameFromTypeFullName = typeof(ChoLoadedAssemblies))]
     [ChoObjectFactory(ChoObjectConstructionType.Singleton)]
     public class ChoLoadedAssemblies : ChoContextProfiler
     {
@@ -34,7 +35,7 @@ namespace Cinchoo.Core.Reflection
 
         public void Add(Assembly assembly)
         {
-            if (ChoTrace.ChoSwitch.TraceVerbose)
+            if (ChoTraceSwitch.Switch.TraceVerbose)
             {
                 if (assembly.IsDynamic)
                     Trace.WriteLine(String.Format("Assembly: {0}, CodeBase: {1}, GAC: {2}, RuntimeVersion: {3}", assembly.FullName, "[Dynamic]", assembly.GlobalAssemblyCache, assembly.ImageRuntimeVersion));
@@ -62,15 +63,16 @@ namespace Cinchoo.Core.Reflection
     {
         #region Shared Data Members (Private)
 
+        private static readonly object _padLock = new object();
         /// <summary>
         /// Holds the loaded assemblies.
         /// </summary>
-        private static ChoDictionary<string, Assembly> _assemblyCache = ChoDictionary<string, Assembly>.Synchronized(new ChoDictionary<string, Assembly>());
+        private static readonly Dictionary<string, Assembly> _assemblyCache = new Dictionary<string, Assembly>();
 
         /// <summary>
         /// Holds the missing assembly cache.
         /// </summary>
-        private static List<string> _missingAssemblyCache = new List<string>();
+        private static readonly List<string> _missingAssemblyCache = new List<string>();
 
         #endregion
 
@@ -87,7 +89,7 @@ namespace Cinchoo.Core.Reflection
 
         public static void Clear()
         {
-            lock (_assemblyCache.SyncRoot)
+            lock (_padLock)
             {
                 _assemblyCache.Clear();
                 _missingAssemblyCache.Clear();
@@ -116,7 +118,7 @@ namespace Cinchoo.Core.Reflection
         {
             ChoGuard.ArgumentNotNull(assembly, "Assembly");
 
-            lock (_assemblyCache.SyncRoot)
+            lock (_padLock)
             {
                 if (ContainsAssembly(assembly)) return;
 
@@ -136,7 +138,7 @@ namespace Cinchoo.Core.Reflection
         {
             ChoGuard.ArgumentNotNullOrEmpty(assemblyFileName, "Assembly File Name");
 
-            lock (_assemblyCache.SyncRoot)
+            lock (_padLock)
             {
                 if (_missingAssemblyCache.Contains(assemblyFileName)) return;
                 
@@ -149,7 +151,7 @@ namespace Cinchoo.Core.Reflection
 
         internal static bool ContainsAsMissingAssembly(string assemblyFileName)
         {
-            lock (_assemblyCache.SyncRoot)
+            lock (_padLock)
             {
                 return _missingAssemblyCache.Contains(assemblyFileName);
             }
@@ -160,12 +162,6 @@ namespace Cinchoo.Core.Reflection
 
     public static class ChoAssemblyResolver
     {
-        #region Shared Data Members (Private)
-
-        private static string[] _paths = ChoCodeBase.Me.Paths;
-
-        #endregion Shared Data Members (Private)
-
         #region Public Instance Constructors
 
         static ChoAssemblyResolver()
@@ -218,6 +214,18 @@ namespace Cinchoo.Core.Reflection
         /// </returns>
         private static Assembly AssemblyResolve(object sender, ResolveEventArgs args)
         {
+            Assembly assembly = DiscoverAssembly(sender, args);
+            if (assembly != null)
+                ChoAssembly.AddToLoadedAssembly(assembly);
+
+            return assembly;
+        }
+         
+        private static Assembly DiscoverAssembly(object sender, ResolveEventArgs args)
+        {
+            if (ChoAssemblyManager.ContainsAsMissingAssembly(args.Name))
+                return null;
+
             bool isFullName = args.Name.IndexOf("Version=") != -1;
 
             // first try to find an already loaded assembly
@@ -238,9 +246,6 @@ namespace Cinchoo.Core.Reflection
                     return assembly;
                 }
             }
-
-            if (ChoAssemblyManager.ContainsAsMissingAssembly(args.Name))
-                return null;
 
             // find assembly in cache
             if (ChoAssemblyManager.ContainsAssembly(args.Name))
@@ -266,12 +271,25 @@ namespace Cinchoo.Core.Reflection
 
                 string assmeblyFileName = null;
                 string[] asms = args.Name.Split(new char[] { ',' });
+                int index = args.Name.IndexOf(',');
+                var name = index < 0 ? args.Name + ".dll" : args.Name.Substring(0, index) + ".dll";
+
+                Assembly resAssembly = LoadAssemblyFromResource(name);
+                if (resAssembly != null)
+                    return resAssembly;
+                else
+                {
+                    resAssembly = ChoEmbeddedAssembly.Get(name);
+                    if (resAssembly != null)
+                        return resAssembly;
+                }
+
                 bool fileFound = false;
-                foreach (string path in _paths)
+                foreach (string path in ChoCodeBase.Me.Paths)
                 {
                     if (path == null || path.Trim().Length == 0) continue;
 
-                    assmeblyFileName = Path.Combine(path, asms[0] + ".dll");
+                    assmeblyFileName = Path.Combine(path, name);
 
                     if (File.Exists(assmeblyFileName))
                     {
@@ -291,6 +309,37 @@ namespace Cinchoo.Core.Reflection
                     ChoAssemblyManager.AddMissingAssembly(args.Name);
             }
 
+            return null;
+        }
+
+        private static Assembly LoadAssemblyFromResource(string name)
+        {
+            //Assembly thisAssembly = Assembly.GetEntryAssembly();
+
+            foreach (Assembly thisAssembly in ChoAssembly.GetLoadedAssemblies())
+            {
+                if (thisAssembly.IsDynamic) continue;
+                try
+                {
+                    //Load form Embedded Resources - This Function is not called if the Assembly is in the Application Folder
+                    var resources = thisAssembly.GetManifestResourceNames().Where(s => s.EndsWith(name));
+                    if (resources.Count() > 0)
+                    {
+                        var resourceName = resources.First();
+                        using (Stream stream = thisAssembly.GetManifestResourceStream(resourceName))
+                        {
+                            if (stream == null) return null;
+                            var block = new byte[stream.Length];
+                            stream.Read(block, 0, block.Length);
+                            return Assembly.Load(block);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ChoTrace.Error(ex);
+                }
+            }
             return null;
         }
 

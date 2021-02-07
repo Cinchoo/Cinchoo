@@ -10,6 +10,8 @@ namespace Cinchoo.Core.Collections
 
     public static class ChoArray
     {
+        private static ArrayList _emptyList = new ArrayList();
+
         #region Shared Members (Public)
 
         public static object GetFirstNotNullableObject(ICollection srcArray)
@@ -126,7 +128,7 @@ namespace Cinchoo.Core.Collections
 
         #region Combine Overloads
 
-        public static T[] Combine<T>(params IEnumerable<T>[] arrays)
+        public static T[] Combine<T>(params ICollection<T>[] arrays)
         {
             if (arrays == null) return null;
 
@@ -157,10 +159,10 @@ namespace Cinchoo.Core.Collections
                 return ConvertTo(destArray, type);
         }
 
-        public static object[] Combine(params ICollection[] arrays)
-        {
-            return Combine(null, arrays);
-        }
+        //public static object[] Combine(params ICollection[] arrays)
+        //{
+        //    return Combine(null, arrays);
+        //}
 
         #endregion Combine Overloads
 

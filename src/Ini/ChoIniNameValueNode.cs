@@ -25,7 +25,7 @@ namespace Cinchoo.Core.Ini
     {
         #region Instance Data Members (Private)
 
-        private char _nameValueSeperator;
+        private char _nameValueSeparator;
         private string _name = null;
         private string _rawValue = null;
         private string _value = null;
@@ -36,25 +36,25 @@ namespace Cinchoo.Core.Ini
         #region Constructors
 
         internal ChoIniNameValueNode(ChoIniDocument ownerDocument, string name, string value)
-            : this(ownerDocument, name, value, ownerDocument.NameValueSeperator, null)
+            : this(ownerDocument, name, value, ownerDocument.NameValueSeparator, null)
         {
         }
 
-        internal ChoIniNameValueNode(ChoIniDocument ownerDocument, string name, string value, char nameValueSeperator)
-            : this(ownerDocument, name, value, nameValueSeperator, null)
+        internal ChoIniNameValueNode(ChoIniDocument ownerDocument, string name, string value, char nameValueSeparator)
+            : this(ownerDocument, name, value, nameValueSeparator, null)
         {
         }
 
-        internal ChoIniNameValueNode(ChoIniDocument ownerDocument, string name, string value, char nameValueSeperator, ChoIniCommentNode inlineCommentNode)
+        internal ChoIniNameValueNode(ChoIniDocument ownerDocument, string name, string value, char nameValueSeparator, ChoIniCommentNode inlineCommentNode)
             : base(ownerDocument)
         {
             ChoGuard.ArgumentNotNullOrEmpty(name, "Name");
 
             //Check for valid delimiter
-            if (ownerDocument.NameValueSeperator != nameValueSeperator)
-                throw new ChoIniDocumentException(String.Format("Invalid NameValue Seperator [{0}] passed.", nameValueSeperator));
+            if (ownerDocument.NameValueSeparator != nameValueSeparator)
+                throw new ChoIniDocumentException(String.Format("Invalid NameValue Separator [{0}] passed.", nameValueSeparator));
 
-            _nameValueSeperator = nameValueSeperator;
+            _nameValueSeparator = nameValueSeparator;
             _name = name.Trim();
             if (!ownerDocument.IgnoreValueWhiteSpaces)
                 _rawValue = value;
@@ -204,9 +204,9 @@ namespace Cinchoo.Core.Ini
                 else
                 {
                     if (!String.IsNullOrEmpty(inlineCommentString))
-                        return String.Format("{0}{1}{2} {3}", _name, _nameValueSeperator, _value, inlineCommentString);
+                        return String.Format("{0}{1}{2} {3}", _name, _nameValueSeparator, _value, inlineCommentString);
                     else
-                        return String.Format("{0}{1}{2}", _name, _nameValueSeperator, _value);
+                        return String.Format("{0}{1}{2}", _name, _nameValueSeparator, _value);
                 }
             }
             else
@@ -221,9 +221,9 @@ namespace Cinchoo.Core.Ini
                 else
                 {
                     if (!String.IsNullOrEmpty(inlineCommentString))
-                        return String.Format("{0}{1}{2}{3} {4}", CommentChar, _name, _nameValueSeperator, _value, inlineCommentString);
+                        return String.Format("{0}{1}{2}{3} {4}", CommentChar, _name, _nameValueSeparator, _value, inlineCommentString);
                     else
-                        return String.Format("{0}{1}{2}{3}", CommentChar, _name, _nameValueSeperator, _value);
+                        return String.Format("{0}{1}{2}{3}", CommentChar, _name, _nameValueSeparator, _value);
                 }
             }
         }

@@ -17,7 +17,9 @@ namespace Cinchoo.Core.Logging
 	[XmlRoot("logFormatterSettings")]
 	public class ChoLogFormatterSettings : IChoObjectInitializable
 	{
-		#region Instance Data Members (Public)
+        private static readonly ChoLogFormatterSettings _instance = new ChoLogFormatterSettings();
+        
+        #region Instance Data Members (Public)
 
 		[XmlAttribute("turnOn")]
 		public bool TurnOn = true;
@@ -36,7 +38,7 @@ namespace Cinchoo.Core.Logging
 
 		#region Shared Data Members (Private)
 
-        private static string _buildInLogFormatterType = typeof(ChoTextLogFormatter).AssemblyQualifiedName;
+        private static string _buildInLogFormatterType = typeof(ChoTextLogFormatter).SimpleQualifiedName();
 
 		#endregion Shared Data Members (Private)
 
@@ -71,7 +73,7 @@ namespace Cinchoo.Core.Logging
 
 		public static ChoLogFormatterSettings Me
 		{
-			get { return ChoConfigurationManagementFactory.CreateInstance<ChoLogFormatterSettings>(); }
+            get { return _instance; }
 		}
 
 		private static ChoDictionary<string, IChoLogFormatter> _defaultLogFormatters;

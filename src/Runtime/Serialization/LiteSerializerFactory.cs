@@ -41,7 +41,7 @@ namespace Cinchoo.Core.Runtime.Serialization
 
 			using (ChoBufferProfileEx lProfile = new ChoBufferProfileEx("Finding Serializer components..."))
 			{
-				Type[] liteSerializableTypes = ChoType.GetTypes(typeof(LiteSerializableAttribute), LiteSerializationSettings.Me.Paths, lProfile);
+				Type[] liteSerializableTypes = ChoType.GetTypes(typeof(LiteSerializableAttribute)); //, LiteSerializationSettings.Me.Paths, lProfile);
 				if (liteSerializableTypes != null)
 				{
 					foreach (Type liteSerializableType in liteSerializableTypes)
@@ -68,7 +68,7 @@ namespace Cinchoo.Core.Runtime.Serialization
 					}
 				}
 
-				Type[] liteSerializers = ChoType.GetTypes(typeof(LiteSerializerAttribute), LiteSerializationSettings.Me.Paths, lProfile);
+				Type[] liteSerializers = ChoType.GetTypes(typeof(LiteSerializerAttribute)); //, LiteSerializationSettings.Me.Paths, lProfile);
 				if (liteSerializers != null)
 				{
 					foreach (Type liteSerializer in liteSerializers)

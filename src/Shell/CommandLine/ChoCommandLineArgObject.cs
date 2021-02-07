@@ -6,154 +6,16 @@
     using System.Collections.Generic;
     using System.Text;
     using System.Reflection;
+    using Cinchoo.Core.Collections;
+    using System.IO;
+    using Cinchoo.Core.Reflection;
 
     #endregion NameSpaces
 
-    #region Event Args Classes
-
-    public class ChoCommandLineArgNotFoundEventArgs : EventArgs
+    public abstract class ChoCommandLineArgObject : ChoInterceptableObject
     {
-        #region Instance Data Members (Public)
+        internal const string DefaultCmdLineSwitch = "<default>";
 
-        public readonly string CmdLineArgSwitch;
-        public readonly string CmdLineArgValue;
-
-        #endregion Instance Data Members (Public)
-
-        #region Constructors
-
-        internal ChoCommandLineArgNotFoundEventArgs(string cmdLineArgSwitch, string cmdLineArgValue)
-        {
-            CmdLineArgSwitch = cmdLineArgSwitch;
-            CmdLineArgValue = cmdLineArgValue;
-        }
-
-        #endregion Constructors
-    }
-
-    public class ChoPreviewCommandLineArgObjectEventArgs : ChoCommandLineArgObjectEventArgs
-    {
-        #region Instance Data Members (Public)
-
-        public bool Cancel = false;
-
-        #endregion Instance Data Members (Public)
-
-        #region Constructors
-
-        internal ChoPreviewCommandLineArgObjectEventArgs(string[] commandLineArgs) : base(commandLineArgs)
-        {
-        }
-
-        #endregion Constructors
-    }
-
-    public class ChoCommandLineArgObjectEventArgs : EventArgs
-    {
-        #region Instance Data Members (Public)
-
-        public string[] CommandLineArgs;
-
-        #endregion Instance Data Members (Public)
-
-        #region Constructors
-
-        internal ChoCommandLineArgObjectEventArgs(string[] commandLineArgs)
-        {
-            CommandLineArgs = commandLineArgs;
-        }
-
-        #endregion Constructors
-    }
-
-    public class ChoCommandLineArgObjectErrorEventArgs : ChoCommandLineArgObjectEventArgs
-    {
-        #region Instance Data Members (Public)
-
-        public Exception Exception = null;
-        public bool Handled = false;
-
-        #endregion Instance Data Members (Public)
-
-        #region Constructors
-
-        internal ChoCommandLineArgObjectErrorEventArgs(string[] commandLineArgs, Exception ex)
-            : base(commandLineArgs)
-        {
-            Exception = ex;
-        }
-
-        #endregion Constructors
-    }
-
-    public class ChoCommandLineArgEventArgs : EventArgs
-    {
-        #region Instance Data Members (Public)
-
-        public readonly string MemberName;
-        public object Value = null;
-
-        #endregion Instance Data Members (Public)
-
-        #region Constructors
-
-        internal ChoCommandLineArgEventArgs(string memberName, object value)
-        {
-            MemberName = memberName;
-            Value = value;
-        }
-
-        #endregion Constructors
-    }
-
-    public class ChoPreviewCommandLineArgEventArgs : ChoCommandLineArgEventArgs
-    {
-        #region Instance Data Members (Public)
-
-        public bool Cancel = false;
-        public readonly object DefaultValue = null;
-        public readonly object FallbackValue = null;
-
-        #endregion Instance Data Members (Public)
-
-
-        #region Constructors
-
-        internal ChoPreviewCommandLineArgEventArgs(string memberName, object value, object defaultValue, object fallbackValue)
-            : base(memberName, value)
-        {
-            DefaultValue = defaultValue;
-            FallbackValue = fallbackValue;
-        }
-
-        #endregion Constructors
-    }
-
-    public class ChoCommandLineArgErrorEventArgs : ChoCommandLineArgEventArgs
-    {
-        #region Instance Data Members (Public)
-
-        public Exception Exception;
-        public bool Handled = false;
-
-        #endregion Instance Data Members (Public)
-
-
-        #region Constructors
-
-        internal ChoCommandLineArgErrorEventArgs(string memberName, object state, Exception ex)
-            : base(memberName, state)
-        {
-            Exception = ex;
-        }
-
-        #endregion Constructors
-    }
-
-    #endregion Event Args Classes
-
-    public abstract class ChoCommandLineArgObject : ContextBoundObject
-    {
         #region Instance Data Members (Private)
 
         [ChoHiddenMember]
@@ -163,277 +25,256 @@
 
         #region Instance Properties (Internal)
 
-        internal string[] CommandLineArgs
-        {
-            get;
-            set;
-        }
+        public string[] CommandLineArgs;
 
         #endregion Instance Properties (Internal)
-
-        #region Events
-
-        #region BeforeCommandLineArgLoaded Event
-
-        [ChoHiddenMember]
-        private EventHandler<ChoPreviewCommandLineArgEventArgs> _beforeCommandLineArgLoaded;
-        [ChoHiddenMember]
-        internal event EventHandler<ChoPreviewCommandLineArgEventArgs> BeforeCommandLineArgLoadedInternal;
-        [ChoHiddenMember]
-        private event EventHandler<ChoPreviewCommandLineArgEventArgs> BeforeCommandLineArgLoaded
-        {
-            add
-            {
-                _beforeCommandLineArgLoaded = value;
-            }
-            remove
-            {
-                _beforeCommandLineArgLoaded = null;
-            }
-        }
-
-        #endregion BeforeCommandLineArgLoaded Event
-
-        #region AfterCommandLineArgLoaded Event
-
-        [ChoHiddenMember]
-        private EventHandler<ChoCommandLineArgEventArgs> _afterCommandLineArgLoaded;
-        [ChoHiddenMember]
-        internal event EventHandler<ChoCommandLineArgEventArgs> AfterCommandLineArgLoadedInternal;
-        [ChoHiddenMember]
-        private event EventHandler<ChoCommandLineArgEventArgs> AfterCommandLineArgLoaded
-        {
-            add
-            {
-                _afterCommandLineArgLoaded = value;
-            }
-            remove
-            {
-                _afterCommandLineArgLoaded = null;
-            }
-        }
-
-        #endregion AfterCommandLineArgLoaded Event
-
-        #region CommandLineArgLoadError Event
-
-        [ChoHiddenMember]
-        private EventHandler<ChoCommandLineArgErrorEventArgs> _commandLineArgLoadError;
-        [ChoHiddenMember]
-        internal event EventHandler<ChoCommandLineArgErrorEventArgs> CommandLineArgLoadErrorInternal;
-        [ChoHiddenMember]
-        private event EventHandler<ChoCommandLineArgErrorEventArgs> CommandLineArgLoadError
-        {
-            add
-            {
-                _commandLineArgLoadError = value;
-            }
-            remove
-            {
-                _commandLineArgLoadError = null;
-            }
-        }
-
-        #endregion CommandLineArgLoadError Event
-
-        #region BeforeCommandLineArgObjectLoaded Event
-
-        [ChoHiddenMember]
-        private EventHandler<ChoPreviewCommandLineArgObjectEventArgs> _beforeCommandLineArgObjectLoaded;
-        [ChoHiddenMember]
-        internal event EventHandler<ChoPreviewCommandLineArgObjectEventArgs> BeforeCommandLineArgObjectLoadedInternal;
-        [ChoHiddenMember]
-        private event EventHandler<ChoPreviewCommandLineArgObjectEventArgs> BeforeCommandLineArgObjectLoaded
-        {
-            add
-            {
-                _beforeCommandLineArgObjectLoaded = value;
-            }
-            remove
-            {
-                _beforeCommandLineArgObjectLoaded = null;
-            }
-        }
-
-        #endregion BeforeCommandLineArgObjectLoaded Event
-
-        #region AfterCommandLineArgObjectLoaded Event
-
-        [ChoHiddenMember]
-        private EventHandler<ChoCommandLineArgObjectEventArgs> _afterCommandLineArgObjectLoaded;
-        [ChoHiddenMember]
-        internal event EventHandler<ChoCommandLineArgObjectEventArgs> AfterCommandLineArgObjectLoadedInternal;
-        [ChoHiddenMember]
-        private event EventHandler<ChoCommandLineArgObjectEventArgs> AfterCommandLineArgObjectLoaded
-        {
-            add
-            {
-                _afterCommandLineArgObjectLoaded = value;
-            }
-            remove
-            {
-                _afterCommandLineArgObjectLoaded = null;
-            }
-        }
-
-        #endregion AfterCommandLineArgObjectLoaded Event
-
-        #region CommandLineArgObjectLoadError Event
-
-        [ChoHiddenMember]
-        private EventHandler<ChoCommandLineArgObjectErrorEventArgs> _commandLineArgObjectLoadError;
-        [ChoHiddenMember]
-        internal event EventHandler<ChoCommandLineArgObjectErrorEventArgs> CommandLineArgObjectLoadErrorInternal;
-        [ChoHiddenMember]
-        private event EventHandler<ChoCommandLineArgObjectErrorEventArgs> CommandLineArgObjectLoadError
-        {
-            add
-            {
-                _commandLineArgObjectLoadError = value;
-            }
-            remove
-            {
-                _commandLineArgObjectLoadError = null;
-            }
-        }
-
-        #endregion CommandLineArgObjectLoadError Event
-
-        #region CommandLineArgMemberNotFound Event
-
-        [ChoHiddenMember]
-        private EventHandler<ChoCommandLineArgNotFoundEventArgs> _commandLineArgMemberNotFound;
-        [ChoHiddenMember]
-        internal event EventHandler<ChoCommandLineArgNotFoundEventArgs> CommandLineArgMemberNotFoundInternal;
-        [ChoHiddenMember]
-        private event EventHandler<ChoCommandLineArgNotFoundEventArgs> CommandLineArgMemberNotFound
-        {
-            add
-            {
-                _commandLineArgMemberNotFound = value;
-            }
-            remove
-            {
-                _commandLineArgMemberNotFound = null;
-            }
-        }
-
-        #endregion CommandLineArgMemberNotFound Event
-
-        #region UnrecognizedCommandLineArgFound Event
-
-        [ChoHiddenMember]
-        private EventHandler<ChoUnrecognizedCommandLineArgEventArg> _unrecognizedCommandLineArgFound;
-        [ChoHiddenMember]
-        internal event EventHandler<ChoUnrecognizedCommandLineArgEventArg> UnrecognizedCommandLineArgFoundInternal;
-        [ChoHiddenMember]
-        private event EventHandler<ChoUnrecognizedCommandLineArgEventArg> UnrecognizedCommandLineArgFound
-        {
-            add
-            {
-                _unrecognizedCommandLineArgFound = value;
-            }
-            remove
-            {
-                _unrecognizedCommandLineArgFound = null;
-            }
-        }
-
-        #endregion UnrecognizedCommandLineArgFound Event
-
-        #endregion Events
 
         #region Constructors
 
         [ChoHiddenMember]
         public ChoCommandLineArgObject()
         {
-            _commandLineArgsObjectAttribute = ChoType.GetAttribute(GetType(), typeof(ChoCommandLineArgObjectAttribute)) as ChoCommandLineArgObjectAttribute;
-        
-			//Discover and Hook the event handlers
-            if (BeforeCommandLineArgLoadedInternal == null)
-            {
-                EventHandlerEx.LoadHandlers<ChoPreviewCommandLineArgEventArgs>(ref BeforeCommandLineArgLoadedInternal, ChoType.GetMethods(GetType(), typeof(ChoBeforeCommandLineArgLoadedHandlerAttribute)), this);
-                if (BeforeCommandLineArgLoadedInternal != null && BeforeCommandLineArgLoadedInternal.GetInvocationList().Length > 0)
-                    BeforeCommandLineArgLoaded += (EventHandler<ChoPreviewCommandLineArgEventArgs>)BeforeCommandLineArgLoadedInternal.GetInvocationList()[BeforeCommandLineArgLoadedInternal.GetInvocationList().Length - 1];
-            }
-            if (AfterCommandLineArgLoadedInternal == null)
-            {
-                EventHandlerEx.LoadHandlers<ChoCommandLineArgEventArgs>(ref AfterCommandLineArgLoadedInternal, ChoType.GetMethods(GetType(), typeof(ChoAfterCommandLineArgLoadedHandlerAttribute)), this);
-                if (AfterCommandLineArgLoadedInternal != null && AfterCommandLineArgLoadedInternal.GetInvocationList().Length > 0)
-                    AfterCommandLineArgLoaded += (EventHandler<ChoCommandLineArgEventArgs>)AfterCommandLineArgLoadedInternal.GetInvocationList()[AfterCommandLineArgLoadedInternal.GetInvocationList().Length - 1];
-            }
-            if (CommandLineArgLoadErrorInternal == null)
-            {
-                EventHandlerEx.LoadHandlers<ChoCommandLineArgErrorEventArgs>(ref CommandLineArgLoadErrorInternal, ChoType.GetMethods(GetType(), typeof(ChoCommandLineArgLoadErrorHandlerAttribute)), this);
-                if (CommandLineArgLoadErrorInternal != null && CommandLineArgLoadErrorInternal.GetInvocationList().Length > 0)
-                    CommandLineArgLoadError += (EventHandler<ChoCommandLineArgErrorEventArgs>)CommandLineArgLoadErrorInternal.GetInvocationList()[CommandLineArgLoadErrorInternal.GetInvocationList().Length - 1];
-            }
-
-            if (BeforeCommandLineArgObjectLoadedInternal == null)
-            {
-                EventHandlerEx.LoadHandlers<ChoPreviewCommandLineArgObjectEventArgs>(ref BeforeCommandLineArgObjectLoadedInternal, ChoType.GetMethods(GetType(), typeof(ChoBeforeCommandLineArgObjectLoadedHandlerAttribute)), this);
-                if (BeforeCommandLineArgObjectLoadedInternal != null && BeforeCommandLineArgObjectLoadedInternal.GetInvocationList().Length > 0)
-                    BeforeCommandLineArgObjectLoaded += (EventHandler<ChoPreviewCommandLineArgObjectEventArgs>)BeforeCommandLineArgObjectLoadedInternal.GetInvocationList()[BeforeCommandLineArgObjectLoadedInternal.GetInvocationList().Length - 1];
-            }
-
-            if (AfterCommandLineArgObjectLoadedInternal == null)
-            {
-                EventHandlerEx.LoadHandlers<ChoCommandLineArgObjectEventArgs>(ref AfterCommandLineArgObjectLoadedInternal, ChoType.GetMethods(GetType(), typeof(ChoAfterCommandLineArgObjectLoadedHandlerAttribute)), this);
-                if (AfterCommandLineArgObjectLoadedInternal != null && AfterCommandLineArgObjectLoadedInternal.GetInvocationList().Length > 0)
-                    AfterCommandLineArgObjectLoaded += (EventHandler<ChoCommandLineArgObjectEventArgs>)AfterCommandLineArgObjectLoadedInternal.GetInvocationList()[AfterCommandLineArgObjectLoadedInternal.GetInvocationList().Length - 1];
-            }
-
-            if (CommandLineArgObjectLoadErrorInternal == null)
-            {
-                EventHandlerEx.LoadHandlers<ChoCommandLineArgObjectErrorEventArgs>(ref CommandLineArgObjectLoadErrorInternal, ChoType.GetMethods(GetType(), typeof(ChoCommandLineArgObjectLoadErrorHandlerAttribute)), this);
-                if (CommandLineArgObjectLoadErrorInternal != null && CommandLineArgObjectLoadErrorInternal.GetInvocationList().Length > 0)
-                    CommandLineArgObjectLoadError += (EventHandler<ChoCommandLineArgObjectErrorEventArgs>)CommandLineArgObjectLoadErrorInternal.GetInvocationList()[CommandLineArgObjectLoadErrorInternal.GetInvocationList().Length - 1];
-            }
-
-            if (CommandLineArgMemberNotFoundInternal == null)
-            {
-                EventHandlerEx.LoadHandlers<ChoCommandLineArgNotFoundEventArgs>(ref CommandLineArgMemberNotFoundInternal, ChoType.GetMethods(GetType(), typeof(ChoCommandLineArgMemberNotFoundHandlerAttribute)), this);
-                if (CommandLineArgMemberNotFoundInternal != null && CommandLineArgMemberNotFoundInternal.GetInvocationList().Length > 0)
-                    CommandLineArgMemberNotFound += (EventHandler<ChoCommandLineArgNotFoundEventArgs>)CommandLineArgMemberNotFoundInternal.GetInvocationList()[CommandLineArgMemberNotFoundInternal.GetInvocationList().Length - 1];
-            }
-            if (UnrecognizedCommandLineArgFoundInternal == null)
-            {
-                EventHandlerEx.LoadHandlers<ChoUnrecognizedCommandLineArgEventArg>(ref UnrecognizedCommandLineArgFoundInternal, ChoType.GetMethods(GetType(), typeof(ChoUnrecognizedCommandLineArgFoundHandlerAttribute)), this);
-                if (UnrecognizedCommandLineArgFoundInternal != null && UnrecognizedCommandLineArgFoundInternal.GetInvocationList().Length > 0)
-                    UnrecognizedCommandLineArgFound += (EventHandler<ChoUnrecognizedCommandLineArgEventArg>)UnrecognizedCommandLineArgFoundInternal.GetInvocationList()[UnrecognizedCommandLineArgFoundInternal.GetInvocationList().Length - 1];
-            }
+            _commandLineArgsObjectAttribute = GetType().GetCustomAttribute(typeof(ChoCommandLineArgObjectAttribute)) as ChoCommandLineArgObjectAttribute;
+            if (_commandLineArgsObjectAttribute == null)
+                throw new ChoFatalApplicationException("Missing ChoCommandLineArgObjectAttribute defined for '{0}' type.".FormatString(GetType().Name));
         }
         
         #endregion Constructors
 
         #region Instance Members (Public)
 
+        private string GetDefaultValueText(MemberInfo memberInfo)
+        {
+            string name = null;
+            string defaultValue = null;
+            bool isDefaultValueSpecified;
+            ChoCommandLineArgAttribute defaultCommandLineArgAttribute = null;
+
+            defaultCommandLineArgAttribute = (ChoCommandLineArgAttribute)ChoType.GetMemberAttribute(memberInfo, typeof(ChoCommandLineArgAttribute));
+            if (defaultCommandLineArgAttribute == null) return null;
+
+            name = ChoType.GetMemberName(memberInfo);
+            if (ChoType.GetMemberType(memberInfo) != typeof(bool))
+            {
+                isDefaultValueSpecified = ChoCmdLineArgMetaDataManager.TryGetDefaultValue(this, name, defaultCommandLineArgAttribute, out defaultValue);
+                if (isDefaultValueSpecified)
+                    return defaultValue;
+            }
+
+            return null;
+        }
+
         public virtual string GetUsage()
         {
-            return ChoCommandLineArgObjectDirector.GetUsage(this);
+            Type type = GetType();
+
+            StringBuilder builder = new StringBuilder();
+            StringBuilder whereBuilder = new StringBuilder();
+
+            ChoCommandLineParserSettings commandLineParserSettings = ChoCommandLineParserSettings.Me;
+            char cmdLineValueSeparator = commandLineParserSettings.ValueSeparators != null && commandLineParserSettings.ValueSeparators.Length > 0 ? commandLineParserSettings.ValueSeparators[0] : ':';
+            char cmdLineSwitchChar = commandLineParserSettings.SwitchChars != null && commandLineParserSettings.SwitchChars.Length > 0 ? commandLineParserSettings.SwitchChars[0] : '-';
+
+            builder.Append(Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location).ToUpper());
+            MemberInfo[] memberInfos = ChoTypeMembersCache.GetAllMemberInfos(type);
+
+            if (memberInfos != null && memberInfos.Length > 0)
+            {
+                ChoCommandLineArgAttribute commandLineArgumentAttribute = null;
+                ChoDefaultCommandLineArgAttribute defaultCommandLineArgAttribute = null;
+                ChoPositionalCommandLineArgAttribute posCommandLineArgAttribute = null;
+
+                List<Tuple<ChoDefaultCommandLineArgAttribute, MemberInfo>> memberList = new List<Tuple<ChoDefaultCommandLineArgAttribute, MemberInfo>>();
+                foreach (MemberInfo memberInfo in memberInfos)
+                {
+                    commandLineArgumentAttribute = null;
+                    defaultCommandLineArgAttribute = null;
+
+                    defaultCommandLineArgAttribute = commandLineArgumentAttribute = (ChoCommandLineArgAttribute)memberInfo.GetCustomAttribute<ChoCommandLineArgAttribute>(true);
+                    if (commandLineArgumentAttribute == null)
+                    {
+                        defaultCommandLineArgAttribute = posCommandLineArgAttribute = (ChoPositionalCommandLineArgAttribute)memberInfo.GetCustomAttribute<ChoPositionalCommandLineArgAttribute>(true);
+                        if (posCommandLineArgAttribute == null)
+                            continue;
+                    }
+
+                    memberList.Add(new Tuple<ChoDefaultCommandLineArgAttribute, MemberInfo>(defaultCommandLineArgAttribute, memberInfo));
+                }
+
+                bool isEmptyShortName;
+
+                memberList.Sort((x, y) =>
+                    x.Item1.Order.CompareTo(y.Item1.Order));
+
+                MemberInfo memberInfo1 = null;
+                foreach (Tuple<ChoDefaultCommandLineArgAttribute, MemberInfo> tuple in memberList)
+                {
+                    memberInfo1 = tuple.Item2;
+
+                    commandLineArgumentAttribute = null;
+                    defaultCommandLineArgAttribute = null;
+
+                    defaultCommandLineArgAttribute = commandLineArgumentAttribute = (ChoCommandLineArgAttribute)memberInfo1.GetCustomAttribute<ChoCommandLineArgAttribute>(true);
+                    if (commandLineArgumentAttribute == null)
+                    {
+                        defaultCommandLineArgAttribute = posCommandLineArgAttribute = (ChoPositionalCommandLineArgAttribute)memberInfo1.GetCustomAttribute<ChoPositionalCommandLineArgAttribute>(true);
+                        if (posCommandLineArgAttribute == null)
+                            continue;
+                    }
+
+                    isEmptyShortName = !defaultCommandLineArgAttribute.ShortName.IsNull()
+                            && defaultCommandLineArgAttribute.ShortName.Length == 0;
+
+                    if (!defaultCommandLineArgAttribute.IsRequired)
+                        builder.Append(" [");
+                    else
+                        builder.Append(" ");
+
+                    Type memberType = ChoType.GetMemberType(memberInfo1);
+                    if (memberType.IsNullableType())
+                        memberType = Nullable.GetUnderlyingType(memberType);
+
+                    if (commandLineArgumentAttribute != null)
+                        builder.Append("{0}{1}{2}".FormatString(cmdLineSwitchChar, commandLineArgumentAttribute.CommandLineSwitch, !isEmptyShortName ? cmdLineValueSeparator.ToString() : String.Empty));
+
+                    string description = null;
+                    if (commandLineArgumentAttribute != null)
+                        description = commandLineArgumentAttribute.Description;
+                    else if (posCommandLineArgAttribute != null)
+                        description = posCommandLineArgAttribute.Description;
+                    else
+                        description = defaultCommandLineArgAttribute.Description;
+
+                    if (_commandLineArgsObjectAttribute.GetDisplayDefaultValue())
+                    {
+                        string defaultValue = null;
+                        defaultValue = GetDefaultValueText(memberInfo1);
+                        if (defaultValue != null && memberType != typeof(bool))
+                            description = "{0} [DEFAULT: {1}]".FormatString(description, defaultValue);
+                    }
+
+                    if (commandLineArgumentAttribute != null)
+                        whereBuilder.AppendFormat("{1}{3}{2}{0}", Environment.NewLine, GetCmdLineSwitches(cmdLineSwitchChar, commandLineArgumentAttribute),
+                        description.WrapLongLines(commandLineArgumentAttribute.DescriptionFormatLineSize, String.Empty,
+                        commandLineArgumentAttribute.DescriptionFormatLineBreakChar, commandLineArgumentAttribute.NoOfTabsSwitchDescFormatSeparator),
+                        "\t".Repeat(commandLineArgumentAttribute.NoOfTabsSwitchDescFormatSeparator));
+                    else if (posCommandLineArgAttribute != null)
+                        whereBuilder.AppendFormat("{1}{3}{2}{0}", Environment.NewLine,
+                            defaultCommandLineArgAttribute.ShortName.IsNull() ? "Position{0}".FormatString(posCommandLineArgAttribute.Position) : defaultCommandLineArgAttribute.ShortName,
+                        description.WrapLongLines(posCommandLineArgAttribute.DescriptionFormatLineSize, String.Empty,
+                        posCommandLineArgAttribute.DescriptionFormatLineBreakChar, posCommandLineArgAttribute.NoOfTabsSwitchDescFormatSeparator),
+                        "\t".Repeat(posCommandLineArgAttribute.NoOfTabsSwitchDescFormatSeparator));
+                    else
+                        whereBuilder.AppendFormat("{3}{2}{1}{0}", Environment.NewLine,
+                            description.WrapLongLines(defaultCommandLineArgAttribute.DescriptionFormatLineSize, String.Empty,
+                            defaultCommandLineArgAttribute.DescriptionFormatLineBreakChar, defaultCommandLineArgAttribute.NoOfTabsSwitchDescFormatSeparator),
+                            "\t".Repeat(defaultCommandLineArgAttribute.NoOfTabsSwitchDescFormatSeparator), DefaultCmdLineSwitch);
+
+                    if (memberType == typeof(int))
+                    {
+                        if (!defaultCommandLineArgAttribute.ShortName.IsNull())
+                            builder.Append(defaultCommandLineArgAttribute.ShortName);
+                        else
+                            builder.Append("<int>");
+                    }
+                    else if (memberType == typeof(uint))
+                    {
+                        if (!defaultCommandLineArgAttribute.ShortName.IsNull())
+                            builder.Append(defaultCommandLineArgAttribute.ShortName);
+                        else
+                            builder.Append("<uint>");
+                    }
+                    else if (memberType == typeof(bool))
+                        builder.Remove(builder.Length - 1, 1);
+                    else if (memberType == typeof(string))
+                    {
+                        if (!defaultCommandLineArgAttribute.ShortName.IsNull())
+                            builder.Append(defaultCommandLineArgAttribute.ShortName);
+                        else
+                            builder.Append("<string>");
+                    }
+                    else if (memberType.IsEnum)
+                    {
+                        //builder.Append("{0}{1}{2}".FormatString(cmdLineSwitchChar, commandLineArgumentAttribute.CommandLineSwitch, !isEmptyShortName ? cmdLineValueSeparator.ToString() : String.Empty));
+                        builder.Append("{");
+                        bool first = true;
+                        foreach (FieldInfo field in memberType.GetFields())
+                        {
+                            if (field.IsStatic)
+                            {
+                                if (first)
+                                    first = false;
+                                else
+                                    builder.Append(" | ");
+
+                                builder.Append(field.Name);
+                            }
+                        }
+                        builder.Append('}');
+                    }
+                    else
+                    {
+                        if (!defaultCommandLineArgAttribute.ShortName.IsNull())
+                            builder.Append(defaultCommandLineArgAttribute.ShortName);
+                        else
+                            builder.Append("<Unknown>");
+                    }
+
+                    if (!defaultCommandLineArgAttribute.IsRequired)
+                        builder.Append("]");
+                }
+            }
+
+            if (!_commandLineArgsObjectAttribute.DoNotShowUsageDetail)
+            {
+                builder.Append(Environment.NewLine);
+                builder.Append(Environment.NewLine);
+                builder.Append(whereBuilder.ToString().Indent());
+                builder.Append(Environment.NewLine);
+
+                foreach (ChoCommandLineArgAdditionalUsageAttribute commandLineArgAdditionalUsageAttribute in ChoType.GetAttributes<ChoCommandLineArgAdditionalUsageAttribute>(type))
+                {
+                    if (commandLineArgAdditionalUsageAttribute != null && !commandLineArgAdditionalUsageAttribute.AdditionalUsageText.IsNull())
+                    {
+                        builder.Append(commandLineArgAdditionalUsageAttribute.AdditionalUsageText);
+
+                        builder.Append(Environment.NewLine);
+                        builder.Append(Environment.NewLine);
+                    }
+                }
+            }
+            return builder.ToString();
         }
 
-        public virtual string AdditionalUsageText
+        private string GetCmdLineSwitches(char cmdLineSwitchChar, ChoCommandLineArgAttribute commandLineArgumentAttribute)
         {
-            get { return null; }
+            if (commandLineArgumentAttribute.Aliases.IsNullOrWhiteSpace())
+                return "{0}{1}".FormatString(cmdLineSwitchChar, commandLineArgumentAttribute.CommandLineSwitch);
+
+            StringBuilder msg = new StringBuilder("{0}{1}".FormatString(cmdLineSwitchChar, commandLineArgumentAttribute.CommandLineSwitch));
+            foreach (string alias in commandLineArgumentAttribute.Aliases.SplitNTrim())
+            {
+                msg.Append(" {0}{1}".FormatString(cmdLineSwitchChar, alias));
+            }
+
+            return msg.ToString();
         }
 
-        [ChoHiddenMember]
-        public void Log(string msg)
-        {
-            if (_commandLineArgsObjectAttribute == null)
-                return;
-            _commandLineArgsObjectAttribute.GetMe(GetType()).Log(msg);
-        }
+        //[ChoHiddenMember]
+        //public void Log(string msg)
+        //{
+        //    if (_commandLineArgsObjectAttribute == null)
+        //        return;
+        //    _commandLineArgsObjectAttribute.GetMe(GetType()).Log(msg);
+        //}
 
-        [ChoHiddenMember]
-        public void Log(bool condition, string msg)
-        {
-            if (_commandLineArgsObjectAttribute == null)
-                return;
-            _commandLineArgsObjectAttribute.GetMe(GetType()).Log(condition, msg);
-        }
+        //[ChoHiddenMember]
+        //public void Log(bool condition, string msg)
+        //{
+        //    if (_commandLineArgsObjectAttribute == null)
+        //        return;
+        //    _commandLineArgsObjectAttribute.GetMe(GetType()).Log(condition, msg);
+        //}
 
         #endregion Instance Members (Public)
 
@@ -447,90 +288,116 @@
         #endregion Object Overrides
 
         #region Instance Members (Internal)
-        
-        [ChoHiddenMember]
-        internal bool OnBeforeCommandLineArgObjectLoaded(string[] commandLineArgs)
-        {
-            if (_beforeCommandLineArgObjectLoaded != null)
-            {
-                ChoPreviewCommandLineArgObjectEventArgs previewCommandLineArgObjectEventArgs = new ChoPreviewCommandLineArgObjectEventArgs(commandLineArgs);
-                _beforeCommandLineArgObjectLoaded(this, previewCommandLineArgObjectEventArgs);
-                return previewCommandLineArgObjectEventArgs.Cancel;
-            }
 
+        protected virtual bool OnBeforeCommandLineArgObjectLoaded(string[] commandLineArgs)
+        {
             return false;
         }
 
         [ChoHiddenMember]
-        internal void OnAfterCommandLineArgObjectLoaded(string[] commandLineArgs)
+        internal bool RaiseBeforeCommandLineArgObjectLoaded(string[] commandLineArgs)
         {
-            if (_afterCommandLineArgObjectLoaded != null)
-                _afterCommandLineArgObjectLoaded(this, new ChoCommandLineArgObjectEventArgs(commandLineArgs));
-        }
-
-        [ChoHiddenMember]
-        internal bool OnCommandLineArgObjectLoadError(string[] commandLineArgs, Exception ex)
-        {
-            if (_commandLineArgObjectLoadError != null)
-            {
-                ChoCommandLineArgObjectErrorEventArgs configurationObjectErrorEventArgs = new ChoCommandLineArgObjectErrorEventArgs(commandLineArgs, ex);
-                _commandLineArgObjectLoadError(this, configurationObjectErrorEventArgs);
-                return configurationObjectErrorEventArgs.Handled;
-            }
+            if (OnBeforeCommandLineArgObjectLoaded(commandLineArgs))
+                return true;
 
             return false;
         }
 
-        [ChoHiddenMember]
-        internal bool OnBeforeCommandLineArgLoaded(string memberName, object value, object defaultValue, object fallbackValue)
+        protected virtual void OnAfterCommandLineArgObjectLoaded(string[] commandLineArgs)
         {
-            if (_beforeCommandLineArgLoaded != null)
-            {
-                ChoPreviewCommandLineArgEventArgs previewCommandLineArgEventArgs = new ChoPreviewCommandLineArgEventArgs(memberName, value, defaultValue, fallbackValue);
-                _beforeCommandLineArgLoaded(this, previewCommandLineArgEventArgs);
-                return previewCommandLineArgEventArgs.Cancel;
-            }
+        }
 
+        [ChoHiddenMember]
+        internal void RaiseAfterCommandLineArgObjectLoaded(string[] commandLineArgs)
+        {
+            OnAfterCommandLineArgObjectLoaded(commandLineArgs);
+        }
+
+        protected virtual bool OnCommandLineArgObjectLoadError(string[] commandLineArgs, Exception ex)
+        {
             return false;
         }
 
         [ChoHiddenMember]
-        internal void OnAfterCommandLineArgLoaded(string memberName, object value)
+        internal bool RaiseCommandLineArgObjectLoadError(string[] commandLineArgs, Exception ex)
         {
-            if (_afterCommandLineArgLoaded != null)
-                _afterCommandLineArgLoaded(this, new ChoCommandLineArgEventArgs(memberName, value));
-        }
-
-        [ChoHiddenMember]
-        internal bool OnCommandLineArgLoadError(string memberName, object unformattedValue, Exception ex)
-        {
-            if (_commandLineArgLoadError != null)
-            {
-                ChoCommandLineArgErrorEventArgs configurationObjectMemberErrorEventArgs = new ChoCommandLineArgErrorEventArgs(memberName, unformattedValue, ex);
-                _commandLineArgLoadError(this, configurationObjectMemberErrorEventArgs);
-                return configurationObjectMemberErrorEventArgs.Handled;
-            }
+            if (OnCommandLineArgObjectLoadError(commandLineArgs, ex))
+                return true;
 
             return false;
         }
 
-        [ChoHiddenMember]
-        internal void OnCommandLineArgMemberNotFound(string cmdLineArgSwitch, string cmdLineArgValue)
+        protected virtual bool OnBeforeCommandLineArgLoaded(string memberName, ref string value, object defaultValue, object fallbackValue)
         {
-            if (_commandLineArgMemberNotFound != null)
-            {
-                ChoCommandLineArgNotFoundEventArgs commandLineArgNotFoundEventArgs = new ChoCommandLineArgNotFoundEventArgs(cmdLineArgSwitch, cmdLineArgValue);
-                _commandLineArgMemberNotFound(this, commandLineArgNotFoundEventArgs);
-            }
+            return false;
         }
 
         [ChoHiddenMember]
-        internal void OnUnrecognizedCommandLineArgFound(ChoUnrecognizedCommandLineArgEventArg eventArgs)
+        internal bool RaiseBeforeCommandLineArgLoaded(string memberName, ref string value, object defaultValue, object fallbackValue)
         {
-            if (_unrecognizedCommandLineArgFound != null)
-                _unrecognizedCommandLineArgFound(this, eventArgs);
+            if (OnBeforeCommandLineArgLoaded(memberName, ref value, defaultValue, fallbackValue))
+                return true;
+
+            return false;
+        }
+
+        protected virtual void OnAfterCommandLineArgLoaded(string memberName, object value)
+        {
+        }
+
+        [ChoHiddenMember]
+        internal void RaiseAfterCommandLineArgLoaded(string memberName, object value)
+        {
+            OnAfterCommandLineArgLoaded(memberName, value);
+        }
+
+        protected virtual bool OnCommandLineArgLoadError(string memberName, object value, Exception ex)
+        {
+            return false;
+        }
+
+        [ChoHiddenMember]
+        internal bool RaiseCommandLineArgLoadError(string memberName, object value, Exception ex)
+        {
+            if (OnCommandLineArgLoadError(memberName, value, ex))
+                return true;
+
+            return false;
+        }
+
+        protected virtual void OnCommandLineArgNotFound(string cmdLineArgSwitch, ref string cmdLineArgValue)
+        {
+        }
+
+        [ChoHiddenMember]
+        internal void RaiseCommandLineArgNotFound(string cmdLineArgSwitch, ref string cmdLineArgValue)
+        {
+            OnCommandLineArgNotFound(cmdLineArgSwitch, ref cmdLineArgValue);
+        }
+
+        //protected virtual void OnUnrecognizedCommandLineArgFound(string cmdLineArgValue)
+        //{
+        //}
+
+        [ChoHiddenMember]
+        internal void RaiseUnrecognizedCommandLineArgFound(ChoUnrecognizedCommandLineArgEventArg eventArgs)
+        {
+            if (eventArgs != null)
+            {
+                //OnUnrecognizedCommandLineArgFound(eventArgs.CmdLineArgValue);
+            }
         }
 
         #endregion Instance Members (Internal)
+
+        [ChoHiddenMember]
+        protected override void PostInvoke(ChoMemberInfo memberInfo)
+        {
+            if (memberInfo.Exception != null)
+            {
+                if (RaiseCommandLineArgLoadError(memberInfo.Name, memberInfo.Value, memberInfo.Exception))
+                    memberInfo.Exception = null;
+            }
+        }
     }
 }

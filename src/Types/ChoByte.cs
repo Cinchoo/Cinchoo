@@ -9,8 +9,8 @@ namespace Cinchoo.Core
 
     #endregion NameSpaces
 
-    [ChoStringObjectFormattable]
-    public class ChoByte
+    [ChoStringObjectFormattable(typeof(byte))]
+    public class ChoByte : IChoStringObjectFormatter<byte>
     {
         #region Constants
 
@@ -70,6 +70,12 @@ namespace Cinchoo.Core
         public byte Value
         {
             get { return _value; }
+        }
+
+        public string GetHelpText()
+        {
+            ChoByte x = new ChoByte(1);
+            return ToFormattedString();
         }
 
         #endregion Instance Members (Public)

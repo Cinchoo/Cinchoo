@@ -145,13 +145,16 @@
             Start(consolePercentageProgressorStart, null, null, timeout);
         }
 
-        public void Start(ChoConsolePercentageProgressorStartEx consolePercentageProgressorStart, ChoAsyncCallback callback, object state)
+        public void Start(ChoConsolePercentageProgressorStartEx consolePercentageProgressorStart, ChoAbortableAsyncCallback callback, object state)
         {
             Start(consolePercentageProgressorStart, callback, state, Timeout.Infinite);
         }
 
-        public void Start(ChoConsolePercentageProgressorStartEx consolePercentageProgressorStart, ChoAsyncCallback callback, object state, int timeout)
+        public void Start(ChoConsolePercentageProgressorStartEx consolePercentageProgressorStart, ChoAbortableAsyncCallback callback, object state, int timeout)
         {
+            if (ChoApplication.ApplicationMode != ChoApplicationMode.Console)
+                return;
+            
             ChoGuard.NotDisposed(this);
 
             int isStarted = Interlocked.CompareExchange(ref _isStarted, 1, 0);
@@ -216,6 +219,9 @@
 
         public void Stop()
         {
+            if (ChoApplication.ApplicationMode != ChoApplicationMode.Console)
+                return;
+
             Interlocked.Exchange(ref _stopRequested, 1);
         }
 
@@ -225,6 +231,9 @@
 
         public void Abort()
         {
+            if (ChoApplication.ApplicationMode != ChoApplicationMode.Console)
+                return;
+
             if (_threadToKill != null)
             {
                 if ((_threadToKill.ThreadState & (ThreadState.Aborted | ThreadState.Stopped)) == 0)
@@ -280,6 +289,9 @@
 
         private void SetStatusMsg(string statusMsg)
         {
+            if (ChoApplication.ApplicationMode != ChoApplicationMode.Console)
+                return;
+
             if (statusMsg != null && statusMsg.Length > _consolePercentageProgressorSettings.ProgressBarStatusMsgSize)
                 statusMsg = statusMsg.Substring(0, _consolePercentageProgressorSettings.ProgressBarStatusMsgSize);
 

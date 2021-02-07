@@ -13,9 +13,16 @@ namespace Cinchoo.Core
     {
         #region IChoValidationManager Members
 
-        public bool IsValid(Attribute attribute)
+        public bool IsValid(Attribute attribute, out string validatorName)
         {
-            return attribute is ChoValidatorAttribute || attribute is ValidationAttribute;
+            validatorName = null;
+            bool retValue = attribute is ChoValidatorAttribute 
+                || attribute is ConfigurationValidatorAttribute
+                || attribute is ValidationAttribute;
+
+            if (attribute is ChoValidatorAttribute)
+                validatorName = ((ChoValidatorAttribute)attribute).Name;
+            return retValue;
         }
 
         public IChoSurrogateValidator CreateValidator(Attribute attribute, ValidationScope validationScope, ValidatorSource validatorSource)

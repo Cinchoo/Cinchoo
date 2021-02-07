@@ -33,6 +33,8 @@ namespace System
     using System.Reflection;
     using Cinchoo.Core;
     using System.Collections;
+    using Cinchoo.Core.Xml.Serialization;
+    using System.Text.RegularExpressions;
 
     #endregion NameSpaces
 
@@ -65,6 +67,12 @@ namespace System
             _xws.Indent = true;
         }
 
+        public static string ToNString(this object target)
+        {
+            if (target == null) return null;
+            return target.ToString();
+        }
+
         public static bool IsNull(this object target)
         {
             return target == null;
@@ -73,6 +81,34 @@ namespace System
         public static bool IsNullOrDbNull(this object target)
         {
             return target == null || target == DBNull.Value;
+        }
+
+        public static object ToDbValue(this object target)
+        {
+            return target == null ? DBNull.Value : target;
+        }
+
+        public static object ToDbValue<T>(this T target)
+        {
+            if (typeof(T) == typeof(string))
+                return (target as string).IsNullOrWhiteSpace() ? DBNull.Value : (object)target;
+            else
+                return EqualityComparer<T>.Default.Equals(target, default(T)) ? DBNull.Value : (object)target;
+        }
+
+        public static object ToDbValue<T>(this T target, T defaultValue)
+        {
+            return EqualityComparer<T>.Default.Equals(target, defaultValue) ? DBNull.Value : (object)target;
+        }
+
+        public static T ChangeType<T>(this object target)
+        {
+            return target == null || target == DBNull.Value ? default(T) : (T)Convert.ChangeType(target, typeof(T));
+        }
+
+        public static T CastTo<T>(this object target)
+        {
+            return target == null || target == DBNull.Value ? default(T) : (T)Convert.ChangeType(target, typeof(T));
         }
 
         public static T Clone<T>(this T target)
@@ -86,6 +122,42 @@ namespace System
             }
             else
                 return default(T);
+        }
+
+        public static T MemberwiseClone<T>(this T target)
+            where T: new()
+        {
+            T obj = Activator.CreateInstance<T>();
+
+            if (target != null)
+            {
+                foreach (PropertyInfo info in ChoType.GetProperties(typeof(T)))
+                {
+                    if (ChoType.GetAttribute<ChoIgnorePropertyAttribute>(info, false) == null)
+                        ChoType.SetPropertyValue(obj, info, ChoType.GetPropertyValue(target, info));
+                }
+            }
+
+            return obj;
+        }
+
+        public static object MemberwiseClone<T>(this object target)
+            where T : new()
+        {
+            if (target == null)
+            {
+                object obj = Activator.CreateInstance(target.GetType());
+
+                foreach (PropertyInfo info in ChoType.GetProperties(target.GetType()))
+                {
+                    if (ChoType.GetAttribute<ChoIgnorePropertyAttribute>(info, false) == null)
+                        ChoType.SetPropertyValue(obj, info, ChoType.GetPropertyValue(target, info));
+                }
+
+                return obj;
+            }
+            else
+                return null;
         }
 
         public static object CloneObject(this object target)
@@ -197,12 +269,7 @@ namespace System
                 throw new ArgumentException("index and count exceed length of list");
         }
 
-        public static string ToNullNSXml(this object obj)
-        {
-            return ToNullNSXml(obj, _xws);
-        }
-
-        public static string ToNullNSXml(this object obj, XmlWriterSettings xws, XmlAttributeOverrides xmlAttributeOverrides = null)
+        public static string ToNullNSXml(this object obj, XmlWriterSettings xws = null, XmlAttributeOverrides xmlAttributeOverrides = null)
         {
             if (obj == null)
                 return null;
@@ -219,18 +286,33 @@ namespace System
             }
         }
 
-        public static string ToXml(this object obj)
-        {
-            return ToXml(obj, _xws);
-        }
-
-        public static string ToXml(this object obj, XmlWriterSettings xws)
+        public static string ToNullNSXmlWithType(this object obj, ChoTypeNameSpecifier? typeNameSpecifier = null, XmlWriterSettings xws = null, XmlAttributeOverrides xmlAttributeOverrides = null)
         {
             if (obj == null)
                 return null;
 
             StringBuilder xmlString = new StringBuilder();
-            using (XmlWriter xtw = XmlTextWriter.Create(xmlString, xws ?? new XmlWriterSettings()))
+            using (XmlWriter xtw = XmlTextWriter.Create(xmlString, xws ?? _xws))
+            {
+                ChoNullNSXmlSerializer serializer = xmlAttributeOverrides != null ? new ChoNullNSXmlSerializer(obj.GetType(), xmlAttributeOverrides) : new ChoNullNSXmlSerializer(obj.GetType());
+                serializer.Serialize(xtw, obj);
+
+                xtw.Flush();
+            }
+
+            XmlDocument xmlDoc = new XmlDocument();
+            xmlDoc.LoadXml(xmlString.ToString());
+            xmlDoc.DocumentElement.Attributes.Append(xmlDoc.CreateAttribute("_type_")).Value = typeNameSpecifier != null ? obj.GetType().GetName(typeNameSpecifier.Value) : obj.GetTypeName();
+            return xmlDoc.InnerXml;
+        }
+
+        public static string ToXml(this object obj, XmlWriterSettings xws = null)
+        {
+            if (obj == null)
+                return null;
+
+            StringBuilder xmlString = new StringBuilder();
+            using (XmlWriter xtw = XmlTextWriter.Create(xmlString, xws ?? _xws))
             {
                 ChoNullNSXmlSerializer serializer = new ChoNullNSXmlSerializer(obj.GetType());
                 serializer.Serialize(xtw, obj);
@@ -252,6 +334,46 @@ namespace System
             //    }
             //}
         }
+
+        #region Load Overloads
+
+        public static void Load(this object obj, string keyValueText, bool throwExIfMemberNotFound = false)
+        {
+            if (obj == null) return;
+            if (keyValueText.IsNullOrWhiteSpace()) return;
+
+            Load(obj, keyValueText.ToKeyValuePairs(), throwExIfMemberNotFound);
+        }
+
+        public static void Load(this object obj, IEnumerable<Tuple<string, string>> keyValuePairs, bool throwExIfMemberNotFound = false)
+        {
+            if (obj == null) return;
+            if (keyValuePairs == null) return;
+
+            string value = null;
+            foreach (Tuple<string, string> keyValue in keyValuePairs)
+            {
+                if (keyValue.Item1.IsNullOrWhiteSpace()) continue;
+
+                value = keyValue.Item2;
+                if (!value.IsNullOrWhiteSpace())
+                {
+                    if (value.StartsWith("'") && value.EndsWith("'"))
+                        value = value.Substring(1, value.Length - 2);
+                }
+
+                if (throwExIfMemberNotFound)
+                    ChoObject.SetObjectMemberConvertedValue(obj, keyValue.Item1, value);
+                else
+                {
+                    if (ChoType.HasMember(obj.GetType(), keyValue.Item1))
+                        ChoObject.SetObjectMemberConvertedValue(obj, keyValue.Item1, value);
+                }
+            }
+        }
+
+        #endregion Load Overloads
+
         #region AsDictionary Overloads
 
         public static IEnumerable<Tuple<string, object>> AsDictionary(this object target, bool flattenhierarchy = false, bool expandCollection = false)
@@ -348,6 +470,16 @@ namespace System
 
         #endregion AsDictionary Overloads
 
+        public static object[] Expand(object target)
+        {
+            if (target == null) return new object[] {};
+
+            if (target is Array)
+                return ((Array)target).Cast<object>().ToArray();
+            else
+                return new object[] { target };
+        }
+
         #region AsList Overloads
 
         public static IEnumerable<object> AsList(this object target, bool flattenhierarchy = false, bool expandCollection = false)
@@ -398,5 +530,122 @@ namespace System
 
 
         #endregion AsList Overloads
+
+        public static string ToString(this object anObject, string aFormat)
+        {
+            return ChoObjectEx.ToString(anObject, aFormat, null);
+        }
+
+        public static string ToString(this object anObject, string aFormat, IFormatProvider formatProvider)
+        {
+            if (anObject == null) return null;
+
+            StringBuilder sb = new StringBuilder();
+            Type type = anObject.GetType();
+            Regex reg = new Regex(@"({)([^}]+)(})", RegexOptions.IgnoreCase);
+            MatchCollection mc = aFormat.IsNullOrWhiteSpace() ? null : reg.Matches(aFormat);
+            int startIndex = 0;
+            if (mc != null && mc.Count > 0)
+            {
+                foreach (Match m in mc)
+                {
+                    Group g = m.Groups[2]; //it's second in the match between { and }
+                    int length = g.Index - startIndex - 1;
+                    sb.Append(aFormat.Substring(startIndex, length));
+
+                    string toGet = String.Empty;
+                    string toFormat = String.Empty;
+                    int formatIndex = g.Value.IndexOf(":"); //formatting would be to the right of a :
+                    if (formatIndex == -1) //no formatting, no worries
+                    {
+                        toGet = g.Value;
+                    }
+                    else //pickup the formatting
+                    {
+                        toGet = g.Value.Substring(0, formatIndex);
+                        toFormat = g.Value.Substring(formatIndex + 1);
+                    }
+
+                    //first try properties
+                    PropertyInfo retrievedProperty = type.GetProperty(toGet);
+                    Type retrievedType = null;
+                    object retrievedObject = null;
+                    if (retrievedProperty != null)
+                    {
+                        retrievedType = retrievedProperty.PropertyType;
+                        retrievedObject = retrievedProperty.GetValue(anObject, null);
+                    }
+                    else //try fields
+                    {
+                        FieldInfo retrievedField = type.GetField(toGet);
+                        if (retrievedField != null)
+                        {
+                            retrievedType = retrievedField.FieldType;
+                            retrievedObject = retrievedField.GetValue(anObject);
+                        }
+                    }
+
+                    if (retrievedType != null) //Cool, we found something
+                    {
+                        string result = String.Empty;
+                        if (toFormat == String.Empty) //no format info
+                        {
+                            result = retrievedType.InvokeMember("ToString",
+                                BindingFlags.Public | BindingFlags.NonPublic |
+                                BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.IgnoreCase
+                                , null, retrievedObject, null) as string;
+                        }
+                        else //format info
+                        {
+                            result = retrievedType.InvokeMember("ToString",
+                                BindingFlags.Public | BindingFlags.NonPublic |
+                                BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.IgnoreCase
+                                , null, retrievedObject, new object[] { toFormat, formatProvider }) as string;
+                        }
+                        sb.Append(result);
+                    }
+                    else //didn't find a property with that name, so be gracious and put it back
+                    {
+                        sb.Append("{");
+                        sb.Append(g.Value);
+                        sb.Append("}");
+                    }
+                    startIndex = g.Index + g.Length + 1;
+                }
+                if (startIndex < aFormat.Length) //include the rest (end) of the string
+                {
+                    sb.Append(aFormat.Substring(startIndex));
+                }
+            }
+            else
+            {
+                if (formatProvider == null)
+                {
+                    if (!aFormat.IsNullOrWhiteSpace())
+                        sb.Append(String.Format("{0:" + aFormat + "}", anObject));
+                    else
+                        sb.Append(anObject.ToString());
+                }
+                else
+                {
+                    if (!aFormat.IsNullOrWhiteSpace())
+                        sb.Append(String.Format(formatProvider, "{0:" + aFormat + "}", anObject));
+                    else
+                        sb.Append(anObject.ToString());
+                }
+            }
+            return sb.ToString();
+        }
+
+        public static string GetTypeName(this object @this)
+        {
+            if (@this == null) return null;
+
+            ChoSerializableAttribute attr = ChoType.GetAttribute<ChoSerializableAttribute>(@this.GetType());
+            if (attr == null)
+                return @this.GetType().GetName(ChoTypeNameSpecifier.SimpleQualifiedName);
+            else
+                return @this.GetType().GetName(attr.TypeNameSpecifier);
+        }
     }
 }

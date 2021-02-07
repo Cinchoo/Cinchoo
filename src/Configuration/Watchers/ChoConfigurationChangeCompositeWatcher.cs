@@ -20,6 +20,7 @@
 		private readonly string _threadName;
 		private readonly string _configurationSectionName;
 		private List<IChoConfigurationChangeWatcher> _configurationChangeWatchers = new List<IChoConfigurationChangeWatcher>();
+        private readonly object _padLock = new object();
 
 		#endregion Instance Data Members (Private)
 
@@ -86,10 +87,13 @@
 		{
             StopWatching();
 
-            List<IChoConfigurationChangeWatcher> configurationChangeWatchers = _configurationChangeWatchers;
-            _configurationChangeWatchers = null;
-            if (configurationChangeWatchers != null)
-                configurationChangeWatchers.Clear();
+            lock (_padLock)
+            {
+                List<IChoConfigurationChangeWatcher> configurationChangeWatchers = _configurationChangeWatchers;
+                _configurationChangeWatchers = null;
+                if (configurationChangeWatchers != null)
+                    configurationChangeWatchers.Clear();
+            }
 		}
 
 		#endregion ChoConfigurationChangeWatcher Overrides
@@ -98,62 +102,77 @@
 
 		public void SetConfigurationChangedEventHandler(object key, ChoConfigurationChangedEventHandler ConfigurationChanged)
 		{
-			List<IChoConfigurationChangeWatcher> configurationChangeWatchers = _configurationChangeWatchers;
-			if (configurationChangeWatchers == null || configurationChangeWatchers.Count == 0)
-				return;
-			
-			foreach (IChoConfigurationChangeWatcher configurationChangeWatcher in configurationChangeWatchers)
-			{
-				configurationChangeWatcher.SetConfigurationChangedEventHandler(key, ConfigurationChanged);
-			}
+            lock (_padLock)
+            {
+                List<IChoConfigurationChangeWatcher> configurationChangeWatchers = _configurationChangeWatchers;
+                if (configurationChangeWatchers == null || configurationChangeWatchers.Count == 0)
+                    return;
+
+                foreach (IChoConfigurationChangeWatcher configurationChangeWatcher in configurationChangeWatchers)
+                {
+                    configurationChangeWatcher.SetConfigurationChangedEventHandler(key, ConfigurationChanged);
+                }
+            }
 		}
 
 		public void StartWatching()
 		{
-			List<IChoConfigurationChangeWatcher> configurationChangeWatchers = _configurationChangeWatchers;
-			if (configurationChangeWatchers == null || configurationChangeWatchers.Count == 0)
-				return;
+            lock (_padLock)
+            {
+                List<IChoConfigurationChangeWatcher> configurationChangeWatchers = _configurationChangeWatchers;
+                if (configurationChangeWatchers == null || configurationChangeWatchers.Count == 0)
+                    return;
 
-			foreach (IChoConfigurationChangeWatcher configurationChangeWatcher in configurationChangeWatchers)
-			{
-				configurationChangeWatcher.StartWatching();
-			}
+                foreach (IChoConfigurationChangeWatcher configurationChangeWatcher in configurationChangeWatchers)
+                {
+                    configurationChangeWatcher.StartWatching();
+                }
+            }
 		}
 
 		public void StopWatching()
 		{
-			List<IChoConfigurationChangeWatcher> configurationChangeWatchers = _configurationChangeWatchers;
-			if (configurationChangeWatchers == null || configurationChangeWatchers.Count == 0)
-				return;
+            lock (_padLock)
+            {
+                List<IChoConfigurationChangeWatcher> configurationChangeWatchers = _configurationChangeWatchers;
+                if (configurationChangeWatchers == null || configurationChangeWatchers.Count == 0)
+                    return;
 
-			foreach (IChoConfigurationChangeWatcher configurationChangeWatcher in configurationChangeWatchers)
-			{
-				configurationChangeWatcher.StopWatching();
-			}
+                foreach (IChoConfigurationChangeWatcher configurationChangeWatcher in configurationChangeWatchers)
+                {
+                    configurationChangeWatcher.StopWatching();
+                }
+            }
 		}
 
 		public void RestartWatching()
 		{
-			List<IChoConfigurationChangeWatcher> configurationChangeWatchers = _configurationChangeWatchers;
-			if (configurationChangeWatchers == null || configurationChangeWatchers.Count == 0)
-				return;
+            lock (_padLock)
+            {
+                List<IChoConfigurationChangeWatcher> configurationChangeWatchers = _configurationChangeWatchers;
+                if (configurationChangeWatchers == null || configurationChangeWatchers.Count == 0)
+                    return;
 
-			foreach (IChoConfigurationChangeWatcher configurationChangeWatcher in configurationChangeWatchers)
-			{
-				configurationChangeWatcher.RestartWatching();
-			}
+                foreach (IChoConfigurationChangeWatcher configurationChangeWatcher in configurationChangeWatchers)
+                {
+                    configurationChangeWatcher.RestartWatching();
+                }
+            }
 		}
 
 		public void ResetWatching()
 		{
-			List<IChoConfigurationChangeWatcher> configurationChangeWatchers = _configurationChangeWatchers;
-			if (configurationChangeWatchers == null || configurationChangeWatchers.Count == 0)
-				return;
+            lock (_padLock)
+            {
+                List<IChoConfigurationChangeWatcher> configurationChangeWatchers = _configurationChangeWatchers;
+                if (configurationChangeWatchers == null || configurationChangeWatchers.Count == 0)
+                    return;
 
-			foreach (IChoConfigurationChangeWatcher configurationChangeWatcher in configurationChangeWatchers)
-			{
-				configurationChangeWatcher.ResetWatching();
-			}
+                foreach (IChoConfigurationChangeWatcher configurationChangeWatcher in configurationChangeWatchers)
+                {
+                    configurationChangeWatcher.ResetWatching();
+                }
+            }
 		}
 
 		public void OnConfigurationChanged()

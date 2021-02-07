@@ -13,8 +13,8 @@ namespace Cinchoo.Core
 
     public interface IChoKeyValuePropertyReplacer : IChoPropertyReplacer
     {
-        bool ContainsProperty(string propertyName);
-        string ReplaceProperty(string propertyName, string format);
+        bool ContainsProperty(string propertyName, object context);
+        string ReplaceProperty(string propertyName, string format, object context = null);
         string GetPropertyDescription(string propertyName);
     }
 }

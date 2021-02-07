@@ -11,8 +11,8 @@ namespace Cinchoo.Core
 
     #endregion NameSpaces
 
-    [ChoStringObjectFormattable]
-    public class ChoShort
+    [ChoStringObjectFormattable(typeof(short))]
+    public class ChoShort : IChoStringObjectFormatter<short>
     {
         #region Constants
 
@@ -72,6 +72,12 @@ namespace Cinchoo.Core
         public short Value
         {
             get { return _value; }
+        }
+
+        public string GetHelpText()
+        {
+            ChoShort x = new ChoShort(10);
+            return x.ToFormattedString();
         }
 
         #endregion Instance Members (Public)

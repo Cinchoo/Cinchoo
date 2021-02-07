@@ -14,7 +14,7 @@ namespace Cinchoo.Core
 
     public interface IChoValidationManager
     {
-        bool IsValid(Attribute attribute);
+        bool IsValid(Attribute attribute, out string validatorName);
         IChoSurrogateValidator CreateValidator(Attribute attribute, ValidationScope validationScope, ValidatorSource validatorSource);
     }
 }

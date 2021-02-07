@@ -46,7 +46,7 @@ using System.Diagnostics;
 
 		public abstract void Start();
 		public abstract void Stop();
-		public abstract IChoAbortableAsyncResult EnqueueMethod(Delegate func, object[] parameters, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry);
+		public abstract IChoAbortableAsyncResult EnqueueMethod(Delegate func, object[] parameters, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry);
 
 		#endregion Instance Members (Public)
 
@@ -90,22 +90,22 @@ using System.Diagnostics;
 			return Enqueue<TResult>(func, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<TResult>(Func<TResult> func, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<TResult>(Func<TResult> func, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<TResult>(func, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<TResult>(Func<TResult> func, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<TResult>(Func<TResult> func, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<TResult>(func, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<TResult>(Func<TResult> func, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<TResult>(Func<TResult> func, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<TResult>(func, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<TResult>(Func<TResult> func, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<TResult>(Func<TResult> func, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, (object[])null, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -134,22 +134,22 @@ using System.Diagnostics;
 			return Enqueue<T, TResult>(func, param, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T, TResult>(Func<T, TResult> func, T param, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T, TResult>(Func<T, TResult> func, T param, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T, TResult>(func, param, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T, TResult>(Func<T, TResult> func, T param, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T, TResult>(Func<T, TResult> func, T param, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T, TResult>(func, param, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T, TResult>(Func<T, TResult> func, T param, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T, TResult>(Func<T, TResult> func, T param, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T, TResult>(func, param, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T, TResult>(Func<T, TResult> func, T param, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T, TResult>(Func<T, TResult> func, T param, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -178,22 +178,22 @@ using System.Diagnostics;
 			return Enqueue<T1, T2, TResult>(func, param1, param2, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 param1, T2 param2, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 param1, T2 param2, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T1, T2, TResult>(func, param1, param2, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 param1, T2 param2, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 param1, T2 param2, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T1, T2, TResult>(func, param1, param2, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 param1, T2 param2, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 param1, T2 param2, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T1, T2, TResult>(func, param1, param2, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 param1, T2 param2, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 param1, T2 param2, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param1, param2 }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -222,22 +222,22 @@ using System.Diagnostics;
 			return Enqueue<T1, T2, T3, TResult>(func, param1, param2, param3, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> func, T1 param1, T2 param2, T3 param3, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> func, T1 param1, T2 param2, T3 param3, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T1, T2, T3, TResult>(func, param1, param2, param3, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> func, T1 param1, T2 param2, T3 param3, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> func, T1 param1, T2 param2, T3 param3, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T1, T2, T3, TResult>(func, param1, param2, param3, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> func, T1 param1, T2 param2, T3 param3, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> func, T1 param1, T2 param2, T3 param3, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T1, T2, T3, TResult>(func, param1, param2, param3, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> func, T1 param1, T2 param2, T3 param3, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> func, T1 param1, T2 param2, T3 param3, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param1, param2, param3 }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -266,22 +266,22 @@ using System.Diagnostics;
 			return Enqueue<T1, T2, T3, T4, TResult>(func, param1, param2, param3, param4, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, TResult>(Func<T1, T2, T3, T4, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, TResult>(Func<T1, T2, T3, T4, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T1, T2, T3, T4, TResult>(func, param1, param2, param3, param4, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, TResult>(Func<T1, T2, T3, T4, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, TResult>(Func<T1, T2, T3, T4, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T1, T2, T3, T4, TResult>(func, param1, param2, param3, param4, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, TResult>(Func<T1, T2, T3, T4, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, TResult>(Func<T1, T2, T3, T4, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T1, T2, T3, T4, TResult>(func, param1, param2, param3, param4, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, TResult>(Func<T1, T2, T3, T4, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, TResult>(Func<T1, T2, T3, T4, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param1, param2, param3, param4 }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -310,22 +310,22 @@ using System.Diagnostics;
 			return Enqueue<T1, T2, T3, T4, T5, TResult>(func, param1, param2, param3, param4, param5, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, TResult>(Func<T1, T2, T3, T4, T5, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, TResult>(Func<T1, T2, T3, T4, T5, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, TResult>(func, param1, param2, param3, param4, param5, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, TResult>(Func<T1, T2, T3, T4, T5, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, TResult>(Func<T1, T2, T3, T4, T5, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, TResult>(func, param1, param2, param3, param4, param5, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, TResult>(Func<T1, T2, T3, T4, T5, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, TResult>(Func<T1, T2, T3, T4, T5, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, TResult>(func, param1, param2, param3, param4, param5, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, TResult>(Func<T1, T2, T3, T4, T5, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, TResult>(Func<T1, T2, T3, T4, T5, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param1, param2, param3, param4, param5 }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -354,22 +354,22 @@ using System.Diagnostics;
 			return Enqueue<T1, T2, T3, T4, T5, T6, TResult>(func, param1, param2, param3, param4, param5, param6, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, TResult>(Func<T1, T2, T3, T4, T5, T6, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, TResult>(Func<T1, T2, T3, T4, T5, T6, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, TResult>(func, param1, param2, param3, param4, param5, param6, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, TResult>(Func<T1, T2, T3, T4, T5, T6, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, TResult>(Func<T1, T2, T3, T4, T5, T6, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, TResult>(func, param1, param2, param3, param4, param5, param6, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, TResult>(Func<T1, T2, T3, T4, T5, T6, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, TResult>(Func<T1, T2, T3, T4, T5, T6, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, TResult>(func, param1, param2, param3, param4, param5, param6, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, TResult>(Func<T1, T2, T3, T4, T5, T6, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, TResult>(Func<T1, T2, T3, T4, T5, T6, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param1, param2, param3, param4, param5, param6 }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -398,22 +398,22 @@ using System.Diagnostics;
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, TResult>(func, param1, param2, param3, param4, param5, param6, param7, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, TResult>(func, param1, param2, param3, param4, param5, param6, param7, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, TResult>(func, param1, param2, param3, param4, param5, param6, param7, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, TResult>(func, param1, param2, param3, param4, param5, param6, param7, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param1, param2, param3, param4, param5, param6, param7 }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -442,22 +442,22 @@ using System.Diagnostics;
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param1, param2, param3, param4, param5, param6, param7, param8 }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -486,22 +486,22 @@ using System.Diagnostics;
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param1, param2, param3, param4, param5, param6, param7, param8, param9 }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -530,22 +530,22 @@ using System.Diagnostics;
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param1, param2, param3, param4, param5, param6, param7, param8, param9, param10 }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -574,22 +574,22 @@ using System.Diagnostics;
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11 }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -618,22 +618,22 @@ using System.Diagnostics;
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12 }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -662,22 +662,22 @@ using System.Diagnostics;
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13 }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -706,22 +706,22 @@ using System.Diagnostics;
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14 }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -750,22 +750,22 @@ using System.Diagnostics;
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, param15, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, param15, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, param15, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, param15, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, param15 }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -794,22 +794,22 @@ using System.Diagnostics;
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, param15, param16, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, T16 param16, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, T16 param16, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, param15, param16, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, T16 param16, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, T16 param16, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, param15, param16, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, T16 param16, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, T16 param16, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TResult>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, param15, param16, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, T16 param16, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TResult>(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TResult> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, T16 param16, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, param15, param16 }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -842,22 +842,22 @@ using System.Diagnostics;
 			return Enqueue(func, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue(Action func, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue(Action func, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue(func, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue(Action func, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue(Action func, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue(func, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue(Action func, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue(Action func, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue(func, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue(Action func, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue(Action func, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, (object[])null, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -886,22 +886,22 @@ using System.Diagnostics;
 			return Enqueue<T>(func, param, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T>(Action<T> func, T param, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T>(Action<T> func, T param, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T>(func, param, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T>(Action<T> func, T param, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T>(Action<T> func, T param, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T>(func, param, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T>(Action<T> func, T param, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T>(Action<T> func, T param, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T>(func, param, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T>(Action<T> func, T param, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T>(Action<T> func, T param, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -930,22 +930,22 @@ using System.Diagnostics;
 			return Enqueue<T1, T2>(func, param1, param2, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2>(Action<T1, T2> func, T1 param1, T2 param2, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T1, T2>(Action<T1, T2> func, T1 param1, T2 param2, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T1, T2>(func, param1, param2, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2>(Action<T1, T2> func, T1 param1, T2 param2, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T1, T2>(Action<T1, T2> func, T1 param1, T2 param2, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T1, T2>(func, param1, param2, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2>(Action<T1, T2> func, T1 param1, T2 param2, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2>(Action<T1, T2> func, T1 param1, T2 param2, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T1, T2>(func, param1, param2, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2>(Action<T1, T2> func, T1 param1, T2 param2, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2>(Action<T1, T2> func, T1 param1, T2 param2, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param1, param2 }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -974,22 +974,22 @@ using System.Diagnostics;
 			return Enqueue<T1, T2, T3>(func, param1, param2, param3, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3>(Action<T1, T2, T3> func, T1 param1, T2 param2, T3 param3, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3>(Action<T1, T2, T3> func, T1 param1, T2 param2, T3 param3, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T1, T2, T3>(func, param1, param2, param3, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3>(Action<T1, T2, T3> func, T1 param1, T2 param2, T3 param3, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3>(Action<T1, T2, T3> func, T1 param1, T2 param2, T3 param3, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T1, T2, T3>(func, param1, param2, param3, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3>(Action<T1, T2, T3> func, T1 param1, T2 param2, T3 param3, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3>(Action<T1, T2, T3> func, T1 param1, T2 param2, T3 param3, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T1, T2, T3>(func, param1, param2, param3, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3>(Action<T1, T2, T3> func, T1 param1, T2 param2, T3 param3, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3>(Action<T1, T2, T3> func, T1 param1, T2 param2, T3 param3, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param1, param2, param3 }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -1018,22 +1018,22 @@ using System.Diagnostics;
 			return Enqueue<T1, T2, T3, T4>(func, param1, param2, param3, param4, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4>(Action<T1, T2, T3, T4> func, T1 param1, T2 param2, T3 param3, T4 param4, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4>(Action<T1, T2, T3, T4> func, T1 param1, T2 param2, T3 param3, T4 param4, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T1, T2, T3, T4>(func, param1, param2, param3, param4, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4>(Action<T1, T2, T3, T4> func, T1 param1, T2 param2, T3 param3, T4 param4, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4>(Action<T1, T2, T3, T4> func, T1 param1, T2 param2, T3 param3, T4 param4, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T1, T2, T3, T4>(func, param1, param2, param3, param4, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4>(Action<T1, T2, T3, T4> func, T1 param1, T2 param2, T3 param3, T4 param4, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4>(Action<T1, T2, T3, T4> func, T1 param1, T2 param2, T3 param3, T4 param4, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T1, T2, T3, T4>(func, param1, param2, param3, param4, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4>(Action<T1, T2, T3, T4> func, T1 param1, T2 param2, T3 param3, T4 param4, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4>(Action<T1, T2, T3, T4> func, T1 param1, T2 param2, T3 param3, T4 param4, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param1, param2, param3, param4 }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -1062,22 +1062,22 @@ using System.Diagnostics;
 			return Enqueue<T1, T2, T3, T4, T5>(func, param1, param2, param3, param4, param5, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5>(Action<T1, T2, T3, T4, T5> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5>(Action<T1, T2, T3, T4, T5> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T1, T2, T3, T4, T5>(func, param1, param2, param3, param4, param5, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5>(Action<T1, T2, T3, T4, T5> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5>(Action<T1, T2, T3, T4, T5> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T1, T2, T3, T4, T5>(func, param1, param2, param3, param4, param5, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5>(Action<T1, T2, T3, T4, T5> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5>(Action<T1, T2, T3, T4, T5> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T1, T2, T3, T4, T5>(func, param1, param2, param3, param4, param5, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5>(Action<T1, T2, T3, T4, T5> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5>(Action<T1, T2, T3, T4, T5> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param1, param2, param3, param4, param5 }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -1106,22 +1106,22 @@ using System.Diagnostics;
 			return Enqueue<T1, T2, T3, T4, T5, T6>(func, param1, param2, param3, param4, param5, param6, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6>(Action<T1, T2, T3, T4, T5, T6> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6>(Action<T1, T2, T3, T4, T5, T6> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6>(func, param1, param2, param3, param4, param5, param6, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6>(Action<T1, T2, T3, T4, T5, T6> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6>(Action<T1, T2, T3, T4, T5, T6> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6>(func, param1, param2, param3, param4, param5, param6, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6>(Action<T1, T2, T3, T4, T5, T6> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6>(Action<T1, T2, T3, T4, T5, T6> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6>(func, param1, param2, param3, param4, param5, param6, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6>(Action<T1, T2, T3, T4, T5, T6> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6>(Action<T1, T2, T3, T4, T5, T6> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param1, param2, param3, param4, param5, param6 }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -1150,22 +1150,22 @@ using System.Diagnostics;
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7>(func, param1, param2, param3, param4, param5, param6, param7, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7>(Action<T1, T2, T3, T4, T5, T6, T7> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7>(Action<T1, T2, T3, T4, T5, T6, T7> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7>(func, param1, param2, param3, param4, param5, param6, param7, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7>(Action<T1, T2, T3, T4, T5, T6, T7> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7>(Action<T1, T2, T3, T4, T5, T6, T7> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7>(func, param1, param2, param3, param4, param5, param6, param7, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7>(Action<T1, T2, T3, T4, T5, T6, T7> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7>(Action<T1, T2, T3, T4, T5, T6, T7> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7>(func, param1, param2, param3, param4, param5, param6, param7, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7>(Action<T1, T2, T3, T4, T5, T6, T7> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7>(Action<T1, T2, T3, T4, T5, T6, T7> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param1, param2, param3, param4, param5, param6, param7 }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -1194,22 +1194,22 @@ using System.Diagnostics;
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8>(func, param1, param2, param3, param4, param5, param6, param7, param8, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8>(Action<T1, T2, T3, T4, T5, T6, T7, T8> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8>(Action<T1, T2, T3, T4, T5, T6, T7, T8> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8>(func, param1, param2, param3, param4, param5, param6, param7, param8, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8>(Action<T1, T2, T3, T4, T5, T6, T7, T8> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8>(Action<T1, T2, T3, T4, T5, T6, T7, T8> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8>(func, param1, param2, param3, param4, param5, param6, param7, param8, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8>(Action<T1, T2, T3, T4, T5, T6, T7, T8> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8>(Action<T1, T2, T3, T4, T5, T6, T7, T8> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8>(func, param1, param2, param3, param4, param5, param6, param7, param8, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8>(Action<T1, T2, T3, T4, T5, T6, T7, T8> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8>(Action<T1, T2, T3, T4, T5, T6, T7, T8> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param1, param2, param3, param4, param5, param6, param7, param8 }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -1238,22 +1238,22 @@ using System.Diagnostics;
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param1, param2, param3, param4, param5, param6, param7, param8, param9 }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -1282,22 +1282,22 @@ using System.Diagnostics;
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param1, param2, param3, param4, param5, param6, param7, param8, param9, param10 }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -1326,22 +1326,22 @@ using System.Diagnostics;
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11 }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -1370,22 +1370,22 @@ using System.Diagnostics;
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12 }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -1414,22 +1414,22 @@ using System.Diagnostics;
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13 }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -1458,22 +1458,22 @@ using System.Diagnostics;
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14 }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -1502,22 +1502,22 @@ using System.Diagnostics;
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, param15, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, param15, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, param15, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, param15, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, param15 }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -1546,22 +1546,22 @@ using System.Diagnostics;
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, param15, param16, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, T16 param16, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, T16 param16, ChoAbortableAsyncCallback callback, object state)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, param15, param16, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, T16 param16, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, T16 param16, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, param15, param16, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, T16 param16, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, T16 param16, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(func, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, param15, param16, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, T16 param16, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
+		public IChoAbortableAsyncResult Enqueue<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> func, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, T9 param9, T10 param10, T11 param11, T12 param12, T13 param13, T14 param14, T15 param15, T16 param16, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry, int sleepBetweenRetry)
 		{
 			return EnqueueMethod(func, new object[] { param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, param15, param16 }, callback, state, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
@@ -1592,17 +1592,17 @@ using System.Diagnostics;
 			return EnqueueMethod(func, parameters, null, null, timeout, maxNoOfRetry, sleepBetweenRetry);
 		}
 
-		public IChoAbortableAsyncResult EnqueueMethod(Delegate func, object[] parameters, ChoAsyncCallback callback, object state)
+		public IChoAbortableAsyncResult EnqueueMethod(Delegate func, object[] parameters, ChoAbortableAsyncCallback callback, object state)
 		{
 			return EnqueueMethod(func, parameters, callback, state, Timeout.Infinite);
 		}
 
-		public IChoAbortableAsyncResult EnqueueMethod(Delegate func, object[] parameters, ChoAsyncCallback callback, object state, int timeout)
+		public IChoAbortableAsyncResult EnqueueMethod(Delegate func, object[] parameters, ChoAbortableAsyncCallback callback, object state, int timeout)
 		{
 			return EnqueueMethod(func, parameters, callback, state, timeout, ChoAPMSettings.Me.MaxNoOfRetry);
 		}
 
-		public IChoAbortableAsyncResult EnqueueMethod(Delegate func, object[] parameters, ChoAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
+		public IChoAbortableAsyncResult EnqueueMethod(Delegate func, object[] parameters, ChoAbortableAsyncCallback callback, object state, int timeout, int maxNoOfRetry)
 		{
 			return EnqueueMethod(func, parameters, callback, state, timeout, maxNoOfRetry, ChoAPMSettings.Me.SleepBetweenRetry);
 		}

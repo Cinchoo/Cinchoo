@@ -54,14 +54,14 @@ namespace Cinchoo.Core
 
         #region IChoPropertyReplacer Members
 
-        public string ReplaceProperty(string propertyName, string format)
+        public string ReplaceProperty(string propertyName, string format, object context)
         {
             if (String.IsNullOrEmpty(propertyName)) return propertyName;
 
             return ChoObject.Format(propertyName, format);
         }
 
-        public bool ContainsProperty(string propertyName)
+        public bool ContainsProperty(string propertyName, object context)
         {
             return _properties.ContainsKey(propertyName);
         }

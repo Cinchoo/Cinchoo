@@ -33,12 +33,12 @@ namespace Cinchoo.Core.Shell
         #region Instance Data Members (Private)
 
         private readonly ChoCommandLineParserSettings _commandLineParserSettings;
-        private readonly string[] _args;
         private readonly Dictionary<string, string> _argsDict;
         private readonly List<string> _unrecognizedArgList = new List<string>();
        
         private bool _isUsageArgSpecified = false;
-        private List<string> _defaultArgs = new List<string>();
+        private List<string> _posArgs = new List<string>();
+        private bool _doUnwrapArgValue = true;
 
         #endregion
 
@@ -51,22 +51,22 @@ namespace Cinchoo.Core.Shell
         #region Constructors
 
         public ChoCommandLineArgParser()
-            : this(Environment.GetCommandLineArgs().Skip(1).ToArray())
+            : this(ChoCommandLineParserSettings.Me)
         {
         }
 
-        public ChoCommandLineArgParser(string[] args)
-            : this(args, new ChoCommandLineParserSettings())
+        internal ChoCommandLineArgParser(bool doUnwrapArgValue)
+            : this(ChoCommandLineParserSettings.Me)
         {
+            _doUnwrapArgValue = doUnwrapArgValue;
         }
 
-        public ChoCommandLineArgParser(string[] args, ChoCommandLineParserSettings commandLineParserSettings)
+        public ChoCommandLineArgParser(ChoCommandLineParserSettings commandLineParserSettings)
         {
             if (commandLineParserSettings == null)
                 throw new ArgumentNullException("commandLineParserSettings");
 
             _commandLineParserSettings = commandLineParserSettings;
-            _args = args;
 
             if (_commandLineParserSettings.IgnoreCase)
                 _argsDict = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase);
@@ -80,7 +80,13 @@ namespace Cinchoo.Core.Shell
 
         public void Parse()
         {
-            string[] args = NormalizeCmdLineArgs(_args);
+            Parse(ChoEnvironment.CommandLineArgs);
+        }
+
+        public void Parse(string[] args)
+        {
+            args = NormalizeCmdLineArgs(args);
+            ChoEnvironment.CommandLineArgs = args;
 
             if (args == null || args.Length == 0)
                 return;
@@ -88,7 +94,7 @@ namespace Cinchoo.Core.Shell
             //bool first = true;
             foreach (string arg in args)
             {
-                if (!arg.IsNullOrWhiteSpace())
+                if (!arg.IsNull())
                 {
                     //if (first)
                     //{
@@ -119,14 +125,53 @@ namespace Cinchoo.Core.Shell
                     else
                     {
                         string defaultArg = arg;
-                        if (defaultArg.StartsWith("\"") && defaultArg.EndsWith("\""))
-                            defaultArg = arg.Substring(1, arg.Length - 2);
-
-                        _defaultArgs.Add(defaultArg);
+                        _posArgs.Add(_doUnwrapArgValue ? defaultArg.Unwrap() : defaultArg);
                     }
                 }
                 //first = false;
             }
+        }
+
+        public bool IsSwitchSpecified(string[] commandLineSwitchs)
+        {
+            foreach (string alias in commandLineSwitchs)
+            {
+                if (Contains(alias))
+                    return Contains(alias);
+            }
+
+            return false;
+        }
+
+        public bool IsSwitchSpecified(string commandLineSwitch, string aliases = null)
+        {
+            if (Contains(commandLineSwitch))
+                return Contains(commandLineSwitch);
+
+            if (!aliases.IsNullOrWhiteSpace())
+            {
+                foreach (string alias in aliases.SplitNTrim())
+                {
+                    if (Contains(alias))
+                        return Contains(alias);
+                }
+            }
+
+            return false;
+        }
+
+        public bool IsSwitchSpecified(int cmdLineParamPos = 0)
+        {
+            if (cmdLineParamPos > 0)
+            {
+                if (PosArgs != null && PosArgs.Length > 0)
+                {
+                    if (cmdLineParamPos - 1 < PosArgs.Length)
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         #endregion Instance Members (Public)
@@ -147,12 +192,18 @@ namespace Cinchoo.Core.Shell
                 if (!arg.IsNullOrWhiteSpace())
                 {
                     foundFileArg = false;
-                    foreach (string fileArgSwitch in _commandLineParserSettings.FileArgSwitches)
+                    foreach (char fileArgSwitch in _commandLineParserSettings.FileArgSwitches)
                     {
-                        if (arg.StartsWith(fileArgSwitch))
+                        if (arg[0] == fileArgSwitch)
                         {
                             foundFileArg = true;
-                            argFile = arg.Substring(fileArgSwitch.Length);
+                            argFile = arg.Substring(1);
+
+                            if (argFile.IsNullOrWhiteSpace())
+                                throw new ArgumentNullException("Command line argument filename.");
+
+                            argFile = argFile.ExpandProperties();
+
                             break;
                         }
                     }
@@ -197,17 +248,17 @@ namespace Cinchoo.Core.Shell
             if (!IsSwitchKey(arg, out restArg))
                 return false;
 
-            int index = restArg.IndexOfAny(_commandLineParserSettings.ValueSeperators);
+            int index = restArg.IndexOfAny(_commandLineParserSettings.ValueSeparators);
             if (index < 0)
-                argSwitch = restArg;
+                argSwitch = restArg.NTrim();
             else
             {
-                argSwitch = restArg.Substring(0, index);
+                argSwitch = restArg.Substring(0, index).NTrim();
                 argValue = restArg.Substring(index + 1);
                 if (argValue.IsNullOrWhiteSpace())
                     argValue = null;
-                if (argValue != null && argValue.StartsWith("\"") && argValue.EndsWith("\""))
-                    argValue = argValue.Substring(1, argValue.Length - 2);
+                if (argValue != null)
+                    argValue = _doUnwrapArgValue ? argValue.Unwrap() : argValue;
             }
 
             return true;
@@ -216,16 +267,18 @@ namespace Cinchoo.Core.Shell
         private bool IsSwitchKey(string arg, out string restArg)
         {
             bool containsSwitchChar = false;
-            foreach (char switchChar in _commandLineParserSettings.SwitchChars)
+            if (!arg.IsNullOrWhiteSpace())
             {
-                if (switchChar == arg[0])
+                foreach (char switchChar in _commandLineParserSettings.SwitchChars)
                 {
-                    containsSwitchChar = true;
-                    break;
+                    if (arg.Length > 0 && switchChar == arg[0])
+                    {
+                        containsSwitchChar = true;
+                        break;
+                    }
                 }
             }
-
-            restArg = containsSwitchChar ? arg.Substring(1) : arg;
+            restArg = containsSwitchChar && arg.Length > 1 ? arg.Substring(1) : arg;
             return containsSwitchChar;
         }
 
@@ -265,6 +318,20 @@ namespace Cinchoo.Core.Shell
             }
         }
 
+        public string this[int position]
+        {
+            get
+            {
+                if (position <= 0) return null;
+                return position > _posArgs.Count ? null : _posArgs[position - 1];
+            }
+            set
+            {
+                if (position > _posArgs.Count) return;
+                _posArgs[position - 1] = value;
+            }
+        }
+
         #endregion
 
         #region Instance Members (Public)
@@ -284,9 +351,9 @@ namespace Cinchoo.Core.Shell
             get { return _unrecognizedArgList.ToArray(); }
         }
 
-        public string[] DefaultArgs
+        public string[] PosArgs
         {
-            get { return _defaultArgs.ToArray(); }
+            get { return _posArgs.ToArray(); }
         }
 
         public bool Contains(string argSwitch)

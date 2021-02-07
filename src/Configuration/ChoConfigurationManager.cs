@@ -45,22 +45,109 @@ namespace Cinchoo.Core.Configuration
 		private static string[] _appIncludeConfigFilePaths; 
 		private static ChoXmlDocument _appXmlDocument;
         private static ChoAppConfigurationChangeFileWatcher _configurationChangeWatcher;
-		private static ChoConfigurationChangeFileWatcher _systemConfigurationChangeWatcher;
+        private static ChoAppConfigurationChangeFileWatcher _systemConfigurationChangeWatcher;
 		private static ChoConfiguration _configuration;
 		private static string _appConfigPath;
         private static readonly object _key = new object();
 
-		#endregion Shared Data Members (Private)
+        private static Configuration _defaultApplicationConfiguration;
+        private static Configuration _applicationConfiguration;
+        public static Configuration ApplicationConfiguration
+        {
+            get
+            {
+                if (_applicationConfiguration == null)
+                    return _defaultApplicationConfiguration;
+                else
+                    return _applicationConfiguration;
+            }
+            set { _applicationConfiguration = value; }
+        }
 
-		#region Constructors
+        public static string ApplicationConfigurationFilePath
+        {
+            get
+            {
+                if (ApplicationConfiguration == null)
+                    throw new ChoConfigurationException("ConfigurationManager is not initialized.");
 
-		static ChoConfigurationManager()
+                return ApplicationConfiguration.FilePath;
+            }
+        }
+
+        #endregion Shared Data Members (Private)
+
+        #region Constructors
+
+        static ChoConfigurationManager()
 		{
+            if (!ChoApplication.IsAfterConfigurationManagerInitializedSubscribed)
+            {
+                ChoApplication.AfterConfigurationManagerInitialized += ((o, e) =>
+                    {
+                        LoadStdAppConfig();
+                    });
+            }
+            Refresh();
 		}
 
 		#endregion Constructors
 
         #region Shared Members (Public)
+
+        public static Configuration OpenExeConfiguration(ConfigurationUserLevel level)
+        {
+            Configuration config = ConfigurationManager.OpenExeConfiguration(level);
+            ChoDirectory.CreateDirectoryFromFilePath(config.FilePath);
+            ExeConfigurationFileMap configFile = new ExeConfigurationFileMap();
+            configFile.ExeConfigFilename = config.FilePath;
+            ApplicationConfiguration = ConfigurationManager.OpenMappedExeConfiguration(configFile, ConfigurationUserLevel.None);
+            return ApplicationConfiguration;
+        }
+
+        public static Configuration OpenExeConfiguration(string exePath)
+        {
+            Configuration config = ConfigurationManager.OpenExeConfiguration(exePath);
+            ChoDirectory.CreateDirectoryFromFilePath(config.FilePath);
+            ExeConfigurationFileMap configFile = new ExeConfigurationFileMap();
+            configFile.ExeConfigFilename = config.FilePath;
+            ApplicationConfiguration = ConfigurationManager.OpenMappedExeConfiguration(configFile, ConfigurationUserLevel.None);
+            return ApplicationConfiguration;
+        }
+
+        internal static T GetSection<T>(string sectionName, T defaultValue = default(T))
+            where T : ConfigurationSection
+        {
+            T instance = (T)ChoConfigurationManager.GetSection(sectionName);
+            if (instance == null)
+            {
+                instance = defaultValue;
+                if (!ChoAppFrxSettings.Me.DisableFrxConfig)
+                    instance.Save(sectionName);
+            }
+            ChoApplication.RaiseAfterAppFrxSettingsLoaded(instance);
+            return instance;
+        }
+
+        internal static object GetSection(string sectionName)
+        {
+            ChoGuard.ArgumentNotNullOrEmpty(sectionName, "SectionName");
+
+            return ApplicationConfiguration.GetSection(sectionName);
+        }
+
+        internal static void Refresh()
+        {
+            ChoApplication.RaiseAfterConfigurationManagerInitialized();
+        }
+
+        private static void LoadStdAppConfig()
+        {
+            if (System.Web.HttpContext.Current != null && !System.Web.HttpContext.Current.Request.PhysicalPath.Equals(string.Empty))
+                _defaultApplicationConfiguration = System.Web.Configuration.WebConfigurationManager.OpenWebConfiguration("~");
+            else
+                _defaultApplicationConfiguration = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+        }
 
         internal static void Initialize()
 		{
@@ -76,7 +163,7 @@ namespace Cinchoo.Core.Configuration
 			get { return _configurationChangeWatcher; }
 		}
 
-        internal static ChoConfigurationChangeFileWatcher SystemConfigurationChangeWatcher
+        internal static ChoAppConfigurationChangeFileWatcher SystemConfigurationChangeWatcher
 		{
 			get { return _systemConfigurationChangeWatcher; }
 		}
@@ -114,6 +201,11 @@ namespace Cinchoo.Core.Configuration
 
 			return configPath;
 		}
+
+        internal static bool IsSeperateConfigFileSpecified(XmlNode node)
+        {
+            return node != null && node.Attributes[PathToken] != null;
+        }
 
 		public static string[] AppIncludeConfigFilePaths
 		{
@@ -171,7 +263,8 @@ namespace Cinchoo.Core.Configuration
 
 		public static object GetConfig(Type type, XmlNode node)
 		{
-			XmlSerializer serializer = new XmlSerializer(type);
+			//XmlSerializer serializer = new XmlSerializer(type);
+            XmlSerializer serializer = XmlSerializer.FromTypes(new[] { type }).GetNValue(0);
 
 			XmlRootAttribute xmlRootAttribute = ChoType.GetAttribute<XmlRootAttribute>(type);
 			if (xmlRootAttribute == null)
@@ -195,7 +288,8 @@ namespace Cinchoo.Core.Configuration
 
 		public static object GetConfigOnly(Type type, XmlNode node)
 		{
-			XmlSerializer serializer = new XmlSerializer(type);
+            //XmlSerializer serializer = new XmlSerializer(type);
+            XmlSerializer serializer = XmlSerializer.FromTypes(new[] { type }).GetNValue(0);
 
 			XmlRootAttribute xmlRootAttribute = ChoType.GetAttribute<XmlRootAttribute>(type);
 			if (xmlRootAttribute == null)
@@ -425,10 +519,10 @@ namespace Cinchoo.Core.Configuration
 			//return new ChoDefaultApplicationConfigSection(configObjectType);
 		}
 		
-		public static void OpenConfiguration(string appConfigPath)
-		{
-			OpenConfiguration(ChoPath.GetFullPath(appConfigPath), true);
-		}
+        //public static void OpenConfiguration(string appConfigPath)
+        //{
+        //    OpenConfiguration(ChoPath.GetFullPath(appConfigPath), true);
+        //}
 
 		internal static void OpenExeConfiguration(bool doBackup)
 		{
@@ -461,6 +555,9 @@ namespace Cinchoo.Core.Configuration
 
 		private static void OpenConfiguration(string appConfigPath, bool doBackup)
 		{
+            if (ChoAppFrxSettings.Me.DisableAppConfig)
+                return;
+
             if (_appConfigPath != appConfigPath)
                 Trace.TraceInformation("Using AppConfigPath: {0}".FormatString(appConfigPath));
 
@@ -472,7 +569,11 @@ namespace Cinchoo.Core.Configuration
 				return;
 			}
 
-			ChoFile.SetReadOnly(_appConfigPath, false);
+            //try
+            //{
+            //    ChoFile.SetReadOnly(_appConfigPath, false);
+            //}
+            //catch { }
 
 			if (_configurationChangeWatcher != null)
 			{
@@ -485,7 +586,10 @@ namespace Cinchoo.Core.Configuration
 			//    _systemConfigurationChangeWatcher = null;
 			//}
 
-            ChoXmlDocument.CreateXmlFileIfEmpty(_appConfigPath);
+            if (!ChoApplication.ServiceInstallation)
+            {
+                ChoXmlDocument.CreateXmlFileIfEmpty(_appConfigPath);
+            }
 
 			//backup the current configuration
             string backupConfigFilePath = String.Format("{0}.{1}", _appConfigPath, ChoReservedFileExt.Cho);
@@ -533,6 +637,18 @@ namespace Cinchoo.Core.Configuration
 			}
 		}
 
+        internal static string GetFullPath(string filePath)
+        {
+            if (filePath.IsNullOrWhiteSpace()) return filePath;
+
+            if (Path.IsPathRooted(filePath))
+                return filePath;
+            else
+            {
+                return Path.Combine(Path.GetDirectoryName(ApplicationConfigurationFilePath), filePath);
+            }
+        }
+
         private static void LoadConfigurationFile()
         {
             if (_appXmlDocument != null)
@@ -541,11 +657,17 @@ namespace Cinchoo.Core.Configuration
                 _appXmlDocument = null;
             }
 
-            _appXmlDocument = new ChoXmlDocument(_appConfigPath);
-            _appIncludeConfigFilePaths = _appXmlDocument.IncludeFiles;
+            if (File.Exists(_appConfigPath))
+            {
+                _appXmlDocument = new ChoXmlDocument(_appConfigPath);
+                _appIncludeConfigFilePaths = _appXmlDocument.IncludeFiles;
 
-            if (_appXmlDocument != null && _appIncludeConfigFilePaths != null && _appIncludeConfigFilePaths.Length > 0)
-                _appXmlDocument.XmlDocument.Save(_appConfigPath);
+                if (_appXmlDocument != null && _appIncludeConfigFilePaths != null && _appIncludeConfigFilePaths.Length > 0)
+                {
+                    if (!ChoAppFrxSettings.Me.DisableFrxConfig)
+                        _appXmlDocument.XmlDocument.Save(_appConfigPath);
+                }
+            }
 
             if (_configurationChangeWatcher == null)
             {
@@ -568,8 +690,9 @@ namespace Cinchoo.Core.Configuration
             {
                 try
                 {
-                    _systemConfigurationChangeWatcher = new ChoConfigurationChangeFileWatcher("systemConfigurations", AppDomain.CurrentDomain.SetupInformation.ConfigurationFile);
-                    _systemConfigurationChangeWatcher.SetConfigurationChangedEventHandler(_key, new ChoConfigurationChangedEventHandler(_systemConfigurationChangeWatcher_ConfigurationChanged));
+                    //_systemConfigurationChangeWatcher = new ChoAppConfigurationChangeFileWatcher("systemConfigurations", ChoConfigurationManager.ApplicationConfigurationFilePath);
+                    _systemConfigurationChangeWatcher = new ChoAppConfigurationChangeFileWatcher("systemConfigurations", _appConfigPath, _appIncludeConfigFilePaths);
+                    //_systemConfigurationChangeWatcher.SetConfigurationChangedEventHandler(_key, new ChoConfigurationChangedEventHandler(_systemConfigurationChangeWatcher_ConfigurationChanged));
                 }
                 catch (Exception ex)
                 {
@@ -584,8 +707,12 @@ namespace Cinchoo.Core.Configuration
                 doc.Descendants().Attributes().Where(a => a.IsNamespaceDeclaration).Remove();
                 doc.Save(_appConfigPath, SaveOptions.DisableFormatting);
             }
-            _configuration = _appXmlDocument.XmlDocument.DocumentElement.ToObject<ChoConfiguration>();
-            _configuration.Initialize();
+
+            if (_appXmlDocument != null)
+            {
+                _configuration = _appXmlDocument.XmlDocument.DocumentElement.ToObject<ChoConfiguration>();
+                _configuration.Initialize();
+            }
         }
 
 
@@ -623,74 +750,22 @@ namespace Cinchoo.Core.Configuration
 			}
 		}
 
+        public static string GetHelpText(Type configObjectType)
+        {
+            if (configObjectType == null)
+                return null;
+            if (!typeof(ChoConfigurableObject).IsAssignableFrom(configObjectType))
+                return null;
+
+            ChoConfigurationSectionAttribute configurationElementAttribute = ChoType.GetAttribute(configObjectType, typeof(ChoConfigurationSectionAttribute)) as ChoConfigurationSectionAttribute;
+            if (configurationElementAttribute == null) return null;
+
+            ChoBaseConfigurationElement ele = configurationElementAttribute.GetMe(configObjectType);
+            if (ele == null) return null;
+
+            return ele.GetHelpText(configObjectType);
+        }
+
         #endregion
     }
-
-    //public class ChoCoreFrxSettings
-    //{
-    //    #region Constants
-
-    //    private const string CORE_FRX_NODE_NAME = "cinchooCoreFrx";
-
-    //    #endregion Constants
-
-    //    #region Shared Data Members (Private)
-
-    //    private static readonly ChoCoreFrxSettings _instance = new ChoCoreFrxSettings();
-    //    private static readonly XmlNode _coreFrxNode;
-    //    private static readonly XPathNavigator _navigator;
-
-    //    #endregion Shared Data Members (Private)
-
-    //    #region Constructors
-
-    //    static ChoCoreFrxSettings()
-    //    {
-    //        if (ChoConfigurationManager.AppXmlDocument != null)
-    //        {
-    //            XmlNode rootNode = ChoConfigurationManager.AppXmlDocument.XmlDocument;
-    //            if (rootNode != null)
-    //            {
-    //                _coreFrxNode = rootNode.SelectSingleNode("//{0}".FormatString(CORE_FRX_NODE_NAME));
-    //                if (_coreFrxNode != null)
-    //                    _navigator = _coreFrxNode.CreateNavigator();
-    //            }
-    //        }
-    //    }
-
-    //    private ChoCoreFrxSettings()
-    //    {
-    //    }
-
-    //    #region Constructors
-
-    //    #region Instance Members (Public)
-
-    //    public string this[string name]
-    //    {
-    //        get
-    //        {
-    //            ChoGuard.ArgumentNotNullOrEmpty(name, "Name");
-    //            if (_coreFrxNode != null)
-    //            {
-    //                (string)_navigator.Evaluate(String.Format("string(@{0})", ConnectionStringToken), ChoXmlDocument.NameSpaceManager);
-
-    //                _coreFrxNode.SelectSingleNode("logFolder
-
-    //            }
-    //            return null;
-    //        }
-    //    }
-
-    //    #endregion Instance Members (Public)
-
-    //    #region Shared Members (Public)
-
-    //    internal ChoCoreFrxSettings Me
-    //    {
-    //        get { return _instance; }
-    //    }
-
-    //    #endregion Shared Members (Public)
-    //}
 }

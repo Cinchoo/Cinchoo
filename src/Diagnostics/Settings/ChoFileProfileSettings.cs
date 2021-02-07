@@ -23,6 +23,8 @@ namespace Cinchoo.Core.Diagnostics
 	[ChoConfigurationSection("cinchoo/fileProfile", Defaultable = false)]
 	public sealed class ChoFileProfileSettings : IChoObjectInitializable
 	{
+        private static readonly ChoFileProfileSettings _instance = new ChoFileProfileSettings();
+
 		#region Instance Data Members (Public)
 
 		[XmlAttribute("turnOn")]
@@ -73,7 +75,7 @@ namespace Cinchoo.Core.Diagnostics
 
 		public static ChoFileProfileSettings Me
 		{
-			get { return ChoConfigurationManagementFactory.CreateInstance<ChoFileProfileSettings>(); }
+            get { return _instance; }
 		}
 
 		public static string GetFullPath(string fileName)

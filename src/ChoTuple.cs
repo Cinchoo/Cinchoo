@@ -69,7 +69,8 @@
                 reader.ReadStartElement();
                 if (!isEmptyElement)
                 {
-                    XmlSerializer serializer1 = new XmlSerializer(typeof(T1));
+                    //XmlSerializer serializer1 = new XmlSerializer(typeof(T1));
+                    XmlSerializer serializer1 = XmlSerializer.FromTypes(new[] { typeof(T1) }).GetNValue(0);
                     First = (T1)serializer1.Deserialize(reader);
                     reader.ReadEndElement();
                 }
@@ -83,7 +84,8 @@
                 reader.ReadStartElement();
                 if (!isEmptyElement)
                 {
-                    XmlSerializer serializer2 = new XmlSerializer(typeof(T2));
+                    //XmlSerializer serializer2 = new XmlSerializer(typeof(T2));
+                    XmlSerializer serializer2 = XmlSerializer.FromTypes(new[] { typeof(T2) }).GetNValue(0);
                     Second = (T2)serializer2.Deserialize(reader);
                     reader.ReadEndElement();
                 }

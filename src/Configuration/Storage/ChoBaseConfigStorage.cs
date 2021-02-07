@@ -76,6 +76,11 @@ namespace Cinchoo.Core.Configuration
 			get { return _syncRoot; }
 		}
 
+        public virtual bool IsCustomFormatDataStorage
+        {
+            get { return false; }
+        }
+
         public virtual bool IsConfigSectionDefined
         {
             get { return ConfigNode != null; }

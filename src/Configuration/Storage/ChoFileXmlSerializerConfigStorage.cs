@@ -12,7 +12,7 @@ namespace Cinchoo.Core.Configuration
 
 	#endregion NameSpaces
 
-    public sealed class ChoFileXmlSerializerConfigStorage : ChoConfigStorage, IChoObjectConfigStorage
+    public class ChoFileXmlSerializerConfigStorage : ChoConfigStorage, IChoObjectConfigStorage
     {
         #region Instance Data Members (Private)
 
@@ -37,7 +37,7 @@ namespace Cinchoo.Core.Configuration
 
             XmlAttributeOverrides overrides = GetXmlAttributeOverrides(objectType, node.Name);
 
-            XmlSerializer serializer = overrides != null ? new XmlSerializer(objectType, overrides) : new XmlSerializer(objectType);
+            XmlSerializer serializer = overrides != null ? new XmlSerializer(objectType, overrides) : XmlSerializer.FromTypes(new[] { objectType}).GetNValue(0);
 
             return serializer.Deserialize(new XmlNodeReader(node));
 		}

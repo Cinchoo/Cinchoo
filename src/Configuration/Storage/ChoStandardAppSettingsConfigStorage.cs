@@ -13,10 +13,11 @@
 	using System.Xml.XPath;
 	using Cinchoo.Core.IO;
 	using Cinchoo.Core.Services;
+    using System.Text;
 
 	#endregion NameSpaces
 
-	public sealed class ChoStandardAppSettingsConfigStorage : ChoConfigStorage, IChoNameValueConfigStorage
+	public class ChoStandardAppSettingsConfigStorage : ChoConfigStorage, IChoNameValueConfigStorage
 	{
 		#region Constants
 
@@ -26,26 +27,60 @@
 
 		#region Instance Data Members (Private)
 
-		private readonly Configuration _configuration = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-		private string _appSettingsFilePath = null;
-		private bool _hasAppSettingsFilePath = false;
-
 		#endregion Instance Data Members (Private)
 
 		public override object Load(ChoBaseConfigurationElement configElement, XmlNode node)
 		{
 			base.Load(configElement, node);
 
-			ConfigurationManager.RefreshSection(APP_SETTINGS_SECTION_NAME);
-			ConfigFilePath = _configuration.FilePath;
-			_appSettingsFilePath = ChoPath.GetFullPath(GetAppSettingsFilePathIfAnySpecified());
-			if (!_appSettingsFilePath.IsNullOrWhiteSpace())
-				_hasAppSettingsFilePath = true;
+            ConfigurationManager.RefreshSection(APP_SETTINGS_SECTION_NAME);
+            ChoConfigurationManager.Refresh();
+            ConfigFilePath = ChoConfigurationManager.ApplicationConfigurationFilePath;
+			string appSettingsFilePath = GetAppSettingsFilePathIfAnySpecified();
+            configElement[ChoConfigurationConstants.FORCE_PERSIST] = CanForcePersist(appSettingsFilePath);
 
 			ConfigSectionName = APP_SETTINGS_SECTION_NAME;
-			return ConfigurationManager.AppSettings;
+            RefreshSection(appSettingsFilePath);
+            return ChoConfigurationManager.ApplicationConfiguration.AppSettings.Settings.ToNameValueCollection();
 		}
-		
+
+        private bool CanForcePersist(string appSettingsFilePath)
+        {
+            if (appSettingsFilePath.IsNullOrWhiteSpace()) return false;
+
+            appSettingsFilePath = ChoConfigurationManager.GetFullPath(appSettingsFilePath);
+            if (!File.Exists(appSettingsFilePath)) return true;
+
+            //try
+            //{
+            //    XDocument doc = XDocument.Load(appSettingsFilePath);
+            //    if (doc.Root == null
+            //    || doc.Root.Name.LocalName != APP_SETTINGS_SECTION_NAME)
+            //        return true;
+            //}
+            //catch
+            //{
+            //    return true;
+            //}
+
+            return false;
+        }
+
+        private void RefreshSection(string appSettingsFilePath)
+        {
+            if (!appSettingsFilePath.IsNullOrWhiteSpace())
+            {
+                if (ChoConfigurationManager.GetFullPath(ChoConfigurationManager.ApplicationConfiguration.AppSettings.File) != ChoConfigurationManager.GetFullPath(appSettingsFilePath))
+                    ConfigElement[ChoConfigurationConstants.FORCE_PERSIST] = true;
+            }
+
+            if (!ChoConfigurationManager.ApplicationConfiguration.AppSettings.File.IsNullOrWhiteSpace())
+            {
+                if (!File.Exists(ChoConfigurationManager.GetFullPath(ChoConfigurationManager.ApplicationConfiguration.AppSettings.File)))
+                    ConfigElement[ChoConfigurationConstants.FORCE_PERSIST] = true;
+            }
+        }
+
 		public override void Persist(object data, ChoDictionaryService<string, object> stateInfo)
 		{
 			if (!(data is NameValueCollection))
@@ -63,32 +98,81 @@
 			{
 				ConfigElement.Log(ex.ToString());
 			}
-   
-			NameValueCollection nameValueCollection = ((NameValueCollection)data);
 
-			foreach (string key1 in nameValueCollection.Keys)
-			{
-				if (_configuration.AppSettings.Settings.AllKeys.Contains(key1))
-					_configuration.AppSettings.Settings[key1].Value = nameValueCollection[key1];
-				else
-					_configuration.AppSettings.Settings.Add(new KeyValueConfigurationElement(key1, nameValueCollection[key1]));
+            bool saveMainConfig = false;
+            string appSettingsFilePath = this.GetAppSettingsFilePathIfAnySpecified();
+            if (!appSettingsFilePath.IsNullOrWhiteSpace())
+            {
+                if (ChoConfigurationManager.GetFullPath(ChoConfigurationManager.ApplicationConfiguration.AppSettings.File) != ChoConfigurationManager.GetFullPath(appSettingsFilePath))
+                {
+                    saveMainConfig = true;
+                    ChoConfigurationManager.ApplicationConfiguration.AppSettings.File = appSettingsFilePath;
+                }
+            }
 
-			}
+            NameValueCollection nameValueCollection = ((NameValueCollection)data);
+            if (ChoConfigurationManager.ApplicationConfiguration.AppSettings.File.IsNullOrWhiteSpace())
+            {
+                foreach (string key1 in nameValueCollection.Keys)
+                {
+                    if (ChoConfigurationManager.ApplicationConfiguration.AppSettings.Settings.AllKeys.Contains(key1))
+                        ChoConfigurationManager.ApplicationConfiguration.AppSettings.Settings[key1].Value = nameValueCollection[key1];
+                    else
+                        ChoConfigurationManager.ApplicationConfiguration.AppSettings.Settings.Add(new KeyValueConfigurationElement(key1, nameValueCollection[key1]));
 
-			_configuration.Save(ConfigurationSaveMode.Modified);
-		}
+                }
+
+                ChoConfigurationManager.ApplicationConfiguration.Save(ConfigurationSaveMode.Modified);
+            }
+            else
+            {
+                if (saveMainConfig)
+                    ChoConfigurationManager.ApplicationConfiguration.Save(ConfigurationSaveMode.Modified);
+                File.WriteAllText(ChoConfigurationManager.GetFullPath(ChoConfigurationManager.ApplicationConfiguration.AppSettings.File), GetAppSettingsText(nameValueCollection));
+            }
+            //ConfigurationManager.RefreshSection(APP_SETTINGS_SECTION_NAME);
+            ChoConfigurationManager.Refresh();
+        }
 
 		public override IChoConfigurationChangeWatcher ConfigurationChangeWatcher
 		{
 			get
 			{
-				List<IChoConfigurationChangeWatcher> _watchers = new List<IChoConfigurationChangeWatcher>();
-				if (ChoConfigurationManager.SystemConfigurationChangeWatcher != null)
-					_watchers.Add(ChoConfigurationManager.SystemConfigurationChangeWatcher);
+                //ConfigurationManager.RefreshSection(APP_SETTINGS_SECTION_NAME);
+                ChoConfigurationManager.Refresh();
 
-				if (_hasAppSettingsFilePath)
+                string appSettingsFilePath = this.GetAppSettingsFilePathIfAnySpecified();
+                
+                List<IChoConfigurationChangeWatcher> _watchers = new List<IChoConfigurationChangeWatcher>();
+                IChoConfigurationChangeWatcher configurationChangeWatcher1 = new ChoConfigurationChangeFileWatcher("AppConfig_{0}".FormatString(ConfigSectionName), ChoConfigurationManager.ApplicationConfigurationFilePath);
+                configurationChangeWatcher1.SetConfigurationChangedEventHandler("App_{0}_AppSettings_WatcherHandler".FormatString(ConfigElement.ConfigElementPath),
+                    (sender, e) =>
+                    {
+                        //ConfigurationManager.RefreshSection(APP_SETTINGS_SECTION_NAME);
+                        ChoConfigurationManager.Refresh();
+
+                        string lAppSettingsFilePath = this.GetAppSettingsFilePathIfAnySpecified();
+                        //Console.WriteLine("AppConfig changed. " + lAppSettingsFilePath);
+
+                        if (e is ChoConfigurationFileChangedEventArgs &&
+                            ((ChoConfigurationFileChangedEventArgs)e).ConfigurationChangeAction == ChoConfigurationChangeAction.Changed)
+                        {
+                            //ConfigElement.Persist(true, null, true);
+                            if (!((string)ConfigElement[ChoConfigurationConstants.TAG]).IsNullOrWhiteSpace() &&
+                                (string)ConfigElement[ChoConfigurationConstants.TAG] != lAppSettingsFilePath)
+                            {
+                                ConfigElement[ChoConfigurationConstants.TAG] = lAppSettingsFilePath;
+                                ConfigElement.Persist(true, null, true);
+                            }
+                            else if (((string)ConfigElement[ChoConfigurationConstants.TAG]).IsNullOrWhiteSpace())
+                                ConfigElement[ChoConfigurationConstants.TAG] = lAppSettingsFilePath;
+                        }
+                    });
+                _watchers.Add(configurationChangeWatcher1);
+
+                if (!appSettingsFilePath.IsNullOrWhiteSpace())
 				{
-					IChoConfigurationChangeWatcher configurationChangeWatcher = new ChoConfigurationChangeFileWatcher(ConfigSectionName, _appSettingsFilePath);
+                    IChoConfigurationChangeWatcher configurationChangeWatcher = new ChoConfigurationChangeFileWatcher("AppSettingsConfig_{0}".FormatString(ConfigElement.ConfigElementPath), ChoConfigurationManager.GetFullPath(appSettingsFilePath));
 					configurationChangeWatcher.SetConfigurationChangedEventHandler("{0}_AppSettings_WatcherHandler".FormatString(ConfigElement.ConfigElementPath),
 						(sender, e) =>
 						{
@@ -96,7 +180,7 @@
 								(((ChoConfigurationFileChangedEventArgs)e).ConfigurationChangeAction == ChoConfigurationChangeAction.Deleted
 								|| ((ChoConfigurationFileChangedEventArgs)e).ConfigurationChangeAction == ChoConfigurationChangeAction.Created))
 							{
-								ConfigElement.Persist(true, null);
+								ConfigElement.Persist(true, null, true);
 							}
 						});
 
@@ -107,17 +191,37 @@
 			}
 		}
 
+        private string GetAppSettingsText(NameValueCollection nameValueCollection)
+        {
+            StringBuilder msg = new StringBuilder();
+            msg.AppendLine("<appSettings>");
+
+            if (nameValueCollection != null)
+            {
+                foreach (string key in nameValueCollection.AllKeys)
+                {
+                    msg.AppendLine("<add key='{0}' value='{1}' />".FormatString(key, nameValueCollection[key]));
+                }
+            }
+            msg.AppendLine("</appSettings>");
+            return msg.ToString().IndentXml();
+        }
+
 		private string GetAppSettingsFilePathIfAnySpecified()
 		{
-			if (!File.Exists(ConfigFilePath))
-				return null;
+            string filePath = null;
 
-			XDocument xDoc = XDocument.Load(ConfigFilePath);
-			var appSettingsFileAtttibute = (from myConfig in xDoc.XPathSelectElements(@"configuration/{0}".FormatString(APP_SETTINGS_SECTION_NAME))
-					select myConfig.Attributes("file")).FirstOrDefault();
+            System.Configuration.AppSettingsSection appSettings = ChoConfigurationManager.ApplicationConfiguration.AppSettings;
+            if (!appSettings.File.IsNullOrEmpty())
+                filePath = appSettings.File.NTrim();
+            else
+                filePath = ConfigElement.ConfigFilePath.NTrim();
 
-			return appSettingsFileAtttibute.Count() == 0 ? null : appSettingsFileAtttibute.First().Value;
-		}
+            if (Directory.Exists(ChoConfigurationManager.GetFullPath(filePath)))
+                return null;
+            else
+                return filePath;
+        }
 
 		public override object PersistableState
 		{
@@ -128,7 +232,7 @@
 		{
 			get
 			{
-				return ConfigurationManager.AppSettings.Count > 0;
+				return ChoConfigurationManager.ApplicationConfiguration.AppSettings.Settings.Count > 0;
 			}
 		}
 

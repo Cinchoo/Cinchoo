@@ -3,11 +3,12 @@
 	#region NameSpaces
 
 	using System;
+    using System.Xml.Serialization;
 
 	#endregion NameSpaces
 
 	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
-	public sealed class ChoDictionaryConfigurationSectionAttribute : ChoConfigurationSectionAttribute
+	public class ChoDictionaryConfigurationSectionAttribute : ChoConfigurationSectionAttribute
 	{
 		#region Constructors
 
@@ -40,7 +41,8 @@
 		}
 
 		private Type _configSectionHandlerType = typeof(ChoDictionarySectionHandler);
-		public override Type ConfigSectionHandlerType
+        [XmlIgnore]
+        public override Type ConfigSectionHandlerType
 		{
 			get { return _configSectionHandlerType; }
 			protected set { _configSectionHandlerType = value; }

@@ -13,6 +13,7 @@ namespace Cinchoo.Core
 	using Cinchoo.Core.Services;
 	using Cinchoo.Core.ServiceProcess;
 	using Cinchoo.Core.Shell;
+    using Cinchoo.Core.Reflection;
 
 	#endregion NameSpaces
 
@@ -31,6 +32,8 @@ namespace Cinchoo.Core
 		static ChoAppDomain()
 		{
 			//ChoApplication.Initialize();
+            //ChoApplication.RaiseApplyFrxParamsOverrides(true);
+            ChoAssembly.Initialize();
             RegisterAppDomainEvents();
             string envPath = ChoEnvironmentSettings.GetConfigFilePath();
 			ChoGlobalApplicationSettings x = ChoGlobalApplicationSettings.Me;
@@ -64,19 +67,23 @@ namespace Cinchoo.Core
 			if (_shutdownCompleted)
 				return;
 
-			lock (_padLock)
-			{
-				if (_shutdownCompleted)
-					return;
+            if (!Monitor.TryEnter(_padLock, 1000))
+                return;
 
-				_shutdownCompleted = true;
+            try
+            {
+                if (_shutdownCompleted)
+                    return;
 
-				//ChoQueuedExecutionService.Global.Enqueue(() =>
-				//    {
-				ChoFramework.ShutdownRequested = true;
-				OnDomainUnload(null, null);
-				//});
-			}
+                //ChoQueuedExecutionService.Global.Enqueue(() =>
+                //    {
+                OnDomainUnload(null, null);
+                //});
+            }
+            finally
+            {
+                Monitor.Exit(_padLock);
+            }
 		}
 
 		public static void UnregisterMe(object target)
@@ -172,28 +179,52 @@ namespace Cinchoo.Core
 		/// </remarks>
 		private static void OnDomainUnload(object sender, EventArgs e)
 		{
-            Thread.Sleep(1000);  //TODO: To be parameterized
+            if (ChoFramework.ShutdownRequested)
+                return;
 
-			foreach (Type type in _onDomainUnloadHandlers.ToKeysArray())
-			{
-				foreach (MethodInfo methodInfo in _onDomainUnloadHandlers[type])
-				{
-					if (ChoTrace.ChoSwitch.TraceVerbose)
-						ChoTrace.Info(ChoType.GetMemberAttribute<ChoAppDomainUnloadMethodAttribute>(methodInfo).Description);
+            ChoFramework.ShutdownRequested = true;
 
-					//using (ChoBufferProfileEx profile = new ChoBufferProfileEx(ChoType.GetMemberAttribute<ChoAppDomainUnloadMethodAttribute>(methodInfo).Description))
-					//{
-						try
-						{
-							ChoType.InvokeMethod(type, methodInfo.Name, null);
-						}
-						catch (Exception ex)
-						{
-							//profile.Append(ex);
-						}
-					//}
-				}
-			}
+            if (_shutdownCompleted)
+                return;
+
+            try
+            {
+                Thread.Sleep(1000);  //TODO: To be parameterized
+
+                foreach (Type type in _onDomainUnloadHandlers.ToKeysArray())
+                {
+                    foreach (MethodInfo methodInfo in _onDomainUnloadHandlers[type])
+                    {
+                        if (ChoTraceSwitch.Switch.TraceVerbose)
+                            Trace.WriteLine(ChoType.GetMemberAttribute<ChoAppDomainUnloadMethodAttribute>(methodInfo).Description);
+                        //ChoTrace.Info(ChoType.GetMemberAttribute<ChoAppDomainUnloadMethodAttribute>(methodInfo).Description);
+
+                        //using (ChoBufferProfileEx profile = new ChoBufferProfileEx(ChoType.GetMemberAttribute<ChoAppDomainUnloadMethodAttribute>(methodInfo).Description))
+                        //{
+                        try
+                        {
+                            ChoType.InvokeMethod(type, methodInfo.Name, null);
+                        }
+                        catch (Exception) // ex)
+                        {
+                            //profile.Append(ex);
+                        }
+                        //}
+                    }
+                }
+
+                //if (ChoApplication.ApplicationMode == ChoApplicationMode.Console)
+                //    ChoFramework.Shutdown();
+            }
+            finally
+            {
+                try
+                {
+                    ChoTrace.FlushAll();
+                }
+                catch { }
+                _shutdownCompleted = true;
+            }
 		}
 
 		/// <summary>
@@ -211,7 +242,8 @@ namespace Cinchoo.Core
 		/// </remarks>
 		private static void OnProcessExit(object sender, EventArgs e)
 		{
-			OnDomainUnload(sender, e);
+			//OnDomainUnload(sender, e);
+            Exit();
 		}
 
 		private static void OnAssemblyLoad(object sender, AssemblyLoadEventArgs args)

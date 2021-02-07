@@ -8,7 +8,8 @@
 
     #endregion NameSpaces
 
-    public abstract class ChoBaseConfigurationMetaDataInfo : ChoEquatableObject<ChoBaseConfigurationMetaDataInfo>, IChoMergeable<ChoBaseConfigurationMetaDataInfo>
+    public abstract class ChoBaseConfigurationMetaDataInfo : ChoEquatableObject<ChoBaseConfigurationMetaDataInfo>, IChoMergeable<ChoBaseConfigurationMetaDataInfo>,
+        ICloneable<ChoBaseConfigurationMetaDataInfo>
 	{
 		[XmlElement("configStorage")]
 		public string ConfigStorageType;
@@ -37,7 +38,7 @@
             internal set
             {
                 if (value != null)
-                    ConfigStorageType = value.GetType().AssemblyQualifiedName;
+                    ConfigStorageType = value.GetType().SimpleQualifiedName();
             }
         }
 
@@ -72,5 +73,12 @@
         }
 
         #endregion
+
+        public abstract ChoBaseConfigurationMetaDataInfo Clone();
+
+        object ICloneable.Clone()
+        {
+            return Clone();
+        }
     }
 }

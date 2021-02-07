@@ -9,8 +9,8 @@ namespace Cinchoo.Core
 
     #endregion NameSpaces
 
-    [ChoStringObjectFormattable]
-    public class ChoDouble
+    [ChoStringObjectFormattable(typeof(Double))]
+    public class ChoDouble : IChoStringObjectFormatter<double>
     {
         #region Constants
 
@@ -70,6 +70,12 @@ namespace Cinchoo.Core
         public double Value
         {
             get { return _value; }
+        }
+
+        public string GetHelpText()
+        {
+            ChoDouble x = new ChoDouble(99.099);
+            return x.ToFormattedString();
         }
 
         #endregion Instance Members (Public)

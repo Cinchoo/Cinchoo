@@ -7,19 +7,21 @@ namespace Cinchoo.Core
 
     #endregion NameSpaces
 
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
+    public class ChoToUpperCaseConverterAttribute : ChoTypeConverterAttribute
+    {
+        public ChoToUpperCaseConverterAttribute()
+            : base(typeof(ChoToUpperCaseConverter))
+        {
+        }
+    }
+
     public class ChoToUpperCaseConverter : TypeConverter
     {
-        #region Instance Data Members (Private)
-
-        private string _format;
-
-        #endregion Instance Data Members (Private)
-
         #region Constructors
 
-        public ChoToUpperCaseConverter(string format)
+        public ChoToUpperCaseConverter()
         {
-            _format = format;
         }
 
         #endregion Constructors
@@ -50,6 +52,22 @@ namespace Cinchoo.Core
                 return ((String)value).ToUpper();
 
             return base.ConvertFrom(context, culture, value);
+        }
+
+        public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
+        {
+            if (destinationType == typeof(string))
+                return true;
+            else
+                return base.CanConvertTo(context, destinationType);
+        }
+
+        public override object ConvertTo(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value, Type destinationType)
+        {
+            if (value != null && value.GetType() == typeof(string))
+                return ((String)value).ToUpper();
+
+            return base.ConvertTo(context, culture, value, destinationType);
         }
 
         #endregion

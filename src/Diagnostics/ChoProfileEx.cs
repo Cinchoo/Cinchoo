@@ -121,19 +121,19 @@
 //        private bool _disposed = false;
 //        private DateTime _startTime = DateTime.Now;
 //        private string _name = ChoRandom.NextRandom().ToString();
-//        private bool _condition = ChoTrace.GetChoSwitch().TraceVerbose;
+//        private bool _condition = ChoTraceSwitch.Switch.TraceVerbose;
 
 //        #endregion
 
 //        #region Constructors
 
 //        public ChoProfile(string msg)
-//            : this(ChoTrace.ChoSwitch.TraceVerbose, msg)
+//            : this(ChoTraceSwitch.Switch.TraceVerbose, msg)
 //        {
 //        }
 
 //        public ChoProfile(string msg, ChoProfile outerProfile)
-//            : this(ChoTrace.ChoSwitch.TraceVerbose, msg, outerProfile)
+//            : this(ChoTraceSwitch.Switch.TraceVerbose, msg, outerProfile)
 //        {
 //        }
 
@@ -334,12 +334,12 @@
 //        public void Debug(object message)
 //        {
 //            if (message != null)
-//                AppendLineIf(ChoTrace.ChoSwitch.TraceVerbose, message.ToString());
+//                AppendLineIf(ChoTraceSwitch.Switch.TraceVerbose, message.ToString());
 //        }
 
 //        public void Debug(Exception exception)
 //        {
-//            AppendIf(ChoTrace.ChoSwitch.TraceVerbose, exception);
+//            AppendIf(ChoTraceSwitch.Switch.TraceVerbose, exception);
 //        }
 
 //        public void Debug(object message, Exception exception)
@@ -350,23 +350,23 @@
 
 //        public void DebugFormat(string format, params object[] args)
 //        {
-//            AppendLineIf(ChoTrace.ChoSwitch.TraceVerbose, String.Format(format, args));
+//            AppendLineIf(ChoTraceSwitch.Switch.TraceVerbose, String.Format(format, args));
 //        }
 
 //        public void DebugFormat(IFormatProvider provider, string format, params object[] args)
 //        {
-//            AppendLineIf(ChoTrace.ChoSwitch.TraceVerbose, String.Format(provider, format, args));
+//            AppendLineIf(ChoTraceSwitch.Switch.TraceVerbose, String.Format(provider, format, args));
 //        }
 
 //        public void Error(object message)
 //        {
 //            if (message != null)
-//                AppendLineIf(ChoTrace.ChoSwitch.TraceError, message.ToString());
+//                AppendLineIf(ChoTraceSwitch.Switch.TraceError, message.ToString());
 //        }
 
 //        public void Error(Exception exception)
 //        {
-//            AppendIf(ChoTrace.ChoSwitch.TraceError, exception);
+//            AppendIf(ChoTraceSwitch.Switch.TraceError, exception);
 //        }
 
 //        public void Error(object message, Exception exception)
@@ -377,23 +377,23 @@
 
 //        public void ErrorFormat(string format, params object[] args)
 //        {
-//            AppendLineIf(ChoTrace.ChoSwitch.TraceError, String.Format(format, args));
+//            AppendLineIf(ChoTraceSwitch.Switch.TraceError, String.Format(format, args));
 //        }
 
 //        public void ErrorFormat(IFormatProvider provider, string format, params object[] args)
 //        {
-//            AppendLineIf(ChoTrace.ChoSwitch.TraceError, String.Format(provider, format, args));
+//            AppendLineIf(ChoTraceSwitch.Switch.TraceError, String.Format(provider, format, args));
 //        }
 
 //        public void Info(object message)
 //        {
 //            if (message != null)
-//                AppendLineIf(ChoTrace.ChoSwitch.TraceInfo, message.ToString());
+//                AppendLineIf(ChoTraceSwitch.Switch.TraceInfo, message.ToString());
 //        }
 
 //        public void Info(Exception exception)
 //        {
-//            AppendIf(ChoTrace.ChoSwitch.TraceInfo, exception);
+//            AppendIf(ChoTraceSwitch.Switch.TraceInfo, exception);
 //        }
 
 //        public void Info(object message, Exception exception)
@@ -404,23 +404,23 @@
 
 //        public void InfoFormat(string format, params object[] args)
 //        {
-//            AppendLineIf(ChoTrace.ChoSwitch.TraceInfo, String.Format(format, args));
+//            AppendLineIf(ChoTraceSwitch.Switch.TraceInfo, String.Format(format, args));
 //        }
 
 //        public void InfoFormat(IFormatProvider provider, string format, params object[] args)
 //        {
-//            AppendLineIf(ChoTrace.ChoSwitch.TraceInfo, String.Format(provider, format, args));
+//            AppendLineIf(ChoTraceSwitch.Switch.TraceInfo, String.Format(provider, format, args));
 //        }
 
 //        public void Warn(object message)
 //        {
 //            if (message != null)
-//                AppendLineIf(ChoTrace.ChoSwitch.TraceWarning, message.ToString());
+//                AppendLineIf(ChoTraceSwitch.Switch.TraceWarning, message.ToString());
 //        }
 
 //        public void Warn(Exception exception)
 //        {
-//            AppendIf(ChoTrace.ChoSwitch.TraceWarning, exception);
+//            AppendIf(ChoTraceSwitch.Switch.TraceWarning, exception);
 //        }
 
 //        public void Warn(object message, Exception exception)
@@ -431,12 +431,12 @@
 
 //        public void WarnFormat(string format, params object[] args)
 //        {
-//            AppendLineIf(ChoTrace.ChoSwitch.TraceWarning, String.Format(format, args));
+//            AppendLineIf(ChoTraceSwitch.Switch.TraceWarning, String.Format(format, args));
 //        }
 
 //        public void WarnFormat(IFormatProvider provider, string format, params object[] args)
 //        {
-//            AppendLineIf(ChoTrace.ChoSwitch.TraceWarning, String.Format(provider, format, args));
+//            AppendLineIf(ChoTraceSwitch.Switch.TraceWarning, String.Format(provider, format, args));
 //        }
 
 //        #endregion
@@ -648,12 +648,12 @@
 //                {
 //                    if (parentStackFrame == null) //Main Entry
 //                    {
-//                        memberProfileAttribute = new ChoBufferProfileAttribute(ChoTrace.ChoSwitch.TraceVerbose, String.Format("Calling {0}.{1} method...", memberInfo.ReflectedType.FullName, memberInfo.Name));
+//                        memberProfileAttribute = new ChoBufferProfileAttribute(ChoTraceSwitch.Switch.TraceVerbose, String.Format("Calling {0}.{1} method...", memberInfo.ReflectedType.FullName, memberInfo.Name));
 //                        memberProfileAttribute.Directory = null;
 //                        memberProfileAttribute.FileName = ChoPath.AddExtension(ChoApplicationSettings.Me.ApplicationId);
 //                    }
 //                    else
-//                        memberProfileAttribute = new ChoBufferProfileAttribute(ChoTrace.ChoSwitch.TraceVerbose, String.Format("Calling {0}.{1} method...", memberInfo.ReflectedType.FullName, memberInfo.Name));
+//                        memberProfileAttribute = new ChoBufferProfileAttribute(ChoTraceSwitch.Switch.TraceVerbose, String.Format("Calling {0}.{1} method...", memberInfo.ReflectedType.FullName, memberInfo.Name));
 //                }
 
 //                //REVISIT
@@ -716,12 +716,12 @@
 //        //        {
 //        //            if (parentStackFrame == null) //Main Entry
 //        //            {
-//        //                memberProfileAttribute = new ChoBufferProfileAttribute(ChoTrace.ChoSwitch.TraceVerbose, String.Format("Calling {0}.{1} method...", memberInfo.ReflectedType.FullName, memberInfo.Name));
+//        //                memberProfileAttribute = new ChoBufferProfileAttribute(ChoTraceSwitch.Switch.TraceVerbose, String.Format("Calling {0}.{1} method...", memberInfo.ReflectedType.FullName, memberInfo.Name));
 //        //                memberProfileAttribute.Directory = null;
 //        //                memberProfileAttribute.FileName = ChoPath.AddExtension(ChoApplicationSettings.Me.ApplicationId);
 //        //            }
 //        //            else
-//        //                memberProfileAttribute = new ChoBufferProfileAttribute(ChoTrace.ChoSwitch.TraceVerbose, String.Format("Calling {0}.{1} method...", memberInfo.ReflectedType.FullName, memberInfo.Name));
+//        //                memberProfileAttribute = new ChoBufferProfileAttribute(ChoTraceSwitch.Switch.TraceVerbose, String.Format("Calling {0}.{1} method...", memberInfo.ReflectedType.FullName, memberInfo.Name));
 //        //        }
 
 //        //        //REVISIT
@@ -950,19 +950,19 @@
 
 //        #endregion WriteLine Overloads
 
-//        #region WriteSeperator Overloads
+//        #region WriteSeparator Overloads
 
-//        public static void WriteSeperator()
+//        public static void WriteSeparator()
 //        {
-//            WriteSeperatorIf(true);
+//            WriteSeparatorIf(true);
 //        }
 
-//        public static void WriteSeperatorIf(bool condition)
+//        public static void WriteSeparatorIf(bool condition)
 //        {
-//            DefaultContext.AppendLineIf(condition, ChoTrace.SEPERATOR);
+//            DefaultContext.AppendLineIf(condition, ChoTrace.SEPARATOR);
 //        }
 
-//        #endregion WriteSeperator Overloads
+//        #endregion WriteSeparator Overloads
 
 //        #region Write Exception Overloads
 

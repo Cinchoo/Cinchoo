@@ -13,7 +13,7 @@
 
 	#endregion NameSpaces
 
-	public sealed class ChoFileDictionaryConfigStorage : ChoConfigStorage, IChoDictionaryConfigStorage
+	public class ChoFileDictionaryConfigStorage : ChoConfigStorage, IChoDictionaryConfigStorage
 	{
 		public override object Load(ChoBaseConfigurationElement configElement, XmlNode node)
 		{

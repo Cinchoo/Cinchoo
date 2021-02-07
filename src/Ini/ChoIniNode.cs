@@ -77,6 +77,8 @@ namespace Cinchoo.Core.Ini
 
         #endregion Instance Properties (Protected)
 
+        public abstract bool Equals(ChoIniNode other);
+
         #region Disposeable overrides
 
         protected override void Dispose(bool finalize)

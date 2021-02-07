@@ -55,10 +55,12 @@
                 return null;
             return DescriptionAttribute.Description;
         }
+
         public static object GetConvertedValue(this MemberInfo memberInfo, object value)
         {
-            return ChoConvert.ConvertFrom(null, value, ChoType.GetMemberType(memberInfo),
-                ChoTypeDescriptor.GetTypeConverters(memberInfo), ChoTypeDescriptor.GetTypeConverterParams(memberInfo));
+            return ChoConvert.ConvertFrom(value, memberInfo);
+         //   return ChoConvert.ConvertTo(null, value, ChoType.GetMemberType(memberInfo),
+         //ChoTypeDescriptor.GetTypeConverters(memberInfo), ChoTypeDescriptor.GetTypeConverterParams(memberInfo));
         }
 
         public static object GetDefaultValue(this MemberInfo memberInfo)
@@ -67,17 +69,33 @@
             if (memberInfoAttribute != null)
                 return memberInfoAttribute.DefaultValue;
             else
-                return null;
+            {
+                DefaultValueAttribute defaultValueAttribute = ChoType.GetMemberAttribute<DefaultValueAttribute>(memberInfo);
+                if (defaultValueAttribute != null)
+                    return defaultValueAttribute.Value;
+                else
+                    return null;
+            }
         }
 
         public static object GetConvertedDefaultValue(this MemberInfo memberInfo)
         {
             ChoPropertyInfoAttribute memberInfoAttribute = ChoType.GetMemberAttribute<ChoPropertyInfoAttribute>(memberInfo);
             if (memberInfoAttribute != null)
-                return ChoConvert.ConvertFrom(null, memberInfoAttribute.DefaultValue, ChoType.GetMemberType(memberInfo),
-                    ChoTypeDescriptor.GetTypeConverters(memberInfo), ChoTypeDescriptor.GetTypeConverterParams(memberInfo));
+                return ChoConvert.ConvertFrom(GetDefaultValue(memberInfo), memberInfo);
             else
-                return null;
+            {
+                DefaultValueAttribute defaultValueAttribute = ChoType.GetMemberAttribute<DefaultValueAttribute>(memberInfo);
+                if (defaultValueAttribute != null)
+                    return ChoConvert.ConvertFrom(defaultValueAttribute.Value, memberInfo);
+                else
+                    return null;
+            }
+            //if (memberInfoAttribute != null)
+            //    return ChoConvert.ConvertTo(null, GetDefaultValue(memberInfo), ChoType.GetMemberType(memberInfo),
+            //        ChoTypeDescriptor.GetTypeConverters(memberInfo), ChoTypeDescriptor.GetTypeConverterParams(memberInfo));
+            //else
+            //    return null;
         }
     }
 }

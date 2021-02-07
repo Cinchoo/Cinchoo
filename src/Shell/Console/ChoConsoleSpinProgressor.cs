@@ -29,6 +29,7 @@
         private int _isStarted = 0;
         private int _index = 0;
 
+        private readonly AutoResetEvent _event = new AutoResetEvent(true);
         private readonly ConsoleColor _foregroundColor;
         private readonly ConsoleColor _backgroundColor;
         private readonly char[] _spinChars = new char[] { '/', '-', '\\', '|' };
@@ -98,6 +99,9 @@
 
         public void Start(ChoConsoleProgressorStart consoleProgressorStart, ChoAsyncCallback callback, object state, int timeout)
         {
+            if (ChoApplication.ApplicationMode != ChoApplicationMode.Console)
+                return;
+
             ChoGuard.NotDisposed(this);
 
             int isStarted = Interlocked.CompareExchange(ref _isStarted, 1, 0);
@@ -123,7 +127,7 @@
             Action<ChoConsoleSpinProgressor> wrappedFunc = delegate
             {
                 _threadToKill = Thread.CurrentThread;
-
+                _event.Set();
                 try
                 {
                     while (true)
@@ -152,6 +156,9 @@
 
         public void Stop()
         {
+            if (ChoApplication.ApplicationMode != ChoApplicationMode.Console)
+                return;
+            
             Interlocked.Exchange(ref _stopRequested, 1);
         }
 
@@ -161,6 +168,10 @@
 
         public void Abort()
         {
+            if (ChoApplication.ApplicationMode != ChoApplicationMode.Console)
+                return;
+            
+            _event.WaitOne();
             if (_threadToKill != null)
             {
                 if ((_threadToKill.ThreadState & (ThreadState.Aborted | ThreadState.Stopped)) == 0)
@@ -235,6 +246,9 @@
 
         private void SetStatusMsg(string statusMsg)
         {
+            if (ChoApplication.ApplicationMode != ChoApplicationMode.Console)
+                return;
+            
             if (statusMsg != null && statusMsg.Length > _consolePercentageProgressorSettings.ProgressBarStatusMsgSize)
                 statusMsg = statusMsg.Substring(0, _consolePercentageProgressorSettings.ProgressBarStatusMsgSize);
 

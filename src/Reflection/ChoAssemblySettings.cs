@@ -8,12 +8,13 @@ namespace Cinchoo.Core.Reflection
 
 	using Cinchoo.Core.Configuration;
 	using Cinchoo.Core.Text.RegularExpressions;
+    using System.Xml.Serialization;
 
 	#endregion NameSpaces
 
 	[ChoTypeFormatter("Assembly Settings")]
     [ChoConfigurationSection("cinchoo/assemblySettings", Defaultable = false)]
-	public class ChoAssemblySettings : /* ChoConfigurableObject, */ IChoObjectInitializable
+    public class ChoAssemblySettings : /* ChoConfigurableObject, */ IChoInitializable
 	{
 		#region Constants
 
@@ -21,6 +22,13 @@ namespace Cinchoo.Core.Reflection
 		private const string DefaultIncludeAssemblies = null;
 
 		#endregion Constants
+
+        #region Shared Data Members (Private)
+
+        private static readonly object _padLock = new object();
+        private static ChoAssemblySettings _instance;
+
+        #endregion Shared Data Members (Private)
 
 		#region Instance Data Members (Public)
 
@@ -34,21 +42,23 @@ namespace Cinchoo.Core.Reflection
 
 		#region Instance Data Members (Private)
 
-		private ChoWildcard[] _excludeAssembliesWildCard;
-		private ChoWildcard[] _includeAssembliesWildCard;
+		private List<ChoWildcard> _excludeAssembliesWildCard;
+		private List<ChoWildcard> _includeAssembliesWildCard;
 
 		#endregion Instance Data Members (Private)
 
 		#region Instance Properties (Public)
 
 		[ChoIgnoreMemberFormatter]
-		public ChoWildcard[] ExcludeAssembliesWildCard
+        [XmlIgnore]
+        public List<ChoWildcard> ExcludeAssembliesWildCard
 		{
 			get { return _excludeAssembliesWildCard; }
 		}
 
 		[ChoIgnoreMemberFormatter]
-		public ChoWildcard[] IncludeAssembliesWildCard
+        [XmlIgnore]
+        public List<ChoWildcard> IncludeAssembliesWildCard
 		{
 			get { return _includeAssembliesWildCard; }
 		}
@@ -57,12 +67,38 @@ namespace Cinchoo.Core.Reflection
 
 		#region Shared Properties
 
-		public static ChoAssemblySettings Me
-		{
-			get { return ChoConfigurationManagementFactory.CreateInstance<ChoAssemblySettings>(); }
-		}
+        public static ChoAssemblySettings Me
+        {
+            //get { return ChoConfigurationManagementFactory.CreateInstance<ChoAssemblySettings>(); }
+            get
+            {
+                if (_instance != null)
+                    return _instance;
+
+                lock (_padLock)
+                {
+                    if (_instance == null)
+                    {
+                        _instance = new ChoAssemblySettings(); // ChoCoreFrxConfigurationManager.Register<ChoAssemblySettings>();
+                        _instance.Initialize(false, null);
+                    }
+                }
+
+                return _instance;
+            }
+        }
 
 		#endregion
+
+        public void AddExcludeAssemblyWildCard(string expr)
+        {
+            ExcludeAssembliesWildCard.Add(new ChoWildcard(expr, System.Text.RegularExpressions.RegexOptions.Compiled));
+        }
+
+        public void AddIncludeAssemblyWildCard(string expr)
+        {
+            IncludeAssembliesWildCard.Add(new ChoWildcard(expr, System.Text.RegularExpressions.RegexOptions.Compiled));
+        }
 
 		#region IChoObjectInitializable Members
 
@@ -82,7 +118,7 @@ namespace Cinchoo.Core.Reflection
 				wildcards.Add(new ChoWildcard(excludeAssembly, System.Text.RegularExpressions.RegexOptions.Compiled));
 			}
 
-			_excludeAssembliesWildCard = wildcards.ToArray();
+			_excludeAssembliesWildCard = wildcards;
 
 			#endregion Exclude Assemblies
 
@@ -98,7 +134,7 @@ namespace Cinchoo.Core.Reflection
 				wildcards.Add(new ChoWildcard(includeAssembly, System.Text.RegularExpressions.RegexOptions.Compiled));
 			}
 
-			_includeAssembliesWildCard = wildcards.ToArray();
+			_includeAssembliesWildCard = wildcards;
 
 			#endregion Include Assemblies
 
@@ -106,5 +142,40 @@ namespace Cinchoo.Core.Reflection
 		}
 
 		#endregion
-	}
+
+        public void Initialize()
+        {
+            #region Exclude Assemblies
+
+            if (String.IsNullOrEmpty(ExcludeAssemblies))
+                ExcludeAssemblies = String.Empty;
+
+            List<ChoWildcard> wildcards = new List<ChoWildcard>();
+            foreach (string excludeAssembly in ExcludeAssemblies.SplitNTrim())
+            {
+                if (String.IsNullOrEmpty(excludeAssembly)) continue;
+                wildcards.Add(new ChoWildcard(excludeAssembly, System.Text.RegularExpressions.RegexOptions.Compiled));
+            }
+
+            _excludeAssembliesWildCard = wildcards;
+
+            #endregion Exclude Assemblies
+
+            #region Include Assemblies
+
+            if (String.IsNullOrEmpty(IncludeAssemblies))
+                IncludeAssemblies = String.Empty;
+
+            wildcards = new List<ChoWildcard>();
+            foreach (string includeAssembly in IncludeAssemblies.SplitNTrim())
+            {
+                if (String.IsNullOrEmpty(includeAssembly)) continue;
+                wildcards.Add(new ChoWildcard(includeAssembly, System.Text.RegularExpressions.RegexOptions.Compiled));
+            }
+
+            _includeAssembliesWildCard = wildcards;
+
+            #endregion Include Assemblies
+        }
+    }
 }

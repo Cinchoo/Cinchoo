@@ -8,6 +8,9 @@ namespace Cinchoo.Core
     using Cinchoo.Core.Common;
     using Cinchoo.Core.Configuration;
     using Cinchoo.Core.Diagnostics;
+    using Cinchoo.Core.Text;
+    using System.Collections.Generic;
+    using System.Text;
 
     #endregion NameSpaces
 
@@ -16,8 +19,8 @@ namespace Cinchoo.Core
     [ChoObjectFactory(ChoObjectConstructionType.Singleton)]
     [ChoConfigurationSection("cinchoo/propertyManagerSettings", Defaultable = false)]
     [XmlRoot("propertyManagerSettings")]
-    [ChoBufferProfile("Loaded Property Replacers....", NameFromTypeFullName = typeof(ChoPropertyManagerSettings), StartActions = "Truncate")]
-    public class ChoPropertyManagerSettings : IChoObjectInitializable
+    [ChoBufferProfile("Loaded Property Replacers....", NameFromTypeFullName = typeof(ChoPropertyManagerSettings))]
+    public class ChoPropertyManagerSettings : IChoInitializable
     {
         #region Instance Data Members (Public)
 
@@ -86,9 +89,28 @@ namespace Cinchoo.Core
 
         #region Shared Properties
 
+        private static readonly object _padLockFactory = new object();
+        private static ChoPropertyManagerSettings _instance;
+
         public static ChoPropertyManagerSettings Me
         {
-            get { return ChoConfigurationManagementFactory.CreateInstance<ChoPropertyManagerSettings>(); }
+            get 
+            {
+                if (_instance != null)
+                    return _instance;
+
+                lock (_padLockFactory)
+                {
+                    if (_instance == null)
+                    {
+                        _instance = new ChoPropertyManagerSettings();
+                        _instance.Initialize();
+                        ChoApplication.RaiseAfterAppFrxSettingsLoaded(_instance);
+                    }
+                }
+
+                return _instance;
+            }
         }
 
         private static ChoDictionary<string, IChoPropertyReplacer> _defaultPropertyReplacers;
@@ -108,6 +130,9 @@ namespace Cinchoo.Core
                     ChoEnvironmentVariablePropertyReplacer environmentVariablePropertyReplacer = new ChoEnvironmentVariablePropertyReplacer();
                     _defaultPropertyReplacers.Add(environmentVariablePropertyReplacer.Name, environmentVariablePropertyReplacer);
 
+                    ChoApplicationPropertyReplacer applicationPropertyReplacer = new ChoApplicationPropertyReplacer();
+                    _defaultPropertyReplacers.Add(applicationPropertyReplacer.Name, applicationPropertyReplacer);
+
                     //_defaultPropertyReplacers.Add(typeof(ChoGlobalCustomPropertyReplacer).Name, new ChoGlobalCustomPropertyReplacer());
 
                     ChoGlobalDynamicMethodInvokeReplacer globalDynamicMethodInvokeReplacer = new ChoGlobalDynamicMethodInvokeReplacer();
@@ -125,62 +150,54 @@ namespace Cinchoo.Core
 
         #region IChoObjectInitializable Members
 
-        public bool Initialize(bool beforeFieldInit, object state)
+        public void Initialize()
         {
             if (_propertyReplacers == null)
-            {
-                //ChoStreamProfile.Clean(ChoReservedDirectoryName.Settings, ChoType.GetLogFileName(typeof(ChoPropertyManagerSettings), ChoReservedFileExt.Err));
                 _propertyReplacers = new ChoDictionary<string, IChoPropertyReplacer>(DefaultPropertyReplacers);
-            }
 
-            if (!beforeFieldInit)
+            if (_propertyReplacers.Count == DefaultPropertyReplacers.Count)
             {
-                if (_propertyReplacers.Count == DefaultPropertyReplacers.Count)
+                if (PropertyDictionaryReplacers != null)
                 {
-                    if (PropertyDictionaryReplacers != null)
+                    foreach (ChoObjConfigurable objConfigurable in PropertyDictionaryReplacers)
                     {
-                        foreach (ChoObjConfigurable objConfigurable in PropertyDictionaryReplacers)
+                        if (objConfigurable == null)
+                            continue;
+                        if (String.IsNullOrEmpty(objConfigurable.Name))
+                            continue;
+                        if (!(objConfigurable is IChoKeyValuePropertyReplacer))
+                            continue;
+
+                        if (_propertyReplacers.ContainsKey(objConfigurable.Name))
                         {
-                            if (objConfigurable == null)
-                                continue;
-                            if (String.IsNullOrEmpty(objConfigurable.Name))
-                                continue;
-                            if (!(objConfigurable is IChoKeyValuePropertyReplacer))
-                                continue;
-
-                            if (_propertyReplacers.ContainsKey(objConfigurable.Name))
-                            {
-                                ChoProfile.WriteLine(String.Format("Item with {0} key already exists.", objConfigurable.Name));
-                                continue;
-                            }
-
-                            _propertyReplacers.Add(objConfigurable.Name, objConfigurable as IChoPropertyReplacer);
+                            ChoProfile.WriteLine(String.Format("Item with {0} key already exists.", objConfigurable.Name));
+                            continue;
                         }
+
+                        _propertyReplacers.Add(objConfigurable.Name, objConfigurable as IChoPropertyReplacer);
                     }
-                    if (CustomPropertyReplacers != null)
+                }
+                if (CustomPropertyReplacers != null)
+                {
+                    foreach (ChoObjConfigurable objConfigurable in CustomPropertyReplacers)
                     {
-                        foreach (ChoObjConfigurable objConfigurable in CustomPropertyReplacers)
+                        if (objConfigurable == null)
+                            continue;
+                        if (String.IsNullOrEmpty(objConfigurable.Name))
+                            continue;
+                        if (!(objConfigurable is IChoCustomPropertyReplacer))
+                            continue;
+
+                        if (_propertyReplacers.ContainsKey(objConfigurable.Name))
                         {
-                            if (objConfigurable == null)
-                                continue;
-                            if (String.IsNullOrEmpty(objConfigurable.Name))
-                                continue;
-                            if (!(objConfigurable is IChoCustomPropertyReplacer))
-                                continue;
-
-                            if (_propertyReplacers.ContainsKey(objConfigurable.Name))
-                            {
-                                ChoProfile.WriteLine(String.Format("Item with {0} key already exists.", objConfigurable.Name));
-                                continue;
-                            }
-
-                            _propertyReplacers.Add(objConfigurable.Name, objConfigurable as IChoPropertyReplacer);
+                            ChoProfile.WriteLine(String.Format("Item with {0} key already exists.", objConfigurable.Name));
+                            continue;
                         }
+
+                        _propertyReplacers.Add(objConfigurable.Name, objConfigurable as IChoPropertyReplacer);
                     }
                 }
             }
-
-            return false;
         }
 
         #endregion
@@ -217,6 +234,43 @@ namespace Cinchoo.Core
                 _propertyReplacers.Remove(name);
                 return true;
             }
+        }
+
+        public string GetHelpText()
+        {
+            StringBuilder msg = new StringBuilder("List of available properties" + Environment.NewLine);
+
+            msg.AppendLine();
+            msg.AppendLine("@this - Context info will be replaced.");
+            msg.AppendLine();
+
+            foreach (IChoPropertyReplacer propertyReplacer in PropertyReplacers)
+            {
+                if (propertyReplacer.AvailablePropeties == null) continue;
+
+                ChoStringMsgBuilder msg1 = new ChoStringMsgBuilder(propertyReplacer.Name);
+
+                foreach (KeyValuePair<string, string> keyValue in propertyReplacer.AvailablePropeties)
+                {
+                    msg1.AppendFormatLine("{0} - {1}", keyValue.Key, keyValue.Value);
+                }
+
+                msg.AppendLine(msg1.ToString());
+            }
+
+            ChoStringMsgBuilder msg2 = new ChoStringMsgBuilder("Application Propeties");
+            foreach (Dictionary<string, string> dict in ChoApplication.GetPropertyHelpTexts())
+            {
+                if (dict == null) continue;
+
+                foreach (KeyValuePair<string, string> keyValue in dict)
+                {
+                    msg2.AppendFormatLine("{0} - {1}", keyValue.Key, keyValue.Value);
+                }
+            }
+            msg.AppendLine(msg2.ToString());
+
+            return msg.ToString();
         }
 
         #endregion Instance Members (Public)

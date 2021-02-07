@@ -13,7 +13,12 @@
 	{
 		#region Constructors
 
-		public ChoStandardConfigurationObjectProxy(MarshalByRefObject target, Type type)
+        //public ChoStandardConfigurationObjectProxy(Type type)
+        //    : base(type)
+        //{
+        //}
+
+        public ChoStandardConfigurationObjectProxy(MarshalByRefObject target, Type type)
             : base(target, type)
         {
         }
@@ -36,5 +41,5 @@
 		{
 			base.Dispose(finalize);
 		}
-	}
+    }
 }

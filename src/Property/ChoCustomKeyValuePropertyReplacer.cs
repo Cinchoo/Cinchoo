@@ -38,14 +38,14 @@ namespace Cinchoo.Core
 
         #region IChoKeyValuePropertyReplacer Members
 
-        public bool ContainsProperty(string propertyName)
+        public bool ContainsProperty(string propertyName, object context)
         {
             ChoGuard.ArgumentNotNull(_keyValuePropertyReplacer, "KeyValuePropertyReplacer");
 
-            return _keyValuePropertyReplacer.ContainsProperty(propertyName);
+            return _keyValuePropertyReplacer.ContainsProperty(propertyName, context);
         }
 
-        public string ReplaceProperty(string propertyName, string format)
+        public string ReplaceProperty(string propertyName, string format, object context)
         {
             ChoGuard.ArgumentNotNull(_keyValuePropertyReplacer, "KeyValuePropertyReplacer");
 

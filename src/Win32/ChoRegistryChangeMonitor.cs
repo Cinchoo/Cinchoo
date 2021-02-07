@@ -149,11 +149,16 @@
 			lock (_padLock)
 			{
 				Thread thread = _thread;
-				if (thread != null)
-				{
-					_eventTerminate.Set();
-					thread.Join();
-				}
+                try
+                {
+                    if (thread != null && thread.IsAlive)
+                    {
+                        _eventTerminate.Set();
+                        thread.Join();
+                        _thread = null;
+                    }
+                }
+                catch { }
 			}
 		}
 
@@ -171,7 +176,6 @@
 			{
 				OnError(e);
 			}
-			_thread = null;
 		}
 
 		private void ThreadLoop()
@@ -290,7 +294,12 @@
 
 		protected override void Dispose(bool finalize)
 		{
-			Stop();
+            try
+            {
+                if (!finalize)
+                    Stop();
+            }
+            catch { }
 		}
 
 		#endregion Disposable Members

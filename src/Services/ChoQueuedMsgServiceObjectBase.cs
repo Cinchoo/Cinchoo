@@ -12,6 +12,8 @@
     {
         T State { get; }
         bool IsQuitServiceMsg { get; }
+        int Timeout { get; }
+        int MaxNoOfRetry { get; }
     }
 
     public abstract class ChoQueuedMsgServiceObjectBase<T> : IChoQueuedMsgServiceObject<T>
@@ -22,16 +24,20 @@
         {
         }
 
-        public ChoQueuedMsgServiceObjectBase(T state)
+        public ChoQueuedMsgServiceObjectBase(T state, int timeout = 10000, int maxNoOfRetry = 0)
         {
             _state = state;
+            _timeout = timeout;
+            _maxNoOfRetry = maxNoOfRetry;
         }
 
         #endregion Constructors
 
         #region Instance Data Members (Private)
 
-        private T _state;
+        private readonly T _state;
+        private readonly int _timeout;
+        private readonly int _maxNoOfRetry;
 
         #endregion Instance Data Members (Private)
 
@@ -48,5 +54,15 @@
         }
 
         #endregion
+
+        public int Timeout
+        {
+            get { return _timeout; }
+        }
+
+        public int MaxNoOfRetry
+        {
+            get { return _maxNoOfRetry; }
+        }
     }
 }

@@ -109,6 +109,8 @@ namespace Cinchoo.Core.Factory
                 //Call the initialize to all members
                 foreach (FieldInfo fieldInfo in ChoType.GetFields(target.GetType()))
                 {
+                    if (fieldInfo.IsReadOnly()) continue;
+
                     object fieldValue = ChoType.GetFieldValue(target, fieldInfo.Name);
                     if (fieldValue == null) continue;
 
@@ -146,6 +148,8 @@ namespace Cinchoo.Core.Factory
                 //Call the initialize to all members
                 foreach (FieldInfo fieldInfo in ChoType.GetFields(target.GetType()))
                 {
+                    if (fieldInfo.IsReadOnly()) continue;
+
                     object fieldValue = ChoType.GetFieldValue(target, fieldInfo.Name);
                     if (fieldValue == null) continue;
 
@@ -209,6 +213,8 @@ namespace Cinchoo.Core.Factory
                 //Call the initialize to all members
                 foreach (FieldInfo fieldInfo in ChoType.GetFields(target.GetType()))
                 {
+                    if (fieldInfo.IsReadOnly()) continue;
+
                     object fieldValue = ChoType.GetFieldValue(target, fieldInfo.Name);
                     if (fieldValue == null) continue;
 

@@ -5,10 +5,9 @@ namespace Cinchoo.Core
     using System;
     using System.Text;
     using System.Collections.Generic;
+    using System.Xml.Serialization;
 
     #endregion NameSpaces
-
-    public enum ChoDefaultObjectKey { Name, FullName, AssemblyQualifiedName }
 
     public abstract class ChoObjectNameableAttribute : Attribute
     {
@@ -40,13 +39,14 @@ namespace Cinchoo.Core
 
         #region IChoObjectNameable Members
 
+        [XmlIgnore]
         public string Name
         {
             get { return _name; }
-            protected set
+            set
             {
                 ChoGuard.ArgumentNotNull(value, "Name");
-                _name = value;
+                _name = value.SplitNTrim()[0];
             }
         }
 
@@ -56,10 +56,10 @@ namespace Cinchoo.Core
 
         public static string GetName(Type objType)
         {
-            return GetName(objType, ChoDefaultObjectKey.FullName);
+            return GetName(objType, ChoTypeNameSpecifier.FullName);
         }
 
-        public static string GetName(Type objType, ChoDefaultObjectKey typeName)
+        public static string GetName(Type objType, ChoTypeNameSpecifier typeNameSpecifier)
         {
             ChoGuard.ArgumentNotNull(objType, "Type");
             ChoObjectNameableAttribute objectNameableAttribute = ChoType.GetAttribute(objType, typeof(ChoObjectNameableAttribute)) as ChoObjectNameableAttribute;
@@ -68,20 +68,7 @@ namespace Cinchoo.Core
             if (objectNameableAttribute != null)
                 key = objectNameableAttribute.Name;
             else
-            {
-                switch (typeName)
-                {
-                    case ChoDefaultObjectKey.FullName:
-                        key = objType.FullName;
-                        break;
-                    case ChoDefaultObjectKey.AssemblyQualifiedName:
-                        key = objType.AssemblyQualifiedName;
-                        break;
-                    default:
-                        key = objType.Name;
-                        break;
-                }
-            }
+                key = objType.GetName(typeNameSpecifier);
 
             return key;
 

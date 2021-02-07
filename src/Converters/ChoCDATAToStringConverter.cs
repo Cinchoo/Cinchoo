@@ -7,11 +7,14 @@
     using System.Text;
     using System.ComponentModel;
     using Cinchoo.Core.Xml.Serialization;
+    using System.Text.RegularExpressions;
 
     #endregion NameSpaces
 
     public class ChoCDATAToStringConverter : TypeConverter
     {
+        //private static readonly Regex _regex = new Regex(@"\<\!\[CDATA\[(?<text>[^\]]*)\]\]\>", RegexOptions.Multiline | RegexOptions.Compiled);
+
         #region TypeConverter Overrides
 
         // Returns true for a sourceType of string to indicate that 
@@ -34,8 +37,19 @@
         // already in the array.
         public override object ConvertFrom(System.ComponentModel.ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value)
         {
+            if (value == null) return value;
+
             if (value is string)
-                return new ChoCDATA(value as string);
+            {
+                string text = value as string;
+                if (text.StartsWith("<![CDATA[") && text.EndsWith("]]>"))
+                {
+                    string HTMLtext = text.Substring(9, text.Length - 12);
+                    return new ChoCDATA(HTMLtext);
+                }
+                else
+                    return new ChoCDATA(value as string);
+            }
 
             return base.ConvertFrom(context, culture, value);
         }
@@ -55,7 +69,7 @@
 
             if (value is ChoCDATA)
             {
-                return ((ChoCDATA)value).Value.ToString();
+                return ((ChoCDATA)value).ToString();
             }
             return base.ConvertFrom(context, culture, value);
         }

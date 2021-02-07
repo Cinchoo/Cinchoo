@@ -24,7 +24,7 @@
         private string _msg;
         private ChoPoint _location;
         private ChoPoint _statusMsgLocation;
-        private IChoAbortableAsyncResult _result;
+        private IChoAbortableAsyncResult _result = null;
         private Thread _threadToKill = null;
         private int _stopRequested = 0;
         private int _isStarted = 0;
@@ -123,13 +123,16 @@
             Start(consolePercentageProgressorStart, null, null, timeout);
         }
 
-        public void Start(ChoConsolePercentageProgressorStart consolePercentageProgressorStart, ChoAsyncCallback callback, object state)
+        public void Start(ChoConsolePercentageProgressorStart consolePercentageProgressorStart, ChoAbortableAsyncCallback callback, object state)
         {
             Start(consolePercentageProgressorStart, callback, state, Timeout.Infinite);
         }
 
-        public void Start(ChoConsolePercentageProgressorStart consolePercentageProgressorStart, ChoAsyncCallback callback, object state, int timeout)
+        public void Start(ChoConsolePercentageProgressorStart consolePercentageProgressorStart, ChoAbortableAsyncCallback callback, object state, int timeout)
         {
+            if (ChoApplication.ApplicationMode != ChoApplicationMode.Console)
+                return;
+
             ChoGuard.NotDisposed(this);
 
             //if (_isStarted) return;
@@ -207,6 +210,9 @@
 
         public void Stop()
         {
+            if (ChoApplication.ApplicationMode != ChoApplicationMode.Console)
+                return;
+
             Interlocked.Exchange(ref _stopRequested, 1);
         }
 
@@ -295,6 +301,9 @@
 
         private void SetStatusMsg(string statusMsg)
         {
+            if (ChoApplication.ApplicationMode != ChoApplicationMode.Console)
+                return;
+
             if (statusMsg != null && statusMsg.Length > _consolePercentageProgressorSettings.ProgressBarStatusMsgSize)
                 statusMsg = statusMsg.Substring(0, _consolePercentageProgressorSettings.ProgressBarStatusMsgSize);
 

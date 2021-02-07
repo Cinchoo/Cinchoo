@@ -47,6 +47,9 @@
         public static string GetEnumDescription(Enum enumValue)
         {
             Type type = enumValue.GetType();
+            
+            if (!_enumTypeCache.ContainsKey(type))
+                DiscoverEnumType(type);
 
             if (!_enumTypeCache.ContainsKey(type))
                 return null;

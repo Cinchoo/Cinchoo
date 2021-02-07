@@ -139,11 +139,11 @@ namespace Cinchoo.Core
 	[ChoConfigurationSection("cinchoo/codeBase", Defaultable = false)]
 	public class ChoCodeBase //: IChoObjectInitializable //, IChoObjectCleanable
 	{
-		#region Shared Data Members (Private)
+        //#region Shared Data Members (Private)
 
-		private static FileSystemWatcher _fileSystemWatcher = new FileSystemWatcher();
+        //private static FileSystemWatcher _fileSystemWatcher = new FileSystemWatcher();
 
-		#endregion Shared Data Members (Private)
+        //#endregion Shared Data Members (Private)
 
 		#region Instance Data Members (Public)
 
@@ -156,6 +156,8 @@ namespace Cinchoo.Core
 		[XmlElement("codeBasePath", typeof(CodeBasePath))]
 		[ChoIgnoreMemberFormatter]
 		public CodeBasePath[] CodeBasePaths;
+
+        private readonly object _padLock = new object();
 
 		#endregion
 
@@ -199,12 +201,40 @@ namespace Cinchoo.Core
 		[ChoMemberFormatter("Paths", Formatter=typeof(ChoArrayToStringFormatter))]
 		public string[] Paths
 		{
-			get { return _paths.ToArray(); }
+            get
+            {
+                lock (_padLock)
+                {
+                    return _paths.ToArray();
+                }
+            }
 		}
 
 		#endregion
 
 		#region IObjectInitializable Members
+
+        public void Add(string path, bool includeSubDir = true)
+        {
+            lock (_padLock)
+            {
+                if (path.IsNullOrWhiteSpace()) return;
+                if (File.Exists(path)) return;
+                if (!Directory.Exists(path)) return;
+
+                if (!_paths.Contains(path))
+                    _paths.Add(path);
+
+                if (includeSubDir)
+                {
+                    foreach (string subDir in Directory.GetDirectories(path))
+                    {
+                        if (!_paths.Contains(subDir))
+                            _paths.Add(subDir);
+                    }
+                }
+            }
+        }
 
         public void Initialize()
         {

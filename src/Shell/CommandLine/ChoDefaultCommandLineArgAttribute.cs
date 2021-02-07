@@ -9,35 +9,63 @@
     #endregion NameSpaces
 
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public class ChoDefaultCommandLineArgAttribute : Attribute
+    public abstract class ChoDefaultCommandLineArgAttribute : Attribute
     {
         #region Public Instance Properties
 
-        public bool IsRequired
-        {
-            get;
-            set;
-        }
-        public object DefaultValue
+        internal bool IsDefaultValueSpecified { get; set; }
+        internal bool IsFallbackValueSpecified { get; set; }
+
+        public int Order
         {
             get;
             set;
         }
 
-        public string Description
+        public virtual bool IsRequired
         {
             get;
             set;
         }
 
-        public string ShortName
+        private string _defaultValue;
+        public string DefaultValue
+        {
+            get { return _defaultValue; }
+            set
+            {
+                IsDefaultValueSpecified = true;
+                _defaultValue = value;
+            }
+        }
+
+        private string _fallbackValue;
+        public string FallbackValue
+        {
+            get { return _fallbackValue; }
+            set
+            {
+                IsFallbackValueSpecified = true;
+                _fallbackValue = value;
+            }
+        }
+
+        public virtual Type SourceType { get; set; }
+
+        public virtual string Description
+        {
+            get;
+            set;
+        }
+
+        public virtual string ShortName
         {
             get;
             set;
         }
 
         private int _descriptionFormatLineSize = 60;
-        public int DescriptionFormatLineSize
+        public virtual int DescriptionFormatLineSize
         {
             get { return _descriptionFormatLineSize; }
             set
@@ -48,28 +76,19 @@
         }
 
         private char _descriptionFormatLineBreakChar = ' ';
-        public char DescriptionFormatLineBreakChar
+        public virtual char DescriptionFormatLineBreakChar
         {
             get { return _descriptionFormatLineBreakChar; }
-            set { _descriptionFormatLineBreakChar = value; }
+            set { if (_descriptionFormatLineBreakChar != ChoChar.NUL) _descriptionFormatLineBreakChar = value; }
         }
 
-        private int _descriptionFormatLineNoOfTabs = 1;
-        public int DescriptionFormatLineNoOfTabs
+        private int _noOfTabsSwitchDescFormatSeparator = 1;
+        public virtual int NoOfTabsSwitchDescFormatSeparator
         {
-            get { return _descriptionFormatLineNoOfTabs; }
-            set { _descriptionFormatLineNoOfTabs = value; }
-        }
-
-        private string _switchValueSeperator = "\t";
-        public string SwitchValueSeperator
-        {
-            get { return _switchValueSeperator; }
-            set { _switchValueSeperator = value; }
+            get { return _noOfTabsSwitchDescFormatSeparator; }
+            set { if (value > 0) _noOfTabsSwitchDescFormatSeparator = value; }
         }
 
         #endregion Public Instance Properties
-
-        public object FallbackValue { get; set; }
     }
 }

@@ -44,50 +44,261 @@ namespace Cinchoo.Core.Diagnostics
     using System.Text;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Management;
+    using System.IO;
+    using System.Security;
+    using System.Threading.Tasks;
 
     #endregion NameSpaces
 
-    public static class ChoProcess
+    public class ChoProcessResult
     {
-        public static int Execute(string fileName, string args)
+        public string StdOut
         {
-            string output;
-            return Execute(fileName, args, out output);
+            get;
+            internal set;
         }
 
-        public static int Execute(string fileName, string args, out string output)
+        public string StdErr
+        {
+            get;
+            internal set;
+        }
+
+        public int ExitCode
+        {
+            get;
+            internal set;
+        }
+
+        public Process Process
+        {
+            get;
+            internal set;
+        }
+        public Task Task
+        {
+            get;
+            internal set;
+        }
+
+        public void Kill()
+        {
+            if (Process != null)
+                Process.Kill();
+        }
+    }
+
+    public class ChoProcess : ChoSyncDisposableObject
+    {
+        #region Instance Data Members (Private)
+
+        public readonly string FileName;
+        public readonly string Arguments;
+        public string UserName;
+        public SecureString Password;
+        public string Domain;
+        public string WorkingDirectory;
+        public int Timeout;
+        public bool UseShellExecute;
+        public string Verb;
+
+        private System.Diagnostics.Process _process;
+        private StringBuilder _stdout = new StringBuilder();
+        private StringBuilder _stderr = new StringBuilder();
+
+        #endregion Instance Data Members (Private)
+
+        #region Constructors
+
+        public ChoProcess(string fileName, string arguments = null)
+        {
+            ChoGuard.ArgumentNotNullOrEmpty(fileName, "FileName");
+
+            FileName = fileName;
+            Arguments = arguments;
+        }
+
+        #endregion Constructors
+
+        #region Instance Members (Public)
+
+        public ChoProcessResult ExecuteAsync()
+        {
+            ChoProcessResult result = new ChoProcessResult();
+
+            Task task = Task.Factory.StartNew((r) =>
+                {
+                    Execute(r as ChoProcessResult);
+                }, result);
+
+            result.Task = task;
+
+            return result;
+        }
+
+        public ChoProcessResult Execute()
+        {
+            ChoProcessResult result = new ChoProcessResult();
+            Execute(result);
+            return result;
+        }
+
+        public ChoProcessResult Execute(ProcessStartInfo processStartInfo)
+        {
+            ChoProcessResult result = new ChoProcessResult();
+            Execute(processStartInfo, result);
+            return result;
+        }
+
+        #endregion Instance Members (Public)
+
+        #region Events
+
+        public event EventHandler<DataReceivedEventArgs> OutputDataReceived;
+        public event EventHandler<DataReceivedEventArgs> ErrorDataReceived;
+
+        #endregion Events
+
+        #region Instance Members (Private)
+
+        private void Execute(ChoProcessResult result)
         {
             ProcessStartInfo processStartInfo = new ProcessStartInfo();
-            processStartInfo.UseShellExecute = false;
+            processStartInfo.UseShellExecute = UseShellExecute;
             processStartInfo.CreateNoWindow = true;
-            processStartInfo.Arguments = args;
-            processStartInfo.FileName = fileName;
-            processStartInfo.RedirectStandardOutput = true;
+            processStartInfo.Arguments = Arguments;
+            processStartInfo.FileName = FileName;
+            if (!Verb.IsNullOrWhiteSpace())
+                processStartInfo.Verb = Verb;
+            processStartInfo.RedirectStandardOutput = !UseShellExecute;
+            processStartInfo.RedirectStandardError = !UseShellExecute;
 
-            return Execute(processStartInfo, out output);
+            if (!WorkingDirectory.IsNullOrWhiteSpace())
+                processStartInfo.WorkingDirectory = WorkingDirectory;
+            else if (!Path.GetDirectoryName(FileName).IsNullOrWhiteSpace())
+                processStartInfo.WorkingDirectory = Path.GetDirectoryName(FileName);
+
+            if (!Domain.IsNullOrWhiteSpace())
+                processStartInfo.Domain = Domain;
+
+            if (!UserName.IsNullOrWhiteSpace())
+                processStartInfo.UserName = UserName;
+
+            if (Password != null)
+                processStartInfo.Password = Password;
+
+            Execute(processStartInfo, result);
         }
 
-        public static int Execute(ProcessStartInfo processStartInfo)
+        private void Execute(ProcessStartInfo processStartInfo, ChoProcessResult result)
         {
-            string output;
-            return Execute(processStartInfo, out output);
-        }
+            _process = result.Process = new System.Diagnostics.Process();
+            _process.StartInfo = processStartInfo;
+            if (processStartInfo.RedirectStandardOutput)
+                _process.OutputDataReceived += (sender, e) => { RaiseOutputDataReceived(e); };
+            if (processStartInfo.RedirectStandardError)
+                _process.ErrorDataReceived += (sender, e) => { RaiseErrorDataReceived(e); };
 
-        public static int Execute(ProcessStartInfo processStartInfo, out string output)
-        {
-            ChoGuard.ArgumentNotNull(processStartInfo, "processStartInfo");
+            _process.EnableRaisingEvents = true;
+            _process.Start();
 
-            output = null;
-            using (Process process = new Process())
+            if (processStartInfo.RedirectStandardOutput)
+                _process.BeginOutputReadLine();
+            if (processStartInfo.RedirectStandardError)
+                _process.BeginErrorReadLine();
+
+            if (Timeout > 0)
             {
-                process.EnableRaisingEvents = false;
-                process.StartInfo = processStartInfo;
-
-                process.Start();
-                output = process.StandardOutput.ReadToEnd();
-
-                return process.ExitCode;
+                if (!_process.WaitForExit(Timeout))
+                    throw new ChoTimeoutException("Process timedout [{0}ms].".FormatString(Timeout));
             }
+            else
+                _process.WaitForExit();
+
+            result.ExitCode = _process.ExitCode;
+            result.StdOut = _stdout.ToString();
+            result.StdErr = _stderr.ToString();
+
+            if (result.ExitCode != 0)
+                throw new ChoProcessException("Process exited with '{0}' error code.".FormatString(result.ExitCode));
+            else if (!result.StdErr.IsNullOrWhiteSpace())
+                throw new ChoProcessException(result.StdErr);
         }
+
+        #endregion Instance Members (Private)
+
+        #region Other members (protected)
+
+        private void RaiseOutputDataReceived(DataReceivedEventArgs e)
+        {
+            if (e == null) return;
+
+            OutputDataReceived.Raise(this, e);
+            OnOutputDataReceived(e.Data);
+        }
+
+        protected virtual void OnOutputDataReceived(string data)
+        {
+            if (data != null)
+                _stdout.Append(data);
+        }
+
+        private void RaiseErrorDataReceived(DataReceivedEventArgs e)
+        {
+            if (e == null) return;
+
+            ErrorDataReceived.Raise(this, e);
+            OnErrorDataReceived(e.Data);
+        }
+
+        protected virtual void OnErrorDataReceived(string data)
+        {
+            if (data != null)
+                _stderr.Append(data);
+        }
+
+        #endregion
+
+        #region Shared Members (Public)
+
+        public static bool Kill(int pid)
+        {
+            bool killAnyProcess = false;
+            Process[] procs = Process.GetProcesses();
+            for (int i = 0; i < procs.Length; i++)
+            {
+                killAnyProcess = GetParentProcess(procs[i].Id) == pid && Kill(procs[i].Id);
+            }
+         
+            Process myProc = Process.GetProcessById(pid);
+            if (myProc != null)
+            {
+                myProc.Kill();
+                return true;
+            }
+            return killAnyProcess;
+        }
+
+        private static int GetParentProcess(int Id)
+        {
+            int parentPid = 0;
+            using (ManagementObject mo = new ManagementObject("win32_process.handle='" + Id.ToString() + "'"))
+            {
+                mo.Get();
+                parentPid = Convert.ToInt32(mo["ParentProcessId"]);
+            }
+            return parentPid;
+        }
+
+        #endregion Shared Members (Public)
+
+        #region IDisposable Overrides
+
+        protected override void Dispose(bool finalize)
+        {
+        }
+
+        #endregion IDisposable Overrides
     }
 }

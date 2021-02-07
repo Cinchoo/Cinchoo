@@ -13,7 +13,7 @@ namespace Cinchoo.Core
     {
         #region Instance Data Members (Private)
 
-        private char _seperator = ';';
+        private char _separator = ';';
 
         #endregion Instance Data Members (Private)
 
@@ -39,7 +39,7 @@ namespace Cinchoo.Core
             {
                 if (Parameters.Length > 0 && Parameters[0] is char)
                 {
-                    _seperator = (char)Parameters[0];
+                    _separator = (char)Parameters[0];
                 }
             }
         }
@@ -63,7 +63,7 @@ namespace Cinchoo.Core
             {
                 string valueString = ((string)value).Trim();
                 if (string.IsNullOrEmpty(valueString)) return null;
-                return valueString.SplitNTrim(_seperator);
+                return valueString.SplitNTrim(_separator);
             }
 			return null; //base.ConvertFrom(context, culture, value);
         }
@@ -88,7 +88,7 @@ namespace Cinchoo.Core
 						if (msg.Length == 0)
 							msg.AppendFormat("{0}".FormatString(arrItem.ToString()));
 						else
-                            msg.AppendFormat("{1} {0}".FormatString(arrItem.ToString(), _seperator));
+                            msg.AppendFormat("{1} {0}".FormatString(arrItem.ToString(), _separator));
 					}
 				}
 				return msg.ToString();

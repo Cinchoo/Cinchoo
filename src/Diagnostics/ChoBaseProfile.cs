@@ -4,16 +4,15 @@
 
 	using System;
     using System.Diagnostics;
+using System.Collections.Generic;
 
     #endregion NameSpaces
 
 	[Serializable]
 	[DebuggerDisplay("Name={_name}")]
 	public abstract class ChoBaseProfile : ChoProfileContainer, IChoProfile, IChoTrace, IChoSyncDisposable
-	{
-		#region Constants
-
-		private const string DEFAULT_NAME = "$GLOBAL";
+    {
+        #region Constants
 
 		#endregion Constants
 
@@ -22,9 +21,9 @@
 		private readonly int _indent = 0;
 		private readonly string _msg = "Elapsed time taken by `{0}` profile:";
 		private readonly string _name;
-		private readonly ChoBaseProfile _outerProfile = null;
+        private readonly IChoProfile _outerProfile = null;
 		private readonly IChoProfileBackingStore _profileBackingStore;
-		private readonly bool _condition = _defaultCondition;
+		private readonly bool _condition = ChoTraceSwitch.Switch.TraceVerbose;
 		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		private readonly object _padLock = new object();
 		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -41,7 +40,7 @@
 
 		#region Shared Data Members (Private)
 
-		private static readonly bool _defaultCondition = ChoTrace.GetChoSwitch().TraceVerbose;
+        //private static readonly bool ChoTraceSwitch.Switch.TraceVerbose = ChoTraceSwitch.Switch.TraceVerbose;
 
 		#endregion Shared Data Members (Private)
 
@@ -56,32 +55,41 @@
 		{
 		}
 
-		public ChoBaseProfile(string msg, ChoBaseProfile outerProfile)
-			: this(_defaultCondition, DEFAULT_NAME, msg, outerProfile)
+        public ChoBaseProfile(string msg, IChoProfile outerProfile)
+			: this(ChoTraceSwitch.Switch.TraceVerbose, ChoProfile.DEFAULT_PROFILE_NAME, msg, outerProfile)
 		{
 		}
 
 		public ChoBaseProfile(string name, string msg)
-			: this(_defaultCondition, name, msg)
+			: this(ChoTraceSwitch.Switch.TraceVerbose, name, msg)
 		{
 		}
+
+        public ChoBaseProfile(string name, string msg, IChoProfile outerProfile)
+            : this(ChoTraceSwitch.Switch.TraceVerbose, name, msg, outerProfile)
+        {
+        }
 
 		public ChoBaseProfile(bool condition, string name, string msg)
 			: this(condition, name, msg, null)
 		{
 		}
 
-		private ChoBaseProfile(bool condition, string name, string msg, ChoBaseProfile outerProfile)
+        public ChoBaseProfile(bool condition, string name, string msg, IChoProfile outerProfile)
 			: this(condition, name, msg, outerProfile, false, null, null)
 		{
 		}
 
-		internal ChoBaseProfile(bool condition, string name, string msg, ChoBaseProfile outerProfile, bool delayedStartProfile, string startActions, string stopActions)
+        private readonly IChoProfile _parentProfile = null;
+        private readonly bool _registered = false;
+
+        internal ChoBaseProfile(bool condition, string name, string msg, IChoProfile outerProfile, bool delayedStartProfile, string startActions, string stopActions)
 		{
 			_condition = condition;
-			_name = name;
-			_outerProfile = outerProfile;
-			if (_outerProfile == null)
+			_name = name.IsNullOrWhiteSpace() || name == ChoProfile.DEFAULT_PROFILE_NAME ? String.Format("Profile_{0}".FormatString(ChoRandom.NextRandom())) : name;
+            if (outerProfile != ChoProfile.NULL)
+                _outerProfile = outerProfile;
+            if (_outerProfile == null)
 				_profileBackingStore = ChoProfileBackingStoreManager.GetProfileBackingStore(name, startActions, stopActions);
 			_delayedStartProfile = delayedStartProfile;
 			if (_condition)
@@ -96,14 +104,26 @@
 
 			if (ChoTraceSettings.Me.IndentProfiling)
 			{
-				if (outerProfile != null)
-					_indent = outerProfile.Indent + 1;
+                if (outerProfile != null)
+                {
+                    if (outerProfile.ProfilerName != ChoProfile.GLOBAL_PROFILE_NAME && outerProfile.ProfilerName != ChoProfile.NULL_PROFILE_NAME)
+                        _indent = outerProfile.Indent + 1;
+                }
 			}
 			if (!_delayedStartProfile)
 				StartIfNotStarted();
 
 			if (_outerProfile is ChoProfileContainer)
+            {
 				((ChoProfileContainer)_outerProfile).Add(this);
+                _parentProfile = outerProfile;
+            }
+
+            if (name != ChoProfile.GLOBAL_PROFILE_NAME && name != ChoProfile.NULL_PROFILE_NAME && name != ChoProfile.CURRENT_CONTEXT_PROFILE /* && outerProfile != null */)
+            {
+                ChoProfile.Register(this);
+                _registered = true;
+            }
 		}
 
 		internal ChoBaseProfile(string name, string msg, bool dummy)
@@ -205,11 +225,11 @@
 
 		protected abstract void Flush();
 		protected abstract void Write(string msg);
-		protected virtual void CloseBackingStore()
-		{
-			if (_profileBackingStore != null)
-				_profileBackingStore.Stop();
-		}
+        //protected virtual void CloseBackingStore()
+        //{
+        //    if (_profileBackingStore != null)
+        //        _profileBackingStore.Stop();
+        //}
 
 		protected override void Dispose(bool finalize)
 		{
@@ -218,11 +238,18 @@
 				StartIfNotStarted();
 
 				Clear();
-				if (_condition)
-					Write(String.Format("}} [{0}] <---{1}", Convert.ToString(DateTime.Now - _startTime), Environment.NewLine), _indent);
+                if (_condition)
+                {
+                    if (_name != ChoProfile.GLOBAL_PROFILE_NAME && _name != ChoProfile.NULL_PROFILE_NAME)
+                        Write(String.Format("}} [{0}] <---{1}", Convert.ToString(DateTime.Now - _startTime), Environment.NewLine), _indent);
+                }
 
 				Flush();
-				CloseBackingStore();
+
+                if (_registered)
+                    ChoProfile.Unregister(this);
+
+                //CloseBackingStore();
 			}
 			catch (Exception ex)
 			{
@@ -237,9 +264,9 @@
 		protected void WriteToBackingStore(string msg)
 		{
 			if (_outerProfile != null)
-				_outerProfile.Write(msg);
+				((ChoBaseProfile)_outerProfile).Write(msg);
 			else if (_profileBackingStore != null)
-				_profileBackingStore.Write(msg);
+                _profileBackingStore.Write(msg, Tag);
 			else
 				Trace.Write(msg);
 		}
@@ -269,8 +296,11 @@
 				_startTime = DateTime.Now;
 				_started = true;
 
-				if (_condition)
-					Write(String.Format("{0} {{ [{1}]{2}", _msg, DateTime.Now.ToString("MM/dd/yyyy hh:mm:ss"), Environment.NewLine), _indent);
+                if (_condition)
+                {
+                    if (_name != ChoProfile.GLOBAL_PROFILE_NAME && _name != ChoProfile.NULL_PROFILE_NAME)
+                        Write(String.Format("{0} {{ [{1}]{2}", _msg, DateTime.Now.ToString("MM/dd/yyyy hh:mm:ss"), Environment.NewLine), _indent);
+                }
 			}
 		}
 
@@ -281,12 +311,12 @@
 		public void Debug(object message)
 		{
 			if (message != null)
-				AppendLineIf(ChoTrace.ChoSwitch.TraceVerbose, message.ToString());
+				AppendLineIf(ChoTraceSwitch.Switch.TraceVerbose, message.ToString());
 		}
 
 		public void Debug(Exception exception)
 		{
-			AppendIf(ChoTrace.ChoSwitch.TraceVerbose, exception);
+			AppendIf(ChoTraceSwitch.Switch.TraceVerbose, exception);
 		}
 
 		public void Debug(object message, Exception exception)
@@ -297,23 +327,23 @@
 
 		public void DebugFormat(string format, params object[] args)
 		{
-			AppendLineIf(ChoTrace.ChoSwitch.TraceVerbose, String.Format(format, args));
+			AppendLineIf(ChoTraceSwitch.Switch.TraceVerbose, String.Format(format, args));
 		}
 
 		public void DebugFormat(IFormatProvider provider, string format, params object[] args)
 		{
-			AppendLineIf(ChoTrace.ChoSwitch.TraceVerbose, String.Format(provider, format, args));
+			AppendLineIf(ChoTraceSwitch.Switch.TraceVerbose, String.Format(provider, format, args));
 		}
 
 		public void Error(object message)
 		{
 			if (message != null)
-				AppendLineIf(ChoTrace.ChoSwitch.TraceError, message.ToString());
+				AppendLineIf(ChoTraceSwitch.Switch.TraceError, message.ToString());
 		}
 
 		public void Error(Exception exception)
 		{
-			AppendIf(ChoTrace.ChoSwitch.TraceError, exception);
+			AppendIf(ChoTraceSwitch.Switch.TraceError, exception);
 		}
 
 		public void Error(object message, Exception exception)
@@ -324,23 +354,23 @@
 
 		public void ErrorFormat(string format, params object[] args)
 		{
-			AppendLineIf(ChoTrace.ChoSwitch.TraceError, String.Format(format, args));
+			AppendLineIf(ChoTraceSwitch.Switch.TraceError, String.Format(format, args));
 		}
 
 		public void ErrorFormat(IFormatProvider provider, string format, params object[] args)
 		{
-			AppendLineIf(ChoTrace.ChoSwitch.TraceError, String.Format(provider, format, args));
+			AppendLineIf(ChoTraceSwitch.Switch.TraceError, String.Format(provider, format, args));
 		}
 
 		public void Info(object message)
 		{
 			if (message != null)
-				AppendLineIf(ChoTrace.ChoSwitch.TraceInfo, message.ToString());
+				AppendLineIf(ChoTraceSwitch.Switch.TraceInfo, message.ToString());
 		}
 
 		public void Info(Exception exception)
 		{
-			AppendIf(ChoTrace.ChoSwitch.TraceInfo, exception);
+			AppendIf(ChoTraceSwitch.Switch.TraceInfo, exception);
 		}
 
 		public void Info(object message, Exception exception)
@@ -351,23 +381,23 @@
 
 		public void InfoFormat(string format, params object[] args)
 		{
-			AppendLineIf(ChoTrace.ChoSwitch.TraceInfo, String.Format(format, args));
+			AppendLineIf(ChoTraceSwitch.Switch.TraceInfo, String.Format(format, args));
 		}
 
 		public void InfoFormat(IFormatProvider provider, string format, params object[] args)
 		{
-			AppendLineIf(ChoTrace.ChoSwitch.TraceInfo, String.Format(provider, format, args));
+			AppendLineIf(ChoTraceSwitch.Switch.TraceInfo, String.Format(provider, format, args));
 		}
 
 		public void Warn(object message)
 		{
 			if (message != null)
-				AppendLineIf(ChoTrace.ChoSwitch.TraceWarning, message.ToString());
+				AppendLineIf(ChoTraceSwitch.Switch.TraceWarning, message.ToString());
 		}
 
 		public void Warn(Exception exception)
 		{
-			AppendIf(ChoTrace.ChoSwitch.TraceWarning, exception);
+			AppendIf(ChoTraceSwitch.Switch.TraceWarning, exception);
 		}
 
 		public void Warn(object message, Exception exception)
@@ -378,12 +408,12 @@
 
 		public void WarnFormat(string format, params object[] args)
 		{
-			AppendLineIf(ChoTrace.ChoSwitch.TraceWarning, String.Format(format, args));
+			AppendLineIf(ChoTraceSwitch.Switch.TraceWarning, String.Format(format, args));
 		}
 
 		public void WarnFormat(IFormatProvider provider, string format, params object[] args)
 		{
-			AppendLineIf(ChoTrace.ChoSwitch.TraceWarning, String.Format(provider, format, args));
+			AppendLineIf(ChoTraceSwitch.Switch.TraceWarning, String.Format(provider, format, args));
 		}
 
 		#endregion
@@ -396,5 +426,11 @@
 		}
 
 		#endregion
+
+        public object Tag
+        {
+            get;
+            set;
+        }
 	}
 }

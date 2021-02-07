@@ -3,6 +3,7 @@
 	#region NameSpaces
 
 	using System;
+    using System.Xml.Serialization;
 
 	#endregion NameSpaces
 
@@ -43,7 +44,7 @@
 		{
 			ChoGuard.NotNull(configObjectAdapterType, CONFIG_OBJECT_ADAPTER_TYPE);
 
-			_configObjectAdapterType = configObjectAdapterType.AssemblyQualifiedName;
+            _configObjectAdapterType = configObjectAdapterType.SimpleQualifiedName();
             _configObjectAdapterParams = configObjectAdapterParams;
         }
 
@@ -52,7 +53,8 @@
 		#region Instance Properties (Public)
 
 		private Type _configSectionHandlerType = typeof(ChoDictionarySectionHandler);
-		public override Type ConfigSectionHandlerType
+        [XmlIgnore]
+        public override Type ConfigSectionHandlerType
 		{
 			get { return _configSectionHandlerType; }
 			protected set { _configSectionHandlerType = value; }

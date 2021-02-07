@@ -9,9 +9,9 @@ namespace Cinchoo.Core
 
     #endregion NameSpaces
 
-    [ChoStringObjectFormattable]
+    [ChoStringObjectFormattable(typeof(uint))]
     [CLSCompliant(false)]
-    public class ChoUInt
+    public class ChoUInt : IChoStringObjectFormatter<uint>
     {
         #region Constants
 
@@ -71,6 +71,12 @@ namespace Cinchoo.Core
         public uint Value
         {
             get { return _value; }
+        }
+
+        public string GetHelpText()
+        {
+            ChoUInt x = new ChoUInt(10);
+            return x.ToFormattedString();
         }
 
         #endregion Instance Members (Public)

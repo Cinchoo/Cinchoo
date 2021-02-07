@@ -22,6 +22,7 @@
 
 		private readonly Action _action;
 		private readonly Action<Thread> _wrappedAction;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
 		#endregion Instance Data Members (Private)
 
@@ -34,7 +35,8 @@
 			_wrappedAction = (@thread) =>
 			{
 				@thread = Thread.CurrentThread;
-				_action();
+                _event.Set();
+                _action();
 			};
 		}
 
@@ -72,10 +74,13 @@
 						_action();
 					else
 					{
-						Thread threadToKill = null;
+                        _event.Reset();
+
+                        Thread threadToKill = null;
 						IAsyncResult result = _wrappedAction.BeginInvoke(threadToKill, null, null);
 
-						if (!result.AsyncWaitHandle.WaitOne(timeout, true))
+                        _event.WaitOne();
+                        if (!result.AsyncWaitHandle.WaitOne(timeout, true))
 						{
 							if (threadToKill != null)
 								threadToKill.Abort();
@@ -87,6 +92,8 @@
 							result.AsyncWaitHandle.Close();
 						}
 					}
+
+                    break;
 				}
 				catch (Exception ex)
 				{
@@ -111,6 +118,7 @@
 
 		private readonly Action<T> _action;
 		private readonly Action<Thread, T> _wrappedAction;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
 		#endregion Instance Data Members (Private)
 
@@ -123,7 +131,8 @@
 			_wrappedAction = (@thread, @T) =>
 			{
 				@thread = Thread.CurrentThread;
-				_action(@T);
+                _event.Set();
+                _action(@T);
 			};
 		}
 
@@ -161,10 +170,13 @@
 						_action(arg);
 					else
 					{
-						Thread threadToKill = null;
+                        _event.Reset();
+
+                        Thread threadToKill = null;
 						IAsyncResult result = _wrappedAction.BeginInvoke(threadToKill, arg, null, null);
 
-						if (!result.AsyncWaitHandle.WaitOne(timeout, true))
+                        _event.WaitOne();
+                        if (!result.AsyncWaitHandle.WaitOne(timeout, true))
 						{
 							if (threadToKill != null)
 								threadToKill.Abort();
@@ -176,7 +188,9 @@
 							result.AsyncWaitHandle.Close();
 						}
 					}
-				}
+
+                    break;
+                }
 				catch (Exception ex)
 				{
 					if (maxNoOfRetry != 0)
@@ -200,6 +214,7 @@
 
 		private readonly Action<T1, T2> _action;
 		private readonly Action<Thread, T1, T2> _wrappedAction;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
 		#endregion Instance Data Members (Private)
 
@@ -212,7 +227,8 @@
 			_wrappedAction = (@thread, @T1, @T2) =>
 			{
 				@thread = Thread.CurrentThread;
-				_action(@T1, @T2);
+                _event.Set();
+                _action(@T1, @T2);
 			};
 		}
 
@@ -250,10 +266,13 @@
 						_action(arg1, arg2);
 					else
 					{
-						Thread threadToKill = null;
+                        _event.Reset();
+
+                        Thread threadToKill = null;
 						IAsyncResult result = _wrappedAction.BeginInvoke(threadToKill, arg1, arg2, null, null);
 
-						if (!result.AsyncWaitHandle.WaitOne(timeout, true))
+                        _event.WaitOne();
+                        if (!result.AsyncWaitHandle.WaitOne(timeout, true))
 						{
 							if (threadToKill != null)
 								threadToKill.Abort();
@@ -265,7 +284,9 @@
 							result.AsyncWaitHandle.Close();
 						}
 					}
-				}
+
+                    break;
+                }
 				catch (Exception ex)
 				{
 					if (maxNoOfRetry != 0)
@@ -289,6 +310,7 @@
 
 		private readonly Action<T1, T2, T3> _action;
 		private readonly Action<Thread, T1, T2, T3> _wrappedAction;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
 		#endregion Instance Data Members (Private)
 
@@ -301,7 +323,8 @@
 			_wrappedAction = (@thread, @T1, @T2, @T3) =>
 			{
 				@thread = Thread.CurrentThread;
-				_action(@T1, @T2, @T3);
+                _event.Set();
+                _action(@T1, @T2, @T3);
 			};
 		}
 
@@ -339,10 +362,13 @@
 						_action(arg1, arg2, arg3);
 					else
 					{
-						Thread threadToKill = null;
+                        _event.Reset();
+
+                        Thread threadToKill = null;
 						IAsyncResult result = _wrappedAction.BeginInvoke(threadToKill, arg1, arg2, arg3, null, null);
 
-						if (!result.AsyncWaitHandle.WaitOne(timeout, true))
+                        _event.WaitOne();
+                        if (!result.AsyncWaitHandle.WaitOne(timeout, true))
 						{
 							if (threadToKill != null)
 								threadToKill.Abort();
@@ -354,7 +380,9 @@
 							result.AsyncWaitHandle.Close();
 						}
 					}
-				}
+
+                    break;
+                }
 				catch (Exception ex)
 				{
 					if (maxNoOfRetry != 0)
@@ -378,6 +406,7 @@
 
 		private readonly Action<T1, T2, T3, T4> _action;
 		private readonly Action<Thread, T1, T2, T3, T4> _wrappedAction;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
 		#endregion Instance Data Members (Private)
 
@@ -390,7 +419,8 @@
 			_wrappedAction = (@thread, @T1, @T2, @T3, @T4) =>
 			{
 				@thread = Thread.CurrentThread;
-				_action(@T1, @T2, @T3, @T4);
+                _event.Set();
+                _action(@T1, @T2, @T3, @T4);
 			};
 		}
 
@@ -428,10 +458,13 @@
 						_action(arg1, arg2, arg3, arg4);
 					else
 					{
-						Thread threadToKill = null;
+                        _event.Reset();
+
+                        Thread threadToKill = null;
 						IAsyncResult result = _wrappedAction.BeginInvoke(threadToKill, arg1, arg2, arg3, arg4, null, null);
 
-						if (!result.AsyncWaitHandle.WaitOne(timeout, true))
+                        _event.WaitOne();
+                        if (!result.AsyncWaitHandle.WaitOne(timeout, true))
 						{
 							if (threadToKill != null)
 								threadToKill.Abort();
@@ -443,7 +476,9 @@
 							result.AsyncWaitHandle.Close();
 						}
 					}
-				}
+
+                    break;
+                }
 				catch (Exception ex)
 				{
 					if (maxNoOfRetry != 0)
@@ -467,6 +502,7 @@
 
         private readonly Action<T1, T2, T3, T4, T5> _action;
         private readonly Action<Thread, T1, T2, T3, T4, T5> _wrappedAction;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
         #endregion Instance Data Members (Private)
 
@@ -479,6 +515,7 @@
             _wrappedAction = (@thread, @T1, @T2, @T3, @T4, @T5) =>
             {
                 @thread = Thread.CurrentThread;
+                _event.Set();
                 _action(@T1, @T2, @T3, @T4, @T5);
             };
         }
@@ -517,9 +554,12 @@
                         _action(arg1, arg2, arg3, arg4, arg5);
                     else
                     {
+                        _event.Reset();
+
                         Thread threadToKill = null;
                         IAsyncResult result = _wrappedAction.BeginInvoke(threadToKill, arg1, arg2, arg3, arg4, arg5, null, null);
 
+                        _event.WaitOne();
                         if (!result.AsyncWaitHandle.WaitOne(timeout, true))
                         {
                             if (threadToKill != null)
@@ -532,6 +572,8 @@
                             result.AsyncWaitHandle.Close();
                         }
                     }
+
+                    break;
                 }
                 catch (Exception ex)
                 {
@@ -556,6 +598,7 @@
 
         private readonly Action<T1, T2, T3, T4, T5, T6> _action;
         private readonly Action<Thread, T1, T2, T3, T4, T5, T6> _wrappedAction;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
         #endregion Instance Data Members (Private)
 
@@ -568,6 +611,7 @@
             _wrappedAction = (@thread, @T1, @T2, @T3, @T4, @T5, @T6) =>
             {
                 @thread = Thread.CurrentThread;
+                _event.Set();
                 _action(@T1, @T2, @T3, @T4, @T5, @T6);
             };
         }
@@ -606,9 +650,12 @@
                         _action(arg1, arg2, arg3, arg4, arg5, arg6);
                     else
                     {
+                        _event.Reset();
+
                         Thread threadToKill = null;
                         IAsyncResult result = _wrappedAction.BeginInvoke(threadToKill, arg1, arg2, arg3, arg4, arg5, arg6, null, null);
 
+                        _event.WaitOne();
                         if (!result.AsyncWaitHandle.WaitOne(timeout, true))
                         {
                             if (threadToKill != null)
@@ -621,6 +668,8 @@
                             result.AsyncWaitHandle.Close();
                         }
                     }
+
+                    break;
                 }
                 catch (Exception ex)
                 {
@@ -645,6 +694,7 @@
 
         private readonly Action<T1, T2, T3, T4, T5, T6, T7> _action;
         private readonly Action<Thread, T1, T2, T3, T4, T5, T6, T7> _wrappedAction;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
         #endregion Instance Data Members (Private)
 
@@ -657,6 +707,7 @@
             _wrappedAction = (@thread, @T1, @T2, @T3, @T4, @T5, @T6, @T7) =>
             {
                 @thread = Thread.CurrentThread;
+                _event.Set();
                 _action(@T1, @T2, @T3, @T4, @T5, @T6, @T7);
             };
         }
@@ -695,9 +746,12 @@
                         _action(arg1, arg2, arg3, arg4, arg5, arg6, arg7);
                     else
                     {
+                        _event.Reset();
+
                         Thread threadToKill = null;
                         IAsyncResult result = _wrappedAction.BeginInvoke(threadToKill, arg1, arg2, arg3, arg4, arg5, arg6, arg7, null, null);
 
+                        _event.WaitOne();
                         if (!result.AsyncWaitHandle.WaitOne(timeout, true))
                         {
                             if (threadToKill != null)
@@ -710,6 +764,8 @@
                             result.AsyncWaitHandle.Close();
                         }
                     }
+
+                    break;
                 }
                 catch (Exception ex)
                 {
@@ -734,6 +790,7 @@
 
         private readonly Action<T1, T2, T3, T4, T5, T6, T7, T8> _action;
         private readonly Action<Thread, T1, T2, T3, T4, T5, T6, T7, T8> _wrappedAction;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
         #endregion Instance Data Members (Private)
 
@@ -746,6 +803,7 @@
             _wrappedAction = (@thread, @T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8) =>
             {
                 @thread = Thread.CurrentThread;
+                _event.Set();
                 _action(@T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8);
             };
         }
@@ -784,9 +842,12 @@
                         _action(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
                     else
                     {
+                        _event.Reset();
+
                         Thread threadToKill = null;
                         IAsyncResult result = _wrappedAction.BeginInvoke(threadToKill, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, null, null);
 
+                        _event.WaitOne();
                         if (!result.AsyncWaitHandle.WaitOne(timeout, true))
                         {
                             if (threadToKill != null)
@@ -799,6 +860,8 @@
                             result.AsyncWaitHandle.Close();
                         }
                     }
+
+                    break;
                 }
                 catch (Exception ex)
                 {
@@ -823,6 +886,7 @@
 
         private readonly Action<T1, T2, T3, T4, T5, T6, T7, T8, T9> _action;
         private readonly Action<Thread, T1, T2, T3, T4, T5, T6, T7, T8, T9> _wrappedAction;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
         #endregion Instance Data Members (Private)
 
@@ -835,6 +899,7 @@
             _wrappedAction = (@thread, @T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9) =>
             {
                 @thread = Thread.CurrentThread;
+                _event.Set();
                 _action(@T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9);
             };
         }
@@ -873,9 +938,12 @@
                         _action(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
                     else
                     {
+                        _event.Reset();
+
                         Thread threadToKill = null;
                         IAsyncResult result = _wrappedAction.BeginInvoke(threadToKill, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, null, null);
 
+                        _event.WaitOne();
                         if (!result.AsyncWaitHandle.WaitOne(timeout, true))
                         {
                             if (threadToKill != null)
@@ -888,6 +956,8 @@
                             result.AsyncWaitHandle.Close();
                         }
                     }
+
+                    break;
                 }
                 catch (Exception ex)
                 {
@@ -912,6 +982,7 @@
 
         private readonly Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> _action;
         private readonly Action<Thread, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> _wrappedAction;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
         #endregion Instance Data Members (Private)
 
@@ -924,6 +995,7 @@
             _wrappedAction = (@thread, @T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9, @T10) =>
             {
                 @thread = Thread.CurrentThread;
+                _event.Set();
                 _action(@T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9, @T10);
             };
         }
@@ -962,9 +1034,12 @@
                         _action(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
                     else
                     {
+                        _event.Reset();
+
                         Thread threadToKill = null;
                         IAsyncResult result = _wrappedAction.BeginInvoke(threadToKill, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, null, null);
 
+                        _event.WaitOne();
                         if (!result.AsyncWaitHandle.WaitOne(timeout, true))
                         {
                             if (threadToKill != null)
@@ -977,6 +1052,8 @@
                             result.AsyncWaitHandle.Close();
                         }
                     }
+
+                    break;
                 }
                 catch (Exception ex)
                 {
@@ -1001,6 +1078,7 @@
 
         private readonly Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> _action;
         private readonly Action<Thread, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> _wrappedAction;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
         #endregion Instance Data Members (Private)
 
@@ -1013,6 +1091,7 @@
             _wrappedAction = (@thread, @T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9, @T10, @T11) =>
             {
                 @thread = Thread.CurrentThread;
+                _event.Set();
                 _action(@T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9, @T10, @T11);
             };
         }
@@ -1051,9 +1130,12 @@
                         _action(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
                     else
                     {
+                        _event.Reset();
+
                         Thread threadToKill = null;
                         IAsyncResult result = _wrappedAction.BeginInvoke(threadToKill, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, null, null);
 
+                        _event.WaitOne();
                         if (!result.AsyncWaitHandle.WaitOne(timeout, true))
                         {
                             if (threadToKill != null)
@@ -1066,6 +1148,8 @@
                             result.AsyncWaitHandle.Close();
                         }
                     }
+
+                    break;
                 }
                 catch (Exception ex)
                 {
@@ -1090,6 +1174,7 @@
 
         private readonly Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> _action;
         private readonly Action<Thread, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> _wrappedAction;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
         #endregion Instance Data Members (Private)
 
@@ -1102,6 +1187,7 @@
             _wrappedAction = (@thread, @T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9, @T10, @T11, @T12) =>
             {
                 @thread = Thread.CurrentThread;
+                _event.Set();
                 _action(@T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9, @T10, @T11, @T12);
             };
         }
@@ -1140,9 +1226,12 @@
                         _action(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
                     else
                     {
+                        _event.Reset();
+
                         Thread threadToKill = null;
                         IAsyncResult result = _wrappedAction.BeginInvoke(threadToKill, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, null, null);
 
+                        _event.WaitOne();
                         if (!result.AsyncWaitHandle.WaitOne(timeout, true))
                         {
                             if (threadToKill != null)
@@ -1155,6 +1244,8 @@
                             result.AsyncWaitHandle.Close();
                         }
                     }
+
+                    break;
                 }
                 catch (Exception ex)
                 {
@@ -1179,6 +1270,7 @@
 
         private readonly Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> _action;
         private readonly Action<Thread, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> _wrappedAction;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
         #endregion Instance Data Members (Private)
 
@@ -1191,6 +1283,7 @@
             _wrappedAction = (@thread, @T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9, @T10, @T11, @T12, @T13) =>
             {
                 @thread = Thread.CurrentThread;
+                _event.Set();
                 _action(@T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9, @T10, @T11, @T12, @T13);
             };
         }
@@ -1229,9 +1322,12 @@
                         _action(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
                     else
                     {
+                        _event.Reset();
+
                         Thread threadToKill = null;
                         IAsyncResult result = _wrappedAction.BeginInvoke(threadToKill, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, null, null);
 
+                        _event.WaitOne();
                         if (!result.AsyncWaitHandle.WaitOne(timeout, true))
                         {
                             if (threadToKill != null)
@@ -1244,6 +1340,8 @@
                             result.AsyncWaitHandle.Close();
                         }
                     }
+
+                    break;
                 }
                 catch (Exception ex)
                 {
@@ -1268,6 +1366,7 @@
 
         private readonly Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> _action;
         private readonly Action<Thread, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> _wrappedAction;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
         #endregion Instance Data Members (Private)
 
@@ -1280,6 +1379,7 @@
             _wrappedAction = (@thread, @T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9, @T10, @T11, @T12, @T13, @T14) =>
             {
                 @thread = Thread.CurrentThread;
+                _event.Set();
                 _action(@T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9, @T10, @T11, @T12, @T13, @T14);
             };
         }
@@ -1318,9 +1418,12 @@
                         _action(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
                     else
                     {
+                        _event.Reset();
+
                         Thread threadToKill = null;
                         IAsyncResult result = _wrappedAction.BeginInvoke(threadToKill, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, null, null);
 
+                        _event.WaitOne();
                         if (!result.AsyncWaitHandle.WaitOne(timeout, true))
                         {
                             if (threadToKill != null)
@@ -1333,6 +1436,8 @@
                             result.AsyncWaitHandle.Close();
                         }
                     }
+
+                    break;
                 }
                 catch (Exception ex)
                 {
@@ -1357,6 +1462,7 @@
 
         private readonly Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> _action;
         private readonly Action<Thread, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> _wrappedAction;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
         #endregion Instance Data Members (Private)
 
@@ -1369,6 +1475,7 @@
             _wrappedAction = (@thread, @T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9, @T10, @T11, @T12, @T13, @T14, @T15) =>
             {
                 @thread = Thread.CurrentThread;
+                _event.Set();
                 _action(@T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9, @T10, @T11, @T12, @T13, @T14, @T15);
             };
         }
@@ -1407,9 +1514,12 @@
                         _action(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15);
                     else
                     {
+                        _event.Reset();
+
                         Thread threadToKill = null;
                         IAsyncResult result = _wrappedAction.BeginInvoke(threadToKill, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, null, null);
 
+                        _event.WaitOne();
                         if (!result.AsyncWaitHandle.WaitOne(timeout, true))
                         {
                             if (threadToKill != null)
@@ -1422,6 +1532,8 @@
                             result.AsyncWaitHandle.Close();
                         }
                     }
+
+                    break;
                 }
                 catch (Exception ex)
                 {
@@ -1446,6 +1558,7 @@
 
         private readonly Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> _action;
         private readonly Action<Thread, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> _wrappedAction;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
         #endregion Instance Data Members (Private)
 
@@ -1458,6 +1571,7 @@
             _wrappedAction = (@thread, @T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9, @T10, @T11, @T12, @T13, @T14, @T15, @T16) =>
             {
                 @thread = Thread.CurrentThread;
+                _event.Set();
                 _action(@T1, @T2, @T3, @T4, @T5, @T6, @T7, @T8, @T9, @T10, @T11, @T12, @T13, @T14, @T15, @T16);
             };
         }
@@ -1496,9 +1610,12 @@
                         _action(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16);
                     else
                     {
+                        _event.Reset();
+
                         Thread threadToKill = null;
                         IAsyncResult result = _wrappedAction.BeginInvoke(threadToKill, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, null, null);
 
+                        _event.WaitOne();
                         if (!result.AsyncWaitHandle.WaitOne(timeout, true))
                         {
                             if (threadToKill != null)
@@ -1511,6 +1628,8 @@
                             result.AsyncWaitHandle.Close();
                         }
                     }
+
+                    break;
                 }
                 catch (Exception ex)
                 {

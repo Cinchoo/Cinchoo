@@ -33,11 +33,17 @@ namespace Cinchoo.Core
 
         public void Validate(MemberInfo memberInfo, object value)
         {
-            ValidationResult result = _validationAttribute.GetValidationResult(value, new ValidationContext(value, null, null));
-            if (result == ValidationResult.Success)
-                return;
-            else
-                throw new ValidationException(result.ErrorMessage);
+            if (value == null)
+                value = String.Empty;
+
+            var results = new List<ValidationResult>();
+            if (!Validator.TryValidateValue(value, new ValidationContext(value, null, null), results, new List<ValidationAttribute>() { _validationAttribute }))
+            {
+                if (results != null && results.Count > 0)
+                {
+                    throw new ValidationException(results[0].ErrorMessage.ExpandProperties(), _validationAttribute, value);
+                }
+            }
         }
 
         public void Validate(MemberInfo memberInfo, object value, ChoValidationResults validationResults)
@@ -46,7 +52,10 @@ namespace Cinchoo.Core
             {
                 ValidationResult result = _validationAttribute.GetValidationResult(value, null);
                 if (result != ValidationResult.Success)
-                    validationResults.AddResult(result);
+                {
+                    if (validationResults != null)
+                        validationResults.AddResult(result);
+                }
             }
             catch (ChoFatalApplicationException)
             {
@@ -54,7 +63,8 @@ namespace Cinchoo.Core
             }
             catch (Exception ex)
             {
-                validationResults.AddResult(new ChoValidationResult(ex.Message));
+                if (validationResults != null)
+                    validationResults.AddResult(new ChoValidationResult(ex.Message));
             }
         }
 

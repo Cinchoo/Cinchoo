@@ -3,6 +3,7 @@
 	#region NameSpaces
 
 	using System;
+    using System.Xml.Serialization;
 
     #endregion NameSpaces
 
@@ -25,6 +26,7 @@
 		#region Instance Properties (Public)
 
 		private Type _configSectionHandlerType = typeof(ChoXmlSerializerSectionHandler);
+        [XmlIgnore]
         public override Type ConfigSectionHandlerType
 		{
 			get { return _configSectionHandlerType; }

@@ -22,12 +22,7 @@
 
 		#region Constructors
 
-        public ChoRegistryKey(string registryKey, bool createKeyIfNotFound)
-            : this(registryKey, createKeyIfNotFound, false)
-        {
-        }
-
-        public ChoRegistryKey(string registryKey, bool createKeyIfNotFound, bool silent)
+        public ChoRegistryKey(string registryKey, bool createKeyIfNotFound = false, bool silent = false)
 		{
 			ChoGuard.ArgumentNotNullOrEmpty(registryKey, "RegistryKey");
 
@@ -118,27 +113,49 @@
 				{
 					lock (this)
 					{
-						if (_registrySubKey == null)
-						{
-							if (_createKeyIfNotFound)
-							{
-								_registrySubKey = RegistryHive.OpenOrCreateSubKey(SubKey);
-								if (_registrySubKey == null && !_silent)
-									throw new ChoApplicationException("RegistryKey '{0}' can't be opened / created.".FormatString(_registryKey));
-							}
-							else
-							{
-								_registrySubKey = RegistryHive.OpenSubKey(SubKey);
-								if (_registrySubKey == null && !_silent)
-									throw new ChoApplicationException("RegistryKey '{0}' not found".FormatString(_registryKey));
-							}
-						}
+                        if (_registrySubKey == null)
+                        {
+                            if (_createKeyIfNotFound)
+                            {
+                                _registrySubKey = RegistryHive.OpenOrCreateSubKey(SubKey);
+                                if (_registrySubKey == null && !_silent)
+                                    throw new ChoApplicationException("RegistryKey '{0}' can't be opened / created.".FormatString(_registryKey));
+                            }
+                            _registrySubKey = RegistryHive.OpenSubKey(SubKey, RegistryKeyPermissionCheck.ReadWriteSubTree);
+                            if (_registrySubKey == null && !_silent)
+                                throw new ChoApplicationException("RegistryKey '{0}' not found".FormatString(_registryKey));
+                        }
 
 					}
 				}
 				return _registrySubKey;
 			}
 		}
+
+        /// <summary>
+        /// Set/Remove the running executable to run at system startup
+        /// </summary>
+        /// <param name="appName">A name to represent the application name in the registry</param>
+        /// <param name="appLocation">Full path of the application to be set.</param>
+        /// <returns>true, if the operation is successfull. Otherwise, false.</returns>
+        public bool SetValue(string name, string value, bool remove)
+        {
+            if (String.IsNullOrEmpty(name))
+                throw new ArgumentException("name is missing.");
+
+            if (!remove && String.IsNullOrEmpty(value))
+                throw new ArgumentException("value is missing.");
+
+            if (RegistrySubKey == null)
+                return false;
+
+            if (remove)
+                RegistrySubKey.DeleteValue(name, false);
+            else
+                RegistrySubKey.SetValue(name, value);
+
+            return true;
+        }
 
 		#endregion Instance Properties (Private)
 

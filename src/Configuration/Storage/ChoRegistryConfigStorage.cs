@@ -15,7 +15,7 @@
 
 	#endregion NameSpaces
 
-	public sealed class ChoRegistryConfigStorage : ChoConfigStorage, IChoDictionaryConfigStorage
+	public class ChoRegistryConfigStorage : ChoConfigStorage, IChoDictionaryConfigStorage
 	{
 		#region Instance Data Members (Private)
 

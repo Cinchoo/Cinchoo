@@ -11,48 +11,51 @@
 
     public class ChoFormatProvider : IFormatProvider
     {
-        private static ChoFormatProvider _instance;
-        private ChoDictionaryService<Type, ICustomFormatter> _formatProviders = new ChoDictionaryService<Type, ICustomFormatter>("FormatProviders");
+        public readonly static ChoFormatProvider Instance;
+        private readonly object _padLock = new object();
+        private Dictionary<Type, ICustomFormatter> _formatProviders = new Dictionary<Type, ICustomFormatter>();
 
         static ChoFormatProvider()
         {
-            _instance = new ChoFormatProvider();
-        }
-
-        private ChoFormatProvider()
-        {
+            Instance = new ChoFormatProvider();
         }
 
         #region IFormatProvider Members
 
         public object GetFormat(Type formatType)
         {
-            return _formatProviders.GetValue(formatType);
+            lock (_padLock)
+            {
+                foreach (Type key in _formatProviders.Keys)
+                {
+                    if (key.IsAssignableFrom(formatType))
+                        return _formatProviders[key];
+                }
+
+                return null;
+            }
         }
 
         public void Add(Type formatType, ICustomFormatter formatter)
         {
             ChoGuard.ArgumentNotNull(formatType, "FormatType");
 
-            _formatProviders.SetValue(formatType, formatter);
+            lock (_padLock)
+            {
+                _formatProviders.AddOrUpdate(formatType, formatter);
+            }
         }
 
         public void Remove(Type formatType)
         {
             ChoGuard.ArgumentNotNull(formatType, "FormatType");
 
-            _formatProviders.RemoveValue(formatType);
+            lock (_padLock)
+            {
+                _formatProviders.Delete(formatType);
+            }
         }
 
         #endregion
-
-        #region Shared Properties
-
-        public static ChoFormatProvider Instance
-        {
-            get { return _instance; }
-        }
-
-        #endregion Shared Properties
     }
 }

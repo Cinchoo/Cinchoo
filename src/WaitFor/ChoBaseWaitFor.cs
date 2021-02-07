@@ -40,7 +40,7 @@
 			if (maxNoOfRetry < 0)
 				throw new ArgumentNullException("MaxNoOfRetry should be >= 0.");
 
-			if (sleepBetweenRetry <= 0)
+            if (maxNoOfRetry > 0 && sleepBetweenRetry <= 0)
 				throw new ArgumentOutOfRangeException("SleepBetweenRetry should be > 0");
 		}
 

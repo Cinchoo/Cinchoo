@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System;
 using Cinchoo.Core;
+using System.Web;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
@@ -21,3 +22,4 @@ using Cinchoo.Core;
 [assembly: Guid("88bb2918-62b6-42ae-97e8-b7fb588111b7")]
 [assembly: ChoTypeDiscoverableAssembly]
 [assembly: CLSCompliant(true)]
+[assembly: PreApplicationStartMethod(typeof(ChoPreApplicationStartCode), "Start")]

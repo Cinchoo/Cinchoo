@@ -52,7 +52,7 @@ namespace Cinchoo.Core
 
         // Collection provided to store any extra information associated with the exception.
         private NameValueCollection _additionalInformation = new NameValueCollection();
-        private const string _textSeperator = "*********************************************";
+        private const string _textSeparator = "*********************************************";
 
         #endregion
 
@@ -306,6 +306,8 @@ namespace Cinchoo.Core
 
         public static string ToString(Exception exception, NameValueCollection additionalInfo)
         {
+            ChoGuard.ArgumentNotNull(exception, "Exception");
+
             // Create StringBuilder to maintain publishing information.
             StringBuilder info = new StringBuilder();
 
@@ -314,7 +316,7 @@ namespace Cinchoo.Core
             if (additionalInfo != null)
             {
                 // Record General information.
-                info.AppendFormat("{0}General Information {0}{1}{0}Additional Info:", Environment.NewLine, _textSeperator);
+                info.AppendFormat("{0}General Information {0}{1}{0}Additional Info:", Environment.NewLine, _textSeparator);
 
                 foreach (string i in additionalInfo)
                 {
@@ -336,7 +338,7 @@ namespace Cinchoo.Core
                 do
                 {
                     // Write title information for the exception object.
-                    info.AppendFormat("{0}{0}{1}) Exception Information{0}{2}", Environment.NewLine, intExceptionCount.ToString(), _textSeperator);
+                    info.AppendFormat("{0}{0}{1}) Exception Information{0}{2}", Environment.NewLine, intExceptionCount.ToString(), _textSeparator);
                     info.AppendFormat("{0}Exception Type: {1}", Environment.NewLine, currentException.GetType().FullName);
 
                     #region Loop through the public properties of the exception object and record their value
@@ -380,7 +382,23 @@ namespace Cinchoo.Core
                                 // Otherwise just write the ToString() value of the property.
                                 else
                                 {
-                                    info.AppendFormat("{0}{1}: {2}", Environment.NewLine, p.Name, p.GetValue(currentException, null));
+                                    object value = p.GetValue(currentException, null);
+                                    if (value is ICollection)
+                                    {
+                                        info.AppendFormat("{0}{1}: {0}", Environment.NewLine, p.Name);
+                                        foreach (object item in (IEnumerable)value)
+                                        {
+                                            if (item is Exception)
+                                            {
+                                                info.AppendLine((item as Exception).ToString().Indent());
+                                                //info.AppendLine(ChoApplicationException.ToString(item as Exception).Indent());
+                                            }
+                                            else
+                                                info.AppendLine(ChoObject.ToString(item).Indent());
+                                        }
+                                    }
+                                    else
+                                        info.AppendFormat("{0}{1}: {2}", Environment.NewLine, p.Name, p.GetValue(currentException, null));
                                 }
                             }
                         }
@@ -390,7 +408,7 @@ namespace Cinchoo.Core
                     // Record the StackTrace with separate label.
                     if (currentException.StackTrace != null)
                     {
-                        info.AppendFormat("{0}{0}StackTrace Information{0}{1}", Environment.NewLine, _textSeperator);
+                        info.AppendFormat("{0}{0}StackTrace Information{0}{1}", Environment.NewLine, _textSeparator);
                         info.AppendFormat("{0}{1}", Environment.NewLine, currentException.StackTrace);
                     }
                     #endregion
@@ -402,7 +420,7 @@ namespace Cinchoo.Core
                 #endregion
             }
 
-            info.AppendFormat("{0}{1}", Environment.NewLine, ChoTrace.SEPERATOR);
+            info.AppendFormat("{0}{1}", Environment.NewLine, ChoTrace.SEPARATOR);
 
             return info.ToString();
         }

@@ -1,16 +1,17 @@
 ﻿namespace Cinchoo.Core
 {
-	#region NameSpaces
+    #region NameSpaces
 
-	using System;
-	using System.Collections.Generic;
-	using System.Linq;
-	using System.Text;
-	using System.Threading;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+    using System.Threading;
     using Cinchoo.Core.Collections.Generic;
     using Cinchoo.Core.Services;
+    using System.Reflection;
 
-	#endregion NameSpaces
+    #endregion NameSpaces
 
     #region ChoWaitFor Class
 
@@ -64,15 +65,18 @@
                         return _func.DynamicInvoke(args);
                     else
                     {
+                        AutoResetEvent _event = new AutoResetEvent(true);
                         Thread threadToKill = null;
                         Func<Thread, object> _wrappedFunc = (@thread) =>
                         {
                             @thread = Thread.CurrentThread;
+                            _event.Set();
                             return _func.DynamicInvoke(args);
                         };
                         IAsyncResult result = _wrappedFunc.BeginInvoke(threadToKill, null, null);
                         object retValue = null;
 
+                        _event.WaitOne();
                         if (!result.AsyncWaitHandle.WaitOne(timeout, true))
                         {
                             if (threadToKill != null)
@@ -87,6 +91,14 @@
 
                         return retValue;
                     }
+                }
+                catch (TargetInvocationException tex)
+                {
+                    Exception inEx = tex.InnerException != null ? tex.InnerException : tex;
+                    if (maxNoOfRetry != 0)
+                        noOfRetry = HandleException(maxNoOfRetry, sleepBetweenRetry, noOfRetry, aggExceptions, inEx);
+                    else
+                        throw inEx;
                 }
                 catch (Exception ex)
                 {

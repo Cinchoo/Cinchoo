@@ -46,6 +46,9 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <NoWarn>0628</NoWarn>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -56,10 +59,19 @@
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <DebugSymbols>true</DebugSymbols>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup />
   <ItemGroup>
     <Reference Include="Accessibility" />
+    <Reference Include="ICSharpCode.TextEditor">
+      <HintPath>Lib\ICSharpCode.TextEditor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
@@ -70,6 +82,7 @@
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.Data" />
+    <Reference Include="System.Design" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Management" />
     <Reference Include="System.Runtime.Serialization" />
@@ -80,33 +93,222 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
+    <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Attributes\ChoDoNotShowStackTraceAttribute.cs" />
+    <Compile Include="Attributes\ChoDoNotWatchChange.cs" />
+    <Compile Include="Attributes\ChoXmlSerializerDiscoverableAttribute.cs" />
+    <Compile Include="Attributes\ChoSerializableAttribute.cs" />
+    <Compile Include="AutoUpdater\ChoAutoUpdater.cs" />
     <Compile Include="ChoApplicationContext.cs" />
+    <Compile Include="ChoChooseEnvironmentFrm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ChoChooseEnvironmentFrm.Designer.cs">
+      <DependentUpon>ChoChooseEnvironmentFrm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ChoCommonEnums.cs" />
+    <Compile Include="ChoEventArgs.cs" />
     <Compile Include="ChoEventManager.cs" />
+    <Compile Include="ChoExprEvaluatorFrm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ChoExprEvaluatorFrm.Designer.cs">
+      <DependentUpon>ChoExprEvaluatorFrm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ChoFatalErrorMessageBox.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ChoFatalErrorMessageBox.Designer.cs">
+      <DependentUpon>ChoFatalErrorMessageBox.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ChoFramework.cs" />
+    <Compile Include="ChoMessageBox.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ChoMessageBox.Designer.cs">
+      <DependentUpon>ChoMessageBox.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ChoPropertyDependsOnCache.cs" />
+    <Compile Include="ChoWindowlessApplicationHost.cs" />
+    <Compile Include="ChoWindowsIdentity.cs" />
+    <Compile Include="Configuration\Storage\IChoConfigStoragePayloadSerializer.cs" />
+    <Compile Include="Diagnostics\ChoETLTaskDef.cs" />
+    <Compile Include="ExtensioinMethods\ChoFuncEx.cs" />
+    <Compile Include="ExtensioinMethods\ChoTaskEx.cs" />
+    <Compile Include="Formatters\ChoCharFormatter.cs" />
+    <Compile Include="Collections\ChoEnumerator.cs" />
+    <Compile Include="ChoAutoNotifyPropertyChangedObject.cs" />
+    <Compile Include="ComponentModel\ChoThreadedBindingList.cs" />
+    <Compile Include="Configuration\Attributes\ChoPropertyDependsOnAttribute.cs" />
+    <Compile Include="Configuration\ConfigSectionHandlerAttributes\ChoSqlServerConfigurationSectionAttribute.cs" />
+    <Compile Include="Configuration\ConfigSectionHandlerAttributes\ChoAnyDbConfigurationSectionAttribute.cs" />
+    <Compile Include="Exceptions\ChoProcessException.cs" />
+    <Compile Include="Exceptions\ChoPlugInException.cs" />
+    <Compile Include="ExtensioinMethods\ChoDoubleEx.cs" />
+    <Compile Include="ExtensioinMethods\ChoExceptionEx.cs" />
+    <Compile Include="ExtensioinMethods\ChoMiscEx.cs" />
+    <Compile Include="ExtensioinMethods\ChoCDATAEx.cs" />
+    <Compile Include="ExtensioinMethods\Collections\Generic\IChoCollectionEx.cs" />
+    <Compile Include="ExtensioinMethods\ComponentModel\IChoSynchronizeInvokeEx.cs" />
+    <Compile Include="ExtensioinMethods\Configuration\ChoConfigurationSectionEx.cs" />
+    <Compile Include="ExtensioinMethods\ChoIntEx.cs" />
+    <Compile Include="ExtensioinMethods\Windows\Forms\ChoComboBoxEx.cs" />
+    <Compile Include="ExtensioinMethods\Windows\Forms\ChoRichTextBox.cs" />
+    <Compile Include="ExtensioinMethods\Windows\Forms\ChoToolStripMenuItemEx.cs" />
+    <Compile Include="ExtensioinMethods\Windows\Forms\ChoButtonEx.cs" />
+    <Compile Include="ExtensioinMethods\Xml\Linq\XElementEx.cs" />
+    <Compile Include="Hooks\ChoWindowsHooks.cs" />
+    <Compile Include="Hooks\ChoMouseEventArgs.cs" />
+    <Compile Include="Hooks\ChoWindowsHooksEventProvider.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Hooks\ChoKeyPressEventArgs.cs" />
+    <Compile Include="Hooks\ChoKeyEventArgs.cs" />
+    <Compile Include="Hooks\ChoWindowsKeyboardHooks.cs" />
+    <Compile Include="Hooks\ChoWindowsMouseHooks.cs" />
+    <Compile Include="Hooks\ChoWindowsCBTHooks.cs" />
+    <Compile Include="Hooks\ChoCBTEventArgs.cs" />
+    <Compile Include="IO\ChoFileStream.cs" />
+    <Compile Include="Net\ChoIPAddress.cs" />
+    <Compile Include="Runtime\Serialization\ChoBinaryObjectSerializer.cs" />
+    <Compile Include="Runtime\Serialization\ChoObjectSerializer.cs" />
+    <Compile Include="Runtime\Serialization\ChoXmlObjectSerializer.cs" />
+    <Compile Include="Runtime\Serialization\ChoJsonObjectSerializer.cs" />
+    <Compile Include="Runtime\Serialization\IChoObjectSerializer.cs" />
+    <Compile Include="Net\Sockets\IChoNetClient.cs" />
+    <Compile Include="PlugIns\Builders\ChoPlugInAttribute.cs" />
+    <Compile Include="PlugIns\Builders\ChoShellScriptFilePlugInBuilder.cs" />
+    <Compile Include="PlugIns\Builders\ChoPlugInBuilder.cs" />
+    <Compile Include="PlugIns\Builders\ChoDotNetAssemblyPlugInBuilder.cs" />
+    <Compile Include="PlugIns\Builders\ChoCSharpCodeSnippetPlugInBuilder.cs" />
+    <Compile Include="PlugIns\Builders\ChoVBNETCodeSnippetPlugInBuilder.cs" />
+    <Compile Include="PlugIns\Builders\ChoJavaScriptPlugInBuilder.cs" />
+    <Compile Include="PlugIns\Builders\ChoVBScriptFilePlugInBuilder.cs" />
+    <Compile Include="PlugIns\Builders\ChoFileCreatedTimestampPlugInBuilder.cs" />
+    <Compile Include="PlugIns\Builders\ChoNonEditableCSharpCodeSnippetPlugInBuilder.cs" />
+    <Compile Include="PlugIns\Builders\IChoScriptExtensionObject.cs" />
+    <Compile Include="PlugIns\Builders\Property\ChoPlugInBuilderProperty.cs" />
+    <Compile Include="PlugIns\Builders\ChoPlugInPropertyGrid.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PlugIns\Builders\ChoPlugInPropertyGrid.Designer.cs">
+      <DependentUpon>ChoPlugInPropertyGrid.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PlugIns\Builders\ChoVBScriptPlugInBuilder.cs" />
+    <Compile Include="PlugIns\Builders\ChoJavaScriptFilePlugInBuilder.cs" />
+    <Compile Include="PlugIns\Builders\ChoShellScriptPlugInBuilder.cs" />
+    <Compile Include="PlugIns\Builders\Property\ChoShellScriptPlugInBuilderProperty.cs" />
+    <Compile Include="PlugIns\Builders\Property\ChoShellScriptFilePlugInBuilderProperty.cs" />
+    <Compile Include="PlugIns\Builders\Property\ChoVBScriptPlugInBuilderProperty.cs" />
+    <Compile Include="PlugIns\Builders\Property\ChoCSharpCodeSnippetPlugInBuilderProperty.cs" />
+    <Compile Include="PlugIns\Builders\Property\ChoVBNETCodeSnippetPlugInBuilderProperty.cs" />
+    <Compile Include="PlugIns\Builders\Property\ChoJavaScriptPlugInBuilderProperty.cs" />
+    <Compile Include="PlugIns\Builders\Property\ChoVBScriptFilePlugInBuilderProperty.cs" />
+    <Compile Include="PlugIns\Builders\Property\ChoJavaScriptFilePlugInBuilderProperty.cs" />
+    <Compile Include="PlugIns\Builders\Property\ChoDotNetAssemblyPlugInBuilderProperty.cs" />
+    <Compile Include="PlugIns\Builders\Property\ChoNonEditableCSharpCodeSnippetPlugInBuilderProperty.cs" />
+    <Compile Include="PlugIns\ChoJavaScriptFilePlugIn.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PlugIns\ChoPlugIn.cs" />
+    <Compile Include="PlugIns\ChoDotNetAssemblyPlugIn.cs" />
+    <Compile Include="PlugIns\ChoPlugInEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PlugIns\ChoPlugInEditor.Designer.cs">
+      <DependentUpon>ChoPlugInEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PlugIns\ChoVBScriptPlugIn.cs" />
+    <Compile Include="PlugIns\ChoShellScriptFilePlugIn.cs" />
+    <Compile Include="PlugIns\ChoShellScriptPlugIn.cs" />
+    <Compile Include="PlugIns\ChoPlugInManagerSettings.cs" />
+    <Compile Include="PlugIns\ChoPlugInEditorSettings.cs" />
+    <Compile Include="PlugIns\ChoCSharpCodeSnippetPlugIn.cs" />
+    <Compile Include="PlugIns\ChoVBNETCodeSnippetPlugIn.cs" />
+    <Compile Include="PlugIns\ChoJavaScriptPlugIn.cs" />
+    <Compile Include="PlugIns\ChoVBScriptFilePlugIn.cs" />
+    <Compile Include="PlugIns\ChoPlugInsDefManager.cs" />
+    <Compile Include="Runtime\Remoting\Proxies\ChoRealProxy.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Shell\ShellExtension\ChoShellExtension.cs" />
+    <Compile Include="Shell\ShellExtension\ChoShellExtensionAttribute.cs" />
+    <Compile Include="Shell\ShellExtension\ChoShellContextMenuAttribute.cs" />
+    <Compile Include="Shell\ShellExtension\ChoShellFileAssociation.cs" />
+    <Compile Include="Shell\ShellExtension\ChoShellFileAssociationAttribute .cs" />
+    <Compile Include="Types\IChoStringObjectFormatter.cs" />
+    <Compile Include="Win32\GDI32\ChoGDI32.cs" />
+    <Compile Include="Win32\Core\ChoCore32.cs" />
+    <Compile Include="Win32\Shell32\ChoShell32.cs" />
+    <Compile Include="Win32\Shell32\ChoShell32Enums.cs" />
+    <Compile Include="Win32\Shell32\ChoShell32Structs.cs" />
+    <Compile Include="Win32\User32\ChoUser32Structs.cs" />
+    <Compile Include="Windows\ChoPropertyGridSourceObject.cs" />
+    <Compile Include="Windows\Forms\ChoSplitContainer.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Windows\Forms\ChoUACButton.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Windows\Forms\ChoNotifyIcon.cs" />
+    <Compile Include="PlugIns\ChoPlugInsRuntime.cs" />
+    <Compile Include="ChoNotifyPropertyChangedObject.cs" />
+    <Compile Include="ChoNullable.cs" />
+    <Compile Include="ChoFrameworkCmdLineArgs.cs" />
+    <Compile Include="ChoPreApplicationStartCode.cs" />
+    <Compile Include="ChoInsecureString.cs" />
+    <Compile Include="ChoMarshalByRefType.cs" />
+    <Compile Include="ChoStaticResourceManager.cs" />
+    <Compile Include="Collections\ChoEmptyEnumerable.cs" />
     <Compile Include="Collections\Generic\ChoDeque.cs" />
     <Compile Include="Collections\Generic\ChoEnumerable.cs" />
+    <Compile Include="Collections\Generic\ChoKeyValuePair.cs" />
+    <Compile Include="Collections\Generic\ChoMemoizeEnumerable.cs" />
+    <Compile Include="Collections\Generic\ChoEmptyEnumerable.cs" />
     <Compile Include="Collections\Generic\Dictionary\ChoSerializableDictionary.cs" />
+    <Compile Include="Collections\Generic\Dictionary\ChoSerializableConcurrentDictionary.cs" />
+    <Compile Include="Compiler\ChoCompilerParametersSettings.cs" />
+    <Compile Include="Compiler\ChoCodeDomProvider.cs" />
     <Compile Include="Configuration\ChoConfigurationObjectEventArgs.cs" />
     <Compile Include="Configuration\ChoWPFBindableConfigObject.cs" />
-    <Compile Include="Configuration\ChoAppFrxSettings.cs" />
-    <Compile Include="Configuration\IChoConfigurationParametersOverridable.cs" />
+    <Compile Include="ChoAppFrxSettings.cs" />
     <Compile Include="Configuration\ConfigSectionHandlerAttributes\ChoDictionaryAdapterConfigurationSectionAttribute.cs" />
+    <Compile Include="Configuration\ConfigSectionHandlerAttributes\ChoDbGenericKeyValueConfigurationSectionAttribute.cs" />
+    <Compile Include="Configuration\Install\ChoManagedInstallerClass.cs" />
+    <Compile Include="Configuration\Storage\ChoDbGenericKeyValueConfigStorage.cs" />
     <Compile Include="Configuration\Storage\ChoDictionaryAdapterConfigStorage.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Configuration\Storage\ChoWebServiceConfigStorage.cs" />
     <Compile Include="Configuration\Storage\IChoConfigObjectAdapter.cs" />
     <Compile Include="Configuration\Watchers\ChoConfigurationChangeWatcherSettings.cs" />
     <Compile Include="Configuration\Watchers\ChoConfigurationAdapterChangeWatcher.cs" />
     <Compile Include="Configuration\Watchers\ChoPushConfigurationChangeWatcher.cs" />
+    <Compile Include="Converters\ChoAESEncryptConverter.cs" />
     <Compile Include="Converters\ChoByteArrayToStringConverter.cs" />
+    <Compile Include="Converters\ChoIntegerToBoolConverter.cs" />
+    <Compile Include="Converters\ChoBoolInverterConverter.cs" />
+    <Compile Include="Converters\ChoNullableDbNullConverter.cs" />
+    <Compile Include="Converters\ChoAESDecryptConverter.cs" />
+    <Compile Include="Converters\ChoXmlSerializerConverter.cs" />
+    <Compile Include="Diagnostics\Attributes\ChoRefProfileAttribute.cs" />
     <Compile Include="Diagnostics\BackingStores\ChoConsoleProfileBackingStore.cs" />
+    <Compile Include="Diagnostics\BackingStores\ChoTraceProfileBackingStore.cs" />
+    <Compile Include="Diagnostics\BackingStores\ChoCompositeProfileBackingStore.cs" />
+    <Compile Include="Diagnostics\BackingStores\ChoFileProfileBackingStore.cs" />
+    <Compile Include="Diagnostics\ChoProfileBackingStoreManager.cs" />
+    <Compile Include="Diagnostics\ChoProfileBackupManager.cs" />
     <Compile Include="Exceptions\ChoThreadAbortException.cs" />
     <Compile Include="Exceptions\ChoConsoleCtrlException.cs" />
     <Compile Include="Exceptions\ChoConfigurationObjectPostInvokeException.cs" />
+    <Compile Include="Exceptions\ChoDbException.cs" />
     <Compile Include="ExtensioinMethods\ChoArrayEx.cs" />
     <Compile Include="ExtensioinMethods\ChoBooleanEx.cs" />
+    <Compile Include="ExtensioinMethods\ChoByteArrayEx.cs" />
     <Compile Include="ExtensioinMethods\ChoCharEx.cs" />
+    <Compile Include="ExtensioinMethods\ChoDateTimeEx.cs" />
     <Compile Include="ExtensioinMethods\ChoDelegateEx.cs" />
     <Compile Include="ExtensioinMethods\ChoEnum.cs" />
     <Compile Include="ExtensioinMethods\ChoEnumTypeCache.cs" />
@@ -114,35 +316,75 @@
     <Compile Include="ExtensioinMethods\ChoMethodInfoEx.cs" />
     <Compile Include="ExtensioinMethods\ChoTimeSpanEx.cs" />
     <Compile Include="ExtensioinMethods\ChoTypeEx.cs" />
+    <Compile Include="ExtensioinMethods\ChoActionEx.cs" />
+    <Compile Include="ExtensioinMethods\Collections\ChoArrayEx.cs" />
     <Compile Include="ExtensioinMethods\Collections\ChoHashtable.cs" />
     <Compile Include="ExtensioinMethods\Collections\Generic\ChoDictionaryEx.cs" />
     <Compile Include="ExtensioinMethods\Collections\Generic\ChoListEx.cs" />
-    <Compile Include="ExtensioinMethods\Collections\Generic\IEnumerableEx.cs" />
+    <Compile Include="ExtensioinMethods\Collections\Generic\IChoEnumerableEx.cs" />
     <Compile Include="ExtensioinMethods\Collections\Specialized\ChoNameValueCollectionEx.cs" />
     <Compile Include="ExtensioinMethods\Configuration\ChoKeyValueConfigurationCollectionEx.cs" />
+    <Compile Include="ExtensioinMethods\Data\ChoDataReaderEx.cs" />
+    <Compile Include="ExtensioinMethods\Net\Sockets\SocketEx.cs" />
     <Compile Include="ExtensioinMethods\Reflection\ChoFieldInfoEx.cs" />
     <Compile Include="ExtensioinMethods\Reflection\ChoPropertyInfoEx.cs" />
     <Compile Include="ExtensioinMethods\Reflection\Emit\ChoEmitHelper.cs" />
     <Compile Include="ExtensioinMethods\Reflection\Emit\ChoILGeneratorEx.cs" />
     <Compile Include="ExtensioinMethods\Threading\ChoThreadEx.cs" />
     <Compile Include="ExtensioinMethods\Win32\RegistryKeyEx.cs" />
-    <Compile Include="ExtensioinMethods\Windows\ChoFormEx.cs" />
+    <Compile Include="ExtensioinMethods\Windows\Forms\ChoControlEx.cs" />
+    <Compile Include="ExtensioinMethods\Windows\Forms\ChoFormEx.cs" />
+    <Compile Include="Net\ChoWebService.cs" />
+    <Compile Include="Runtime\Remoting\Proxies\ChoCommandLineArgsBuilderProxy.cs" />
+    <Compile Include="Shell\CommandLine\ChoCommandLineArgBuilderCommandAttribute.cs" />
+    <Compile Include="Shell\CommandLine\ChoPositionalCommandLineArgAttribute.cs" />
+    <Compile Include="Shell\CommandLine\ChoCommandLineArgAdditionalUsageAttribute.cs" />
+    <Compile Include="Shell\CommandLine\ChoCommandLineArgBuilderAttribute.cs" />
+    <Compile Include="Shell\CommandLine\ChoCommandLineArgBuilderDirector.cs" />
+    <Compile Include="Shell\CommandLine\ChoCommandLineArgBuilder.cs" />
+    <Compile Include="Shell\CommandLine\MetaData\ChoCommandLineArgMetaDataManager.cs" />
+    <Compile Include="Validation\Validators\Attributes\ChoNotNullOrWhiteSpaceValidatorAttribute.cs" />
+    <Compile Include="Validation\Validators\ChoNotNullOrWhiteSpaceValidator.cs" />
+    <Compile Include="Windows\Forms\ChoLabel.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="ExtensioinMethods\Xml\Linq\XDocumentEx.cs" />
     <Compile Include="ExtensioinMethods\Xml\Serialization\ChoNullNSXmlSerializer.cs" />
     <Compile Include="ExtensioinMethods\Xml\XmlNodeEx.cs" />
-    <Compile Include="Forms\ChoMainForm.cs">
+    <Compile Include="Windows\Forms\ChoMainForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Forms\ChoMainForm.Designer.cs">
+    <Compile Include="Windows\Forms\ChoMainForm.Designer.cs">
       <DependentUpon>ChoMainForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="GlobalAssemblyInfo.cs" />
+    <Compile Include="ChoGlobalAssemblyInfo.cs" />
     <Compile Include="IChoObjectChangeWatcheable.cs" />
     <Compile Include="Ini\ChoIniSettings.cs" />
     <Compile Include="Ini\IChoIniNodesContainer.cs" />
+    <Compile Include="Interfaces\IChoPlugIn.cs" />
+    <Compile Include="Interfaces\IChoUndoable.cs" />
+    <Compile Include="IO\ChoMemoryMappedFileReader.cs" />
     <Compile Include="IO\ChoNoCloseStreamWriter.cs" />
     <Compile Include="IO\ChoNoCloseStreamReader.cs" />
+    <Compile Include="IO\ChoMemoryMappedFileWriter.cs" />
+    <Compile Include="Lexer\ChoLexer.cs" />
+    <Compile Include="Lexer\ChoTokenDefinition.cs" />
+    <Compile Include="Net\ChoDns.cs" />
     <Compile Include="Net\ChoNetworkShare.cs" />
+    <Compile Include="Net\Sockets\TCP\ChoTcpClient.cs" />
+    <Compile Include="Net\Sockets\TCP\ChoTcpServiceProviderImpl.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Net\Sockets\TCP\ChoTcpServer.cs" />
+    <Compile Include="Net\Sockets\ChoPingServer.cs" />
+    <Compile Include="Net\Sockets\ChoPingAppServer.cs" />
+    <Compile Include="Net\Sockets\TCP\ChoTcpServiceProvider.cs" />
+    <Compile Include="Net\Sockets\TCP\ChoEchoServer.cs" />
+    <Compile Include="Net\Sockets\TCP\ChoEchoClient.cs" />
+    <Compile Include="Net\Sockets\TCP\ChoBinaryTransport.cs" />
+    <Compile Include="Net\Sockets\UDP\ChoUDPMulticastClient.cs" />
+    <Compile Include="Property\ChoApplicationPropertyReplacer.cs" />
+    <Compile Include="Reflection\ChoEmbeddedAssembly.cs" />
     <Compile Include="Services\ChoAPMSettings.cs" />
     <Compile Include="ChoAsyncResult.cs" />
     <Compile Include="Attributes\ChoAppDomainEventsRegisterableTypeAttribute.cs" />
@@ -159,15 +401,12 @@
     <Compile Include="Attributes\ChoTypeDiscoverableAssemblyAttribute.cs" />
     <Compile Include="Attributes\ChoMemberItemFormatterAttribute.cs" />
     <Compile Include="Attributes\ChoXPathAttribute.cs" />
-    <Compile Include="ChoApplicationHost.cs">
-      <SubType>Component</SubType>
-    </Compile>
+    <Compile Include="ChoApplicationHost.cs" />
     <Compile Include="Configuration\ChoCoreFrxConfigurationManager.cs" />
     <Compile Include="Configuration\ChoXmlFileConfigurationManager.cs" />
     <Compile Include="Configuration\Storage\IChoConfigStorage.cs" />
     <Compile Include="Configuration\Storage\IChoDictionaryConfigStorage.cs" />
     <Compile Include="Configuration\Storage\IChoNameValueConfigStorage.cs" />
-    <Compile Include="ChoFramwork.cs" />
     <Compile Include="Configuration\Storage\IChoObjectConfigStorage.cs" />
     <Compile Include="ExtensioinMethods\Xml\ChoXmlDocumentEx.cs" />
     <Compile Include="Instrumentation\Performance\MetaData\ChoPCMetaDataInfo.cs" />
@@ -204,7 +443,6 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="ServiceProcess\ChoServiceCommandLineArgs.cs" />
-    <Compile Include="ServiceProcess\ChoServiceProcessInstallerSettings.cs" />
     <Compile Include="ServiceProcess\ChoServiceInstallerSettings.cs" />
     <Compile Include="Services\ChoPriorityQueuedMsgService.cs">
       <SubType>Code</SubType>
@@ -240,9 +478,7 @@
     </Compile>
     <Compile Include="Converters\ChoCharArrayToStringConverter.cs" />
     <Compile Include="Converters\IChoValueConverter.cs" />
-    <Compile Include="Diagnostics\ChoProfileBackingStoreManager.cs" />
     <Compile Include="Diagnostics\ChoBaseProfile.cs" />
-    <Compile Include="Diagnostics\ChoProfileConfigurationManager.cs" />
     <Compile Include="Diagnostics\ChoProfileEx.cs" />
     <Compile Include="ChoRuntimeMethodHandle.cs" />
     <Compile Include="Collections\Generic\List\ChoList.cs" />
@@ -275,40 +511,41 @@
     <Compile Include="Attributes\ChoTypeFormatterAttribute.cs" />
     <Compile Include="Attributes\ChoMemberFormaterAttribute.cs" />
     <Compile Include="Attributes\ChoObjectFactoryAttribute.cs" />
-    <Compile Include="Attributes\Validators\ChoCompositeValidatorAttribute.cs" />
-    <Compile Include="Attributes\Validators\ChoCallbackValidatorAttribute.cs">
+    <Compile Include="Threading\ChoMutexHelper.cs" />
+    <Compile Include="Validation\Validators\Attributes\ChoCompositeValidatorAttribute.cs" />
+    <Compile Include="Validation\Validators\Attributes\ChoCallbackValidatorAttribute.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Attributes\Validators\ChoContainsCharactersValidatorAttribute.cs">
+    <Compile Include="Validation\Validators\Attributes\ChoContainsCharactersValidatorAttribute.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Attributes\Validators\ChoIntegerValidatorAttribute.cs">
+    <Compile Include="Validation\Validators\Attributes\ChoIntegerValidatorAttribute.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Attributes\Validators\ChoLongValidatorAttribute.cs">
+    <Compile Include="Validation\Validators\Attributes\ChoLongValidatorAttribute.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Attributes\Validators\ChoNotNullValidatorAttribute.cs">
+    <Compile Include="Validation\Validators\Attributes\ChoNotNullValidatorAttribute.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Attributes\Validators\ChoObjectValidatorAttribute.cs" />
-    <Compile Include="Attributes\Validators\ChoPositiveTimeSpanValidatorAttribute.cs">
+    <Compile Include="Validation\Validators\Attributes\ChoObjectValidatorAttribute.cs" />
+    <Compile Include="Validation\Validators\Attributes\ChoPositiveTimeSpanValidatorAttribute.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Attributes\Validators\ChoRegexStringValidatorAttribute.cs">
+    <Compile Include="Validation\Validators\Attributes\ChoRegexStringValidatorAttribute.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Attributes\Validators\ChoSelfValidationAttribute.cs" />
-    <Compile Include="Attributes\Validators\ChoStringValidatorAttribute.cs">
+    <Compile Include="Validation\Validators\Attributes\ChoSelfValidationAttribute.cs" />
+    <Compile Include="Validation\Validators\Attributes\ChoStringValidatorAttribute.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Attributes\Validators\ChoSubclassTypeValidatorAttribute.cs">
+    <Compile Include="Validation\Validators\Attributes\ChoSubclassTypeValidatorAttribute.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Attributes\Validators\ChoTimeSpanValidatorAttribute.cs">
+    <Compile Include="Validation\Validators\Attributes\ChoTimeSpanValidatorAttribute.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Attributes\Validators\ChoValidatorBase.cs" />
+    <Compile Include="Validation\Validators\Attributes\ChoValidatorBase.cs" />
     <Compile Include="Common\ChoObjConfigurable.cs" />
     <Compile Include="Converters\ChoFilesToObjectHashtableConverter.cs">
       <SubType>Code</SubType>
@@ -437,7 +674,7 @@
     <Compile Include="Validation\ChoValidationManager.cs" />
     <Compile Include="Validation\IChoValidationManager.cs" />
     <Compile Include="Attributes\ChoPreValidatorFactoryAttribute.cs" />
-    <Compile Include="Attributes\Validators\ChoValidatorAttribute.cs" />
+    <Compile Include="Validation\Validators\Attributes\ChoValidatorAttribute.cs" />
     <Compile Include="Collections\Specialized\ChoNameValueCollectionSettings.cs" />
     <Compile Include="Collections\Specialized\ChoNameValueCollection.cs" />
     <Compile Include="Shell\CommandLine\ChoCommandLineParserSettings.cs" />
@@ -524,7 +761,6 @@
     <Compile Include="Converters\ChoToDoubleConverter.cs" />
     <Compile Include="Converters\ChoIntConverter.cs" />
     <Compile Include="Converters\ChoParameterizedTypeConverter.cs" />
-    <Compile Include="Runtime\Remoting\Proxies\ChoRealProxy.cs" />
     <Compile Include="Diagnostics\ChoProfile.cs" />
     <Compile Include="ChoConvert.cs" />
     <Compile Include="ChoEnvironmentSettings.cs" />
@@ -644,7 +880,21 @@
     <Compile Include="Win32\SafeHandles\ChoSafeLocalHandle.cs" />
     <Compile Include="Win32\User32\ChoUser32.cs" />
     <Compile Include="Win32\User32\ChoUser32Enums.cs" />
+    <Compile Include="Windows\Forms\ChoWaitCursor.cs" />
+    <Compile Include="Windows\Forms\ChoUACToolStripMenuItem.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Windows\Forms\ChoToolStripBindableButton.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Windows\Forms\ChoSplitter.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="WPF\ChoWPFBindableObject.cs" />
+    <Compile Include="WPF\ChoWPFWaitCursor.cs" />
+    <Compile Include="WPF\Controls\ChoMultiSelectComboBox.xaml.cs">
+      <DependentUpon>ChoMultiSelectComboBox.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Xml\ChoXmlDocument.cs" />
     <Compile Include="Configuration\Sections\ChoXmlSerializerSection.cs" />
     <Compile Include="Configuration\Sections\ChoConfigSection.cs" />
@@ -655,7 +905,25 @@
     <Compile Include="Xml\Serialization\ChoCDATA.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Forms\ChoMainForm.resx">
+    <EmbeddedResource Include="ChoChooseEnvironmentFrm.resx">
+      <DependentUpon>ChoChooseEnvironmentFrm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ChoExprEvaluatorFrm.resx">
+      <DependentUpon>ChoExprEvaluatorFrm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ChoFatalErrorMessageBox.resx">
+      <DependentUpon>ChoFatalErrorMessageBox.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ChoMessageBox.resx">
+      <DependentUpon>ChoMessageBox.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PlugIns\Builders\ChoPlugInPropertyGrid.resx">
+      <DependentUpon>ChoPlugInPropertyGrid.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PlugIns\ChoPlugInEditor.resx">
+      <DependentUpon>ChoPlugInEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Windows\Forms\ChoMainForm.resx">
       <DependentUpon>ChoMainForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -665,8 +933,17 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Images\Alert.ico" />
+    <None Include="Cinchoo.Core.snk" />
+    <None Include="Resources\Undo_16x.png" />
+    <None Include="Resources\Paste_6520.png" />
+    <None Include="Resources\Cut_6523.png" />
+    <None Include="Resources\Copy_6524.png" />
+    <None Include="Resources\action_Cancel_16xLG.png" />
+    <None Include="Resources\action_Cancel_16xMD.png" />
+    <None Include="Resources\Arrow_UndoRevertRestore_16xMD.png" />
+    <EmbeddedResource Include="Lib\ICSharpCode.TextEditor.dll" />
     <Content Include="Resources\DefaultTrayIcon.ico" />
-    <Content Include="TODO.txt" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChoAbortableAsyncResult.cs" />
@@ -684,7 +961,7 @@
     <Compile Include="Attributes\ChoTypeInfoAttribute.cs" />
     <Compile Include="Attributes\ChoTypeAttribute.cs" />
     <Compile Include="Attributes\ChoIgnoreEqualAttribute.cs" />
-    <Compile Include="Attributes\Validators\ChoNotNulOrEmptyValidatorAttribute.cs" />
+    <Compile Include="Validation\Validators\Attributes\ChoNotNullOrEmptyValidatorAttribute.cs" />
     <Compile Include="ChoActivator.cs" />
     <Compile Include="ChoAppDomainSetup.cs" />
     <Compile Include="ChoApplication.cs" />
@@ -845,7 +1122,6 @@
     <Compile Include="Pattern\Singleton\Exceptions\ChoSingletonException.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Profilers\ChoConfigurationErrorsProfiler.cs" />
     <Compile Include="Reflection\ChoAssemblyFactory.cs" />
     <Compile Include="Reflection\ChoAssemblyResolver.cs" />
     <Compile Include="Reflection\ChoAssemblySettings.cs" />
@@ -875,21 +1151,21 @@
     <Compile Include="Threading\ChoSyncGate.cs" />
     <Compile Include="Threading\ChoCountdownLatch.cs" />
     <Compile Include="Threading\IChoMethodDispatcher.cs" />
-    <Compile Include="Validation\Validators\ChoNotNulOrEmptyValidator.cs" />
+    <Compile Include="Validation\Validators\ChoNotNullOrEmptyValidator.cs" />
     <Compile Include="Win32\Kernel32\ChoKernel32Core.cs" />
     <Compile Include="Xml\ChoXmlDocumentException.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Cinchoo.Core.snk" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Cleanup\" />
     <Folder Include="Comparer\" />
     <Folder Include="Configuration\Watchers\Database\" />
     <Folder Include="Data\" />
-    <Folder Include="Net\Sockets\TCP\" />
-    <Folder Include="Net\Sockets\UDP\" />
+    <Folder Include="ExtensioinMethods\IO\" />
+    <Folder Include="ExtensioinMethods\Text\RegularExpressions\" />
+    <Folder Include="ExtensioinMethods\Windows\Controls\" />
+    <Folder Include="ExtensioinMethods\Windows\Forms\Images\" />
     <Folder Include="Remoting\" />
+    <Folder Include="Windows\Controls\" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
@@ -908,11 +1184,16 @@
       <Install>true</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup>
+    <Page Include="WPF\Controls\ChoMultiSelectComboBox.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>COPY $(TargetDir)*.dll $(SolutionDir)..
-COPY $(TargetDir)*.pdb $(SolutionDir)..
-</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

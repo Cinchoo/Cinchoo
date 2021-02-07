@@ -1,4 +1,4 @@
-namespace Cinchoo.Core.Factory
+namespace Cinchoo.Core
 {
     #region NameSpaces
 
@@ -28,6 +28,8 @@ namespace Cinchoo.Core.Factory
     [XmlRoot("objectPoolSettings")]
     public class ChoObjectPoolSettings : ChoConfigurableObject
     {
+        private static readonly ChoObjectPoolSettings _instance = new ChoObjectPoolSettings();
+
         #region Instance Data Members (Public)
 
         [XmlAttribute("defaultPool")]
@@ -49,7 +51,7 @@ namespace Cinchoo.Core.Factory
 
         public static ChoObjectPoolSettings Me
         {
-            get { return ChoConfigurationManagementFactory.CreateInstance <ChoObjectPoolSettings>(); }
+            get { return _instance; }
         }
 
         #endregion

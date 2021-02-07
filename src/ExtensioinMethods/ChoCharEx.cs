@@ -10,7 +10,7 @@ namespace System
 
     #endregion NameSpaces
     
-    public partial class ChoCharEx
+    public static class ChoCharEx
     {
         #region Constants (Public)
 
@@ -23,8 +23,8 @@ namespace System
         [Description("Veritcal Tab")]
         public const char VerticalTab = '\v';
 
-        [Description("Choape")]
-        public const char Choape = (char)0x1B;
+        [Description("Escape")]
+        public const char Escape = (char)0x1B;
 
         [Description("Backspace")]
         public const char BackSpace = '\b';
@@ -54,5 +54,14 @@ namespace System
         public const char DoubleQuotationMark = '\"';
 
         #endregion Constants (Public)
+
+        #region Repeat Overloads
+
+        public static string Repeat(this char chatToRepeat, int repeat)
+        {
+            return new string(chatToRepeat, repeat);
+        }
+
+        #endregion Repeat Overloads
     }
 }

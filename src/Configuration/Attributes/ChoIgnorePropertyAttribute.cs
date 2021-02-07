@@ -1,4 +1,4 @@
-﻿namespace Cinchoo.Core.Configuration
+﻿namespace Cinchoo.Core
 {
     #region NameSpaces
 

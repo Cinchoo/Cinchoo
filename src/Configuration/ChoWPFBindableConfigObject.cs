@@ -178,8 +178,9 @@ namespace Cinchoo.Core.Configuration
             object newConvertedValue = null;
             try
             {
-                newConvertedValue = ChoConvert.ConvertFrom(_instance, value, ChoType.GetMemberType(memberInfo),
-                    ChoTypeDescriptor.GetTypeConverters(memberInfo), ChoTypeDescriptor.GetTypeConverterParams(memberInfo));
+                newConvertedValue = ChoConvert.ConvertFrom(value, memberInfo, _instance);
+     //           newConvertedValue = ChoConvert.ConvertFrom(_instance, value, ChoType.GetMemberType(memberInfo),
+     //ChoTypeDescriptor.GetTypeConverters(memberInfo), ChoTypeDescriptor.GetTypeConverterParams(memberInfo));
                 ChoType.SetMemberValue(_instance, memberInfo, newConvertedValue);
             }
             catch (ChoConfigurationObjectPostInvokeException)

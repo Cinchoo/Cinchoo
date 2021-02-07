@@ -11,7 +11,16 @@
 
 	public static class ChoArrayEx
 	{
-		public static bool IsNullOrEmpty(this Array array)
+        public static T GetNValue<T>(this T[] array, int index)
+        {
+            if (array == null) return default(T);
+            if (index < array.Length)
+                return array[index];
+            else
+                return default(T);
+        }
+
+        public static bool IsNullOrEmpty(this Array array)
 		{
 			return array == null || array.Length == 0;
 		}
@@ -44,5 +53,21 @@
 			if ((uint)idx + (uint)count > (uint)size)
 				throw new ArgumentException("index and count exceed length of list");
 		}
+
+        public static T[] Join<T>(this T[] x, T[] y)
+        {
+            if (x == null || x.Length == 0)
+                return y;
+            else if (y == null || y.Length == 0)
+                return x;
+            else
+            {
+                var z = new T[x.Length + y.Length];
+                x.CopyTo(z, 0);
+                y.CopyTo(z, x.Length);
+
+                return z;
+            }
+        }
 	}
 }

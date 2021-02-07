@@ -8,16 +8,15 @@
     using System.Reflection;
     using System.Text;
     using Cinchoo.Core.Configuration;
+    using System.Diagnostics;
 
     #endregion NameSpaces
 
-    public sealed class ChoCommandLineArgObjectDirector : ChoLoggableObject
+    public sealed class ChoCommandLineArgObjectDirector //: ChoLoggableObject
     {
-        private const string DefaultCmdLineSwitch = "<default>";
-
         public static void Load(object target)
         {
-            Load(target, Environment.GetCommandLineArgs().Skip(1).ToArray());
+            Load(target, ChoEnvironment.CommandLineArgs);
         }
 
         public static void Load(object target, string[] commandLineArgs)
@@ -25,54 +24,67 @@
             ChoGuard.ArgumentNotNull(target, "Target");
 
             ChoCommandLineArgObject commandLineArgObject = target as ChoCommandLineArgObject;
+            if (commandLineArgObject == null)
+                throw new ChoApplicationException("Target is not ChoCommandLineArgObject.");
+
+            ChoCommandLineArgObjectAttribute commandLineArgumentsObjectAttribute = commandLineArgObject.GetType().GetCustomAttribute(typeof(ChoCommandLineArgObjectAttribute)) as ChoCommandLineArgObjectAttribute;
+            if (commandLineArgumentsObjectAttribute == null)
+                throw new ChoApplicationException("Missing ChoCommandLineArgObjectAttribute. Must be specified.");
+
+            ChoCommandLineParserSettings commandLineParserSettings = ChoCommandLineParserSettings.Me;
+
+            bool isUsageAvail = !commandLineArgumentsObjectAttribute.Silent;
+
+            bool showUsageIfEmpty = commandLineArgumentsObjectAttribute.GetShowUsageIfEmpty();
+
+            if (commandLineArgs.IsNullOrEmpty() && showUsageIfEmpty)
+            {
+                if (isUsageAvail)
+                    throw new ChoCommandLineArgUsageException(commandLineArgObject.GetUsage());
+            }
 
             Exception exception = null;
-            if (commandLineArgObject != null)
-                commandLineArgObject.CommandLineArgs = commandLineArgs;
 
-            using (ChoCommandLineArgParser commandLineArgParser = new ChoCommandLineArgParser(commandLineArgs))
+            using (ChoCommandLineArgParser commandLineArgParser = new ChoCommandLineArgParser())
             {
                 commandLineArgParser.UnrecognizedCommandLineArgFound += ((sender, eventArgs) =>
                 {
                     if (commandLineArgObject != null)
-                        commandLineArgObject.OnUnrecognizedCommandLineArgFound(eventArgs);
+                        commandLineArgObject.RaiseUnrecognizedCommandLineArgFound(eventArgs);
                 });
 
-                commandLineArgParser.Parse();
+                commandLineArgParser.Parse(commandLineArgs);
 
-                if (commandLineArgParser.IsUsageArgSpecified)
-                    throw new ChoCommandLineArgUsageException(GetUsage(target));
+                if (commandLineArgObject != null)
+                    commandLineArgObject.CommandLineArgs = commandLineArgs;
+
+                if ((commandLineArgParser.IsUsageArgSpecified && commandLineArgumentsObjectAttribute.UsageSwitch.IsNullOrWhiteSpace())
+                    || (!commandLineArgumentsObjectAttribute.UsageSwitch.IsNullOrWhiteSpace() && HasUsageSwitchSpecified(commandLineArgParser, commandLineArgumentsObjectAttribute))
+                    )
+                {
+                    if (isUsageAvail)
+                        throw new ChoCommandLineArgUsageException(commandLineArgObject.GetUsage());
+                }
 
                 string cmdLineSwitch = null;
-                if (commandLineArgObject == null || !commandLineArgObject.OnBeforeCommandLineArgObjectLoaded(commandLineArgs))
+                if (commandLineArgObject == null || !commandLineArgObject.RaiseBeforeCommandLineArgObjectLoaded(commandLineArgs))
                 {
                     MemberInfo[] memberInfos = ChoType.GetMemberInfos(target.GetType(), typeof(ChoCommandLineArgAttribute));
-                    MemberInfo[] memberInfos1 = ChoType.GetMemberInfos(target.GetType(), typeof(ChoDefaultCommandLineArgAttribute));
+                    MemberInfo[] memberInfos1 = ChoType.GetMemberInfos(target.GetType(), typeof(ChoPositionalCommandLineArgAttribute));
 
-                    ChoCommandLineParserSettings commandLineParserSettings = ChoCommandLineParserSettings.Me;
-                    memberInfos = memberInfos.Concat(memberInfos1).ToArray();
+                    memberInfos = memberInfos1.Concat(memberInfos).ToArray();
                     if (memberInfos != null && memberInfos.Length > 0)
                     {
                         foreach (MemberInfo memberInfo in memberInfos)
                         {
-                            ChoCommandLineArgAttribute commandLineArgumentAttribute = (ChoCommandLineArgAttribute)memberInfo.GetCustomAttribute<ChoCommandLineArgAttribute>(true);
-                            if (commandLineArgumentAttribute == null)
-                                continue;
+                            cmdLineSwitch = GetCmdLineSwitch(memberInfo);
+                            exception = ExtractNPopulateValue(commandLineArgObject, memberInfo, commandLineArgParser);
 
-                            cmdLineSwitch = commandLineArgumentAttribute.CommandLineSwitch;
-                            bool isSwitchSpecified = IsSwitchSpecified(commandLineArgParser.Switches, cmdLineSwitch, commandLineParserSettings.IgnoreCase);
-
-                            exception = ExtractNPopulateValue(target, memberInfo, cmdLineSwitch, commandLineArgParser, commandLineArgObject, isSwitchSpecified);
-
-                            if (exception != null)
-                                break;
-                        }
-
-                        if (exception == null)
-                        {
-                            cmdLineSwitch = DefaultCmdLineSwitch;
-                            MemberInfo defaultMemberInfo = GetMemberForDefaultSwitch(memberInfos1);
-                            exception = ExtractNPopulateValue(target, defaultMemberInfo, DefaultCmdLineSwitch, commandLineArgParser, commandLineArgObject, false);
+                            if (isUsageAvail)
+                            {
+                                if (exception != null)
+                                    break;
+                            }
                         }
                     }
                 }
@@ -81,242 +93,288 @@
                 {
                     if (exception != null)
                     {
-                        if (!commandLineArgObject.OnCommandLineArgObjectLoadError(commandLineArgs, exception))
-                            throw new ChoCommandLineArgException("Found exception while loading `{3}` command line argument. {0}{0}{2}{0}{0}{1}".FormatString(
-                                Environment.NewLine, GetUsage(target), exception.Message, cmdLineSwitch), exception);
+                        if (!commandLineArgObject.RaiseCommandLineArgObjectLoadError(commandLineArgs, exception))
+                        {
+                            if (isUsageAvail)
+                            {
+                                if (exception is ChoCommandLineArgException)
+                                    throw exception;
+                                else
+                                {
+                                    throw new ChoCommandLineArgException("Found exception while loading `{2}` command line argument. {0}{0}{1}".FormatString(
+                                        Environment.NewLine, exception.Message, cmdLineSwitch), commandLineArgObject.GetUsage(), exception);
+                                }
+                            }
+                        }
                     }
                     else
-                        commandLineArgObject.OnAfterCommandLineArgObjectLoaded(commandLineArgs);
+                        commandLineArgObject.RaiseAfterCommandLineArgObjectLoaded(commandLineArgs);
                 }
             }
         }
 
-        private static Exception ExtractNPopulateValue(object target, MemberInfo memberInfo, string switchString, ChoCommandLineArgParser commandLineArgParser, 
-            ChoCommandLineArgObject commandLineArgObject, bool isSwitchSpecified)
+        private static string GetCmdLineSwitch(MemberInfo memberInfo)
         {
-            ChoCommandLineArgAttribute commandLineArgumentAttribute = null;
-            ChoDefaultCommandLineArgAttribute defaultCommandLineArgAttribute = null;
-
-            if (memberInfo == null)
-            {
-                if (commandLineArgObject != null)
-                    commandLineArgObject.OnCommandLineArgMemberNotFound(switchString, commandLineArgParser[switchString]);
-            }
+            string cmdLineSwitch = null;
+            ChoCommandLineArgAttribute commandLineArgumentAttribute = (ChoCommandLineArgAttribute)memberInfo.GetCustomAttribute<ChoCommandLineArgAttribute>(true);
+            if (commandLineArgumentAttribute != null)
+                cmdLineSwitch = commandLineArgumentAttribute.CommandLineSwitch;
             else
             {
-                //if (ChoType.IsReadOnlyMember(memberInfo))
-                //    return null;
+                ChoPositionalCommandLineArgAttribute posCommandLineArgumentAttribute = (ChoPositionalCommandLineArgAttribute)memberInfo.GetCustomAttribute<ChoPositionalCommandLineArgAttribute>(true);
+                if (posCommandLineArgumentAttribute != null)
+                    cmdLineSwitch = posCommandLineArgumentAttribute.ShortName;
+                if (cmdLineSwitch.IsNullOrWhiteSpace())
+                    cmdLineSwitch = posCommandLineArgumentAttribute.Position.ToString();
+            }
 
-                commandLineArgumentAttribute = null;
-                defaultCommandLineArgAttribute = null;
+            return cmdLineSwitch;
+        }
 
-                commandLineArgumentAttribute = (ChoCommandLineArgAttribute)memberInfo.GetCustomAttribute<ChoCommandLineArgAttribute>(true);
-                if (commandLineArgumentAttribute == null)
+        private static bool HasUsageSwitchSpecified(ChoCommandLineArgParser commandLineArgParser, ChoCommandLineArgObjectAttribute commandLineArgumentsObjectAttribute)
+        {
+            if (commandLineArgumentsObjectAttribute == null
+                || commandLineArgumentsObjectAttribute.UsageSwitch.IsNullOrWhiteSpace())
+                return false;
+
+            foreach (string usageSwitch in commandLineArgumentsObjectAttribute.UsageSwitch.SplitNTrim())
+            {
+                if (commandLineArgParser.Contains(usageSwitch))
+                    return true;
+            }
+
+            return false;
+        }
+
+        //private static void AssignToDefaultValues(ChoCommandLineArgObject commandLineArgObject)
+        //{
+        //    object newCmdLineArgValue = null;
+
+        //    string name = null;
+        //    string defaultValue = null;
+        //    bool isDefaultValueSpecified;
+        //    MemberInfo[] memberInfos = ChoTypeMembersCache.GetAllMemberInfos(commandLineArgObject.GetType());
+        //    if (memberInfos != null && memberInfos.Length > 0)
+        //    {
+        //        ChoCommandLineArgAttribute defaultCommandLineArgAttribute = null;
+        //        foreach (MemberInfo memberInfo in memberInfos)
+        //        {
+        //            defaultCommandLineArgAttribute = (ChoCommandLineArgAttribute)ChoType.GetMemberAttribute(memberInfo, typeof(ChoCommandLineArgAttribute));
+        //            if (defaultCommandLineArgAttribute == null) continue;
+
+        //            name = ChoType.GetMemberName(memberInfo);
+        //            defaultValue = null;
+        //            if (ChoType.GetMemberType(memberInfo) == typeof(bool))
+        //                continue;
+
+        //            isDefaultValueSpecified = ChoCmdLineArgMetaDataManager.TryGetDefaultValue(commandLineArgObject, name, defaultCommandLineArgAttribute, out defaultValue);
+        //            if (!isDefaultValueSpecified)
+        //                continue;
+        //            try
+        //            {
+        //                defaultValue = ChoString.ExpandPropertiesEx(defaultValue);
+        //                object newConvertedValue = ChoConvert.ConvertFrom(defaultValue, memberInfo, commandLineArgObject);
+
+        //                //object newConvertedValue = ChoConvert.ConvertFrom(commandLineArgObject, defaultValue, ChoType.GetMemberType(memberInfo),
+        //                //    ChoTypeDescriptor.GetTypeConverters(memberInfo), ChoTypeDescriptor.GetTypeConverterParams(memberInfo));
+        //                ChoType.SetMemberValue(commandLineArgObject, memberInfo, newCmdLineArgValue);
+        //            }
+        //            catch //(Exception ex)
+        //            {
+        //            }
+        //        }
+        //    }
+        //}
+
+        private static Exception ExtractNPopulateValue(ChoCommandLineArgObject commandLineArgObject, MemberInfo memberInfo, ChoCommandLineArgParser commandLineArgParser)
+        {
+            ChoDefaultCommandLineArgAttribute defaultCommandLineArgAttribute = null;
+            ChoCommandLineArgAttribute commandLineArgumentAttribute = null;
+            ChoPositionalCommandLineArgAttribute posCommandLineArgAttribute = null;
+
+            if (ChoType.IsReadOnlyMember(memberInfo))
+                return null;
+
+            commandLineArgumentAttribute = null;
+            posCommandLineArgAttribute = null;
+
+            defaultCommandLineArgAttribute = commandLineArgumentAttribute = (ChoCommandLineArgAttribute)memberInfo.GetCustomAttribute<ChoCommandLineArgAttribute>(true);
+            if (commandLineArgumentAttribute == null)
+            {
+                defaultCommandLineArgAttribute = posCommandLineArgAttribute = (ChoPositionalCommandLineArgAttribute)memberInfo.GetCustomAttribute<ChoPositionalCommandLineArgAttribute>(true);
+                if (posCommandLineArgAttribute == null)
+                    return null;
+            }
+
+            bool containsCmdLineArg = false;
+            string cmdLineArgValue = null;
+            object newCmdLineArgValue = null;
+            string defaultValue = null;
+            bool isDefaultValueSpecified = false;
+            bool isFallbackValueSpecified = false;
+            string name = null;
+            string fallbackValue = null;
+            object fallbackValueObj = null;
+            object defaultValueObj = null;
+
+            name = ChoType.GetMemberName(memberInfo);
+
+            try
+            {
+                if (posCommandLineArgAttribute != null)
                 {
-                    defaultCommandLineArgAttribute = (ChoDefaultCommandLineArgAttribute)memberInfo.GetCustomAttribute<ChoDefaultCommandLineArgAttribute>(true);
-                    if (defaultCommandLineArgAttribute == null)
-                        return null;
+                    if (!commandLineArgParser.IsSwitchSpecified(posCommandLineArgAttribute.Position))
+                        commandLineArgObject.RaiseCommandLineArgNotFound(posCommandLineArgAttribute.Position.ToString(), ref cmdLineArgValue);
+                    cmdLineArgValue = commandLineArgParser[posCommandLineArgAttribute.Position];
                 }
+                else if (commandLineArgumentAttribute != null)
+                {
+                    if (!commandLineArgParser.IsSwitchSpecified(commandLineArgumentAttribute.CommandLineSwitch))
+                        commandLineArgObject.RaiseCommandLineArgNotFound(commandLineArgumentAttribute.CommandLineSwitch, ref cmdLineArgValue);
+                    
+                    if (ChoType.GetMemberType(memberInfo) == typeof(bool))
+                    {
+                        containsCmdLineArg = IsSwitchSpecified(commandLineArgParser, commandLineArgumentAttribute.CommandLineSwitch, commandLineArgumentAttribute.Aliases);
+                        if (containsCmdLineArg)
+                        {
+                            cmdLineArgValue = "True";
+                            //cmdLineArgValue = GetCmdLineArgValue(commandLineArgParser, commandLineArgumentAttribute.CommandLineSwitch, commandLineArgumentAttribute.Aliases);
+                            //if (cmdLineArgValue.IsNullOrWhiteSpace())
+                            //    cmdLineArgValue = "True";
+                        }
+                        else
+                        {
+                            containsCmdLineArg = IsSwitchSpecified(commandLineArgParser, "{0}-".FormatString(commandLineArgumentAttribute.CommandLineSwitch), commandLineArgumentAttribute.Aliases);
+                            if (containsCmdLineArg)
+                                cmdLineArgValue = "False";
+                        }
+                    }
+                    //else if (ChoType.GetMemberType(memberInfo).IsEnum)
+                    //{
+                    //    containsCmdLineArg = IsSwitchSpecified(commandLineArgParser, Enum.GetNames(ChoType.GetMemberType(memberInfo)));
+                    //    if (containsCmdLineArg)
+                    //        cmdLineArgValue = GetCmdLineArgValue(commandLineArgParser, Enum.GetNames(ChoType.GetMemberType(memberInfo)));
+                    //    else
+                    //        cmdLineArgValue = GetCmdLineArgValue(commandLineArgParser, commandLineArgumentAttribute.CommandLineSwitch, commandLineArgumentAttribute.Aliases);
+                    //}
+                    else
+                    {
+                        cmdLineArgValue = GetCmdLineArgValue(commandLineArgParser, commandLineArgumentAttribute.CommandLineSwitch, commandLineArgumentAttribute.Aliases);
+                    }
+                }
+                else
+                    return null;
 
-                string cmdLineArgValue = null;
-                object newCmdLineArgValue = null;
+                //if (ChoType.GetMemberType(memberInfo) != typeof(bool))
+                //{
+                    isDefaultValueSpecified = ChoCmdLineArgMetaDataManager.TryGetDefaultValue(commandLineArgObject, name, defaultCommandLineArgAttribute, out defaultValue);
+                    isFallbackValueSpecified = ChoCmdLineArgMetaDataManager.TryGetFallbackValue(commandLineArgObject, name, defaultCommandLineArgAttribute, out fallbackValue);
+                //}
 
                 try
                 {
-                    if (defaultCommandLineArgAttribute != null)
-                        cmdLineArgValue = commandLineArgParser.DefaultArgs.Length > 0 ? commandLineArgParser.DefaultArgs[0] : null;
-                    else if (commandLineArgumentAttribute != null)
+                    if (isFallbackValueSpecified)
                     {
-                        cmdLineArgValue = commandLineArgParser[commandLineArgumentAttribute.CommandLineSwitch];
-                        defaultCommandLineArgAttribute = commandLineArgumentAttribute;
-                    }
-                    else
-                        return null;
+    //                    fallbackValueObj = ChoConvert.ConvertFrom(commandLineArgObject, ChoString.ExpandPropertiesEx(fallbackValue),
+    //ChoType.GetMemberType(memberInfo),
+    //ChoTypeDescriptor.GetTypeConverters(memberInfo), ChoTypeDescriptor.GetTypeConverterParams(memberInfo));
 
-                    object defaultCmdLineArgValue = defaultCommandLineArgAttribute.DefaultValue;
-
-                    if (isSwitchSpecified && cmdLineArgValue == null && defaultCommandLineArgAttribute.FallbackValue != null)
-                        defaultCmdLineArgValue = defaultCommandLineArgAttribute.FallbackValue;
-
-                    if (commandLineArgObject == null || !commandLineArgObject.OnBeforeCommandLineArgLoaded(memberInfo.Name, cmdLineArgValue, defaultCommandLineArgAttribute.DefaultValue, defaultCommandLineArgAttribute.FallbackValue))
-                    {
-                        if (!cmdLineArgValue.IsNullOrWhiteSpace())
-                        {
-                            newCmdLineArgValue = ChoConvert.ConvertFrom(target, ChoString.ExpandPropertiesEx(cmdLineArgValue), 
-                                ChoType.GetMemberType(memberInfo),
-                                ChoTypeDescriptor.GetTypeConverters(memberInfo), ChoTypeDescriptor.GetTypeConverterParams(memberInfo));
-                        }
-                        else if (defaultCmdLineArgValue != null)
-                        {
-                            if (defaultCmdLineArgValue is string)
-                                newCmdLineArgValue = ChoConvert.ConvertFrom(target, ChoString.ExpandPropertiesEx(defaultCmdLineArgValue as string), 
-                                    ChoType.GetMemberType(memberInfo),
-                                    ChoTypeDescriptor.GetTypeConverters(memberInfo), ChoTypeDescriptor.GetTypeConverterParams(memberInfo));
-                            else
-                                newCmdLineArgValue = ChoConvert.ConvertFrom(target, defaultCmdLineArgValue, ChoType.GetMemberType(memberInfo),
-                                    ChoTypeDescriptor.GetTypeConverters(memberInfo), ChoTypeDescriptor.GetTypeConverterParams(memberInfo));
-                        }
-
-                        if (newCmdLineArgValue != null)
-                        {
-                            ChoType.SetMemberValue(target, memberInfo, newCmdLineArgValue);
-                            if (commandLineArgObject != null)
-                                commandLineArgObject.OnAfterCommandLineArgLoaded(memberInfo.Name, newCmdLineArgValue);
-                        }
-                        else if (defaultCommandLineArgAttribute.IsRequired)
-                            throw new ChoCommandLineArgException("Missing arg value for '{0}' required command line switch.".FormatString(
-                                commandLineArgumentAttribute == null ? DefaultCmdLineSwitch : commandLineArgumentAttribute.CommandLineSwitch));
+                        fallbackValueObj = ChoConvert.ConvertFrom(ChoString.ExpandPropertiesEx(fallbackValue), memberInfo, commandLineArgObject);
                     }
                 }
-                catch (ChoFatalApplicationException)
+                catch
                 {
-                    throw;
                 }
-                catch (Exception ex)
+
+                try
                 {
-                    if (commandLineArgObject != null && commandLineArgObject.OnCommandLineArgLoadError(memberInfo.Name, cmdLineArgValue, ex))
+                    if (isDefaultValueSpecified)
                     {
-                    }
-                    else
-                    {
-                        return ex;
+                        //defaultValueObj = ChoConvert.ConvertFrom(commandLineArgObject, ChoString.ExpandPropertiesEx(defaultValue), ChoType.GetMemberType(memberInfo),
+                        //    ChoTypeDescriptor.GetTypeConverters(memberInfo), ChoTypeDescriptor.GetTypeConverterParams(memberInfo));
+                        defaultValueObj = ChoConvert.ConvertFrom(ChoString.ExpandPropertiesEx(defaultValue), memberInfo, commandLineArgObject);
                     }
                 }
-            }
-
-            return null;
-        }
-
-        public static string GetUsage(object target)
-        {
-            ChoGuard.ArgumentNotNull(target, "Target");
-
-            StringBuilder builder = new StringBuilder();
-            StringBuilder whereBuilder = new StringBuilder();
-
-            ChoCommandLineParserSettings commandLineParserSettings = ChoCommandLineParserSettings.Me;
-            char cmdLineValueSeperator = commandLineParserSettings.ValueSeperators != null && commandLineParserSettings.ValueSeperators.Length > 0 ? commandLineParserSettings.ValueSeperators[0] : ':';
-            char cmdLineSwitchChar = commandLineParserSettings.SwitchChars != null && commandLineParserSettings.SwitchChars.Length > 0 ? commandLineParserSettings.SwitchChars[0] : '-';
-
-            builder.Append(ChoApplication.EntryAssemblyFileName);
-            MemberInfo[] memberInfos = ChoTypeMembersCache.GetAllMemberInfos(target.GetType());
-
-            if (memberInfos != null && memberInfos.Length > 0)
-            {
-                ChoCommandLineArgAttribute commandLineArgumentAttribute = null;
-                ChoDefaultCommandLineArgAttribute defaultCommandLineArgAttribute = null;
-                bool isEmptyShortName;
-
-                foreach (MemberInfo memberInfo in memberInfos)
+                catch
                 {
-                    //if (ChoType.IsReadOnlyMember(memberInfo))
-                    //    continue;
+                }
 
-                    commandLineArgumentAttribute = null;
-                    defaultCommandLineArgAttribute = null;
-
-                    commandLineArgumentAttribute = (ChoCommandLineArgAttribute)memberInfo.GetCustomAttribute<ChoCommandLineArgAttribute>(true);
-                    if (commandLineArgumentAttribute == null)
+                if (commandLineArgObject != null && !commandLineArgObject.RaiseBeforeCommandLineArgLoaded(memberInfo.Name, ref cmdLineArgValue, defaultValueObj, fallbackValueObj))
+                {
+                    if (!cmdLineArgValue.IsNull())
                     {
-                        defaultCommandLineArgAttribute = (ChoDefaultCommandLineArgAttribute)memberInfo.GetCustomAttribute<ChoDefaultCommandLineArgAttribute>(true);
-                        if (defaultCommandLineArgAttribute == null)
-                            continue;
-                    }
-                    else
-                        defaultCommandLineArgAttribute = commandLineArgumentAttribute;
+                        newCmdLineArgValue = ChoConvert.ConvertFrom(ChoString.ExpandPropertiesEx(cmdLineArgValue), memberInfo, commandLineArgObject);
 
-                    isEmptyShortName = !defaultCommandLineArgAttribute.ShortName.IsNull()
-                            && defaultCommandLineArgAttribute.ShortName.Length == 0;
-
-                    if (commandLineArgumentAttribute != null)
-                        builder.Append(" {0}{1}{2}".FormatString(cmdLineSwitchChar, commandLineArgumentAttribute.CommandLineSwitch, !isEmptyShortName ? cmdLineValueSeperator.ToString() : String.Empty));
-                    else
-                        builder.Append(" ");
-
-                    Type memberType = ChoType.GetMemberType(memberInfo);
-
-                    if (defaultCommandLineArgAttribute.IsRequired)
-                    {
-                        if (!isEmptyShortName)
-                            builder.Append("[");
+                        //newCmdLineArgValue = ChoConvert.ConvertFrom(commandLineArgObject, ChoString.ExpandPropertiesEx(cmdLineArgValue),
+                        //    ChoType.GetMemberType(memberInfo),
+                        //    ChoTypeDescriptor.GetTypeConverters(memberInfo), ChoTypeDescriptor.GetTypeConverterParams(memberInfo));
                     }
 
-                    if (commandLineArgumentAttribute != null)
-                        whereBuilder.AppendFormat("{1}{2}{4}{3}{0}", Environment.NewLine, cmdLineSwitchChar, commandLineArgumentAttribute.CommandLineSwitch, 
-                        commandLineArgumentAttribute.Description.WrapLongLines(commandLineArgumentAttribute.DescriptionFormatLineSize, String.Empty,
-                        commandLineArgumentAttribute.DescriptionFormatLineBreakChar, commandLineArgumentAttribute.DescriptionFormatLineNoOfTabs),
-                        commandLineArgumentAttribute.SwitchValueSeperator);
-                    else
-                        whereBuilder.AppendFormat("{3}{2}{1}{0}", Environment.NewLine,
-                            defaultCommandLineArgAttribute.Description.WrapLongLines(defaultCommandLineArgAttribute.DescriptionFormatLineSize, String.Empty,
-                            defaultCommandLineArgAttribute.DescriptionFormatLineBreakChar, defaultCommandLineArgAttribute.DescriptionFormatLineNoOfTabs),
-                            defaultCommandLineArgAttribute.SwitchValueSeperator, DefaultCmdLineSwitch);
-
-                    if (!defaultCommandLineArgAttribute.ShortName.IsNull())
-                        builder.Append(defaultCommandLineArgAttribute.ShortName);
-                    else
+                    if (newCmdLineArgValue == null && defaultCommandLineArgAttribute.IsRequired)
                     {
-                        if (memberType == typeof(int))
-                            builder.Append("<int>");
-                        else if (memberType == typeof(uint))
-                            builder.Append("<uint>");
-                        else if (memberType == typeof(bool))
-                            builder.Append("{True|False}");
-                        else if (memberType == typeof(string))
-                            builder.Append("<string>");
-                        else if (memberType.IsEnum)
+                        if (ChoType.GetMemberType(memberInfo) != typeof(bool))
                         {
-                            builder.Append("{");
-                            bool first = true;
-                            foreach (FieldInfo field in memberType.GetFields())
+                            if (commandLineArgumentAttribute != null)
+                                throw new ChoCommandLineArgException("Missing arg value for '{0}' required command line switch.".FormatString(
+                                    commandLineArgumentAttribute == null ? ChoCommandLineArgObject.DefaultCmdLineSwitch : commandLineArgumentAttribute.CommandLineSwitch),
+                                    commandLineArgObject.GetUsage());
+                            else if (posCommandLineArgAttribute != null)
                             {
-                                if (field.IsStatic)
-                                {
-                                    if (first)
-                                        first = false;
-                                    else
-                                        builder.Append('|');
-                                    builder.Append(field.Name);
-                                }
+                                if (posCommandLineArgAttribute.ShortName.IsNull())
+                                    throw new ChoCommandLineArgException("Missing positional arg value at '{0}' position.".FormatString(
+                                        posCommandLineArgAttribute == null ? ChoCommandLineArgObject.DefaultCmdLineSwitch : posCommandLineArgAttribute.Position.ToString()), commandLineArgObject.GetUsage());
+                                else
+                                    throw new ChoCommandLineArgException("Missing '{0}' argument.".FormatString(posCommandLineArgAttribute.ShortName), commandLineArgObject.GetUsage());
                             }
-                            builder.Append('}');
+                            else
+                                throw new ChoCommandLineArgException("Missing arg value at '{0}' position.".FormatString(ChoCommandLineArgObject.DefaultCmdLineSwitch), commandLineArgObject.GetUsage());
                         }
-                        else
-                            builder.Append("<Unknown>");
                     }
-                    if (defaultCommandLineArgAttribute.IsRequired)
+                    else
                     {
-                        if (!isEmptyShortName)
-                            builder.Append("]");
+                        if (newCmdLineArgValue == null)
+                        {
+                            if (isDefaultValueSpecified)
+                            {
+                                //if (ChoType.GetMemberType(memberInfo) != typeof(bool))
+                                newCmdLineArgValue = defaultValueObj;
+                                //else
+                                //    newCmdLineArgValue = false;
+                            }
+                        }
+
+                        ChoType.SetMemberValue(commandLineArgObject, memberInfo, newCmdLineArgValue);
+                        if (commandLineArgObject != null)
+                            commandLineArgObject.RaiseAfterCommandLineArgLoaded(memberInfo.Name, newCmdLineArgValue);
                     }
                 }
             }
-
-            builder.Append(Environment.NewLine);
-            builder.Append(Environment.NewLine);
-            builder.Append("Where");
-            builder.Append(Environment.NewLine);
-            builder.Append(whereBuilder.ToString().Indent());
-            builder.Append(Environment.NewLine);
-
-            if (target is ChoCommandLineArgObject)
+            catch (ChoFatalApplicationException)
             {
-                string additionalUsageText = ((ChoCommandLineArgObject)target).AdditionalUsageText;
-                if (!additionalUsageText.IsNullOrWhiteSpace())
+                throw;
+            }
+            catch (Exception ex)
+            {
+                if (commandLineArgObject != null && commandLineArgObject.RaiseCommandLineArgLoadError(memberInfo.Name, cmdLineArgValue, ex))
                 {
-                    builder.Append(additionalUsageText);
+                }
+                else
+                {
+                    if (defaultCommandLineArgAttribute.IsRequired)
+                        return ex;
 
-                    builder.Append(Environment.NewLine);
-                    builder.Append(Environment.NewLine);
+                    if (fallbackValueObj != null)
+                        ChoType.SetMemberValue(commandLineArgObject, memberInfo, fallbackValueObj);
+                    else
+                        return ex;
                 }
             }
-
-            return builder.ToString();
+            return null;
         }
 
         internal object Construct(object target)
         {
-            return Construct(target, Environment.GetCommandLineArgs().Skip(1).ToArray());
+            return Construct(target, ChoEnvironment.CommandLineArgs);
         }
 
         internal object Construct(object target, string[] commandLineArgs)
@@ -325,50 +383,44 @@
             return target;
         }
 
-        private static bool IsSwitchSpecified(Dictionary<string, string>.KeyCollection switchKeyCollection, string commandLineSwitch, bool ignoreCase)
+        private static bool IsSwitchSpecified(ChoCommandLineArgParser commandLineArgParser, string[] commandLineSwitches)
         {
-            if (switchKeyCollection == null)
-                return false;
-
-            foreach (string switchString in switchKeyCollection)
-            {
-                if (String.Compare(commandLineSwitch, switchString, ignoreCase) == 0)
-                    return true;
-            }
-
-            return false;
+            return commandLineArgParser.IsSwitchSpecified(commandLineSwitches);
         }
 
-        private static MemberInfo GetMemberForSwitch(MemberInfo[] memberInfos, string switchString, bool ignoreCase)
+        private static bool IsSwitchSpecified(ChoCommandLineArgParser commandLineArgParser, string commandLineSwitch, string aliases)
         {
-            if (memberInfos.IsNullOrEmpty())
-                return null;
+            return commandLineArgParser.IsSwitchSpecified(commandLineSwitch, aliases);
+        }
 
-            foreach (MemberInfo memberInfo in memberInfos)
+        private static bool IsSwitchSpecified(ChoCommandLineArgParser commandLineArgParser, int cmdLineParamPos = 0)
+        {
+            return commandLineArgParser.IsSwitchSpecified(cmdLineParamPos);
+        }
+
+        private static string GetCmdLineArgValue(ChoCommandLineArgParser commandLineArgParser, string[] switches)
+        {
+            foreach (string alias in switches)
             {
-                ChoCommandLineArgAttribute commandLineArgumentAttribute = (ChoCommandLineArgAttribute)memberInfo.GetCustomAttribute<ChoCommandLineArgAttribute>(true);
-
-                if (commandLineArgumentAttribute == null)
-                    continue;
-
-                if (String.Compare(commandLineArgumentAttribute.CommandLineSwitch, switchString, ignoreCase) == 0)
-                    return memberInfo;
+                if (commandLineArgParser.Contains(alias))
+                    return alias;
             }
 
             return null;
         }
 
-        private static MemberInfo GetMemberForDefaultSwitch(MemberInfo[] memberInfos)
+        private static string GetCmdLineArgValue(ChoCommandLineArgParser commandLineArgParser, string switchString, string aliases)
         {
-            if (memberInfos.IsNullOrEmpty())
-                return null;
+            if (commandLineArgParser.Contains(switchString))
+                return commandLineArgParser[switchString];
 
-            foreach (MemberInfo memberInfo in memberInfos)
+            if (!aliases.IsNullOrWhiteSpace())
             {
-                ChoDefaultCommandLineArgAttribute commandLineArgumentAttribute = (ChoDefaultCommandLineArgAttribute)memberInfo.GetCustomAttribute<ChoDefaultCommandLineArgAttribute>(false);
-
-                if (commandLineArgumentAttribute != null)
-                    return memberInfo;
+                foreach (string alias in aliases.SplitNTrim())
+                {
+                    if (commandLineArgParser.Contains(alias))
+                        return commandLineArgParser[alias];
+                }
             }
 
             return null;

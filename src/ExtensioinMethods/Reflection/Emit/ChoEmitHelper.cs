@@ -86,16 +86,19 @@
             ILGenerator il = dynam.GetILGenerator();
             MethodInfo methodInfo = propertyInfo.GetSetMethod();
 
-            if (!methodInfo.IsStatic)
-                il.PushInstance(propertyInfo.DeclaringType);
+            if (methodInfo != null)
+            {
+                if (!methodInfo.IsStatic)
+                    il.PushInstance(propertyInfo.DeclaringType);
 
-            il.Emit(OpCodes.Ldarg_1);
-            il.UnboxIfNeeded(propertyInfo.PropertyType);
+                il.Emit(OpCodes.Ldarg_1);
+                il.UnboxIfNeeded(propertyInfo.PropertyType);
 
-            if (methodInfo.IsFinal || !methodInfo.IsVirtual)
-                il.Emit(OpCodes.Call, methodInfo);
-            else
-                il.Emit(OpCodes.Callvirt, methodInfo);
+                if (methodInfo.IsFinal || !methodInfo.IsVirtual)
+                    il.Emit(OpCodes.Call, methodInfo);
+                else
+                    il.Emit(OpCodes.Callvirt, methodInfo);
+            }
             il.Emit(OpCodes.Ret);
 
             return (Action<object, object>)dynam.CreateDelegate(typeof(Action<object, object>));
@@ -122,15 +125,18 @@
             ILGenerator il = dynam.GetILGenerator();
             MethodInfo methodInfo = propertyInfo.GetGetMethod();
 
-            if (!methodInfo.IsStatic)
-                il.PushInstance(propertyInfo.DeclaringType);
+            if (methodInfo != null)
+            {
+                if (!methodInfo.IsStatic)
+                    il.PushInstance(propertyInfo.DeclaringType);
 
-            if (methodInfo.IsFinal || !methodInfo.IsVirtual)
-                il.Emit(OpCodes.Call, methodInfo);
-            else
-                il.Emit(OpCodes.Callvirt, methodInfo);
+                if (methodInfo.IsFinal || !methodInfo.IsVirtual)
+                    il.Emit(OpCodes.Call, methodInfo);
+                else
+                    il.Emit(OpCodes.Callvirt, methodInfo);
 
-            il.BoxIfNeeded(propertyInfo.PropertyType);
+                il.BoxIfNeeded(propertyInfo.PropertyType);
+            }
             il.Emit(OpCodes.Ret);
 
             return (Func<object, object>)dynam.CreateDelegate(typeof(Func<object, object>));

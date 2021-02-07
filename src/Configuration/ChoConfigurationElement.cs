@@ -50,9 +50,12 @@
 			Silent = standardConfigurationMetaDataInfo.Silent;
             Defaultable = standardConfigurationMetaDataInfo.Defaultable;
             IgnoreCase = standardConfigurationMetaDataInfo.IgnoreCase;
+            ConfigFilePath = standardConfigurationMetaDataInfo.ConfigFilePath;
+            LoadParameters(standardConfigurationMetaDataInfo.Parameters);
+
             if (standardConfigurationMetaDataInfo.ConfigurationMetaDataLogInfo != null)
 			{
-				LogCondition = standardConfigurationMetaDataInfo.ConfigurationMetaDataLogInfo.LogCondition;
+				LogCondition = standardConfigurationMetaDataInfo.ConfigurationMetaDataLogInfo.XmlLogCondition;
 				LogTimeStampFormat = standardConfigurationMetaDataInfo.ConfigurationMetaDataLogInfo.LogTimeStampFormat;
 				LogDirectory = standardConfigurationMetaDataInfo.ConfigurationMetaDataLogInfo.LogDirectory;
 				LogFileName = standardConfigurationMetaDataInfo.ConfigurationMetaDataLogInfo.LogFileName;

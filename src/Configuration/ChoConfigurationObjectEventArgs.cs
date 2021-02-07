@@ -58,16 +58,16 @@ namespace Cinchoo.Core.Configuration
         #region Instance Data Members (Public)
 
         public bool Cancel = false;
-        public readonly object OriginalState = null;
+        public readonly object OriginalValue = null;
 
         #endregion Instance Data Members (Public)
 
         #region Constructors
 
-        internal ChoPreviewConfigurationObjectMemberEventArgs(string memberName, string propertyName, object state, object originalState)
-            : base(memberName, propertyName, state)
+        internal ChoPreviewConfigurationObjectMemberEventArgs(string memberName, string propertyName, object value, object originalValue)
+            : base(memberName, propertyName, value)
         {
-            OriginalState = originalState;
+            OriginalValue = originalValue;
         }
 
         #endregion Constructors
@@ -84,8 +84,8 @@ namespace Cinchoo.Core.Configuration
 
         #region Constructors
 
-        internal ChoConfigurationObjectMemberErrorEventArgs(string memberName, string propertyName, object state, Exception ex)
-            : base(memberName, propertyName, state)
+        internal ChoConfigurationObjectMemberErrorEventArgs(string memberName, string propertyName, object value, Exception ex)
+            : base(memberName, propertyName, value)
         {
             Exception = ex;
         }
@@ -99,17 +99,17 @@ namespace Cinchoo.Core.Configuration
 
         public readonly string MemberName;
         public readonly string PropertyName;
-        public readonly object State = null;
+        public readonly object Value = null;
 
         #endregion Instance Data Members (Public)
 
         #region Constructors
 
-        internal ChoConfigurationObjectMemberEventArgs(string memberName, string propertyName, object state)
+        internal ChoConfigurationObjectMemberEventArgs(string memberName, string propertyName, object value)
         {
             MemberName = memberName;
             PropertyName = propertyName;
-            State = state;
+            Value = value;
         }
 
         #endregion Constructors

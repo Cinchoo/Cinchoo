@@ -40,7 +40,7 @@
 
         #region IChoKeyValuePropertyReplacer Members
 
-        public bool ContainsProperty(string propertyName)
+        public bool ContainsProperty(string propertyName, object context)
         {
             lock (_padLock)
             {
@@ -48,7 +48,7 @@
             }
         }
 
-        public string ReplaceProperty(string propertyName, string format)
+        public string ReplaceProperty(string propertyName, string format, object context)
         {
             lock (_padLock)
             {

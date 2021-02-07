@@ -13,15 +13,35 @@
 	{
 	}
 
+    [AttributeUsage(AttributeTargets.Method)]
+    public class ChoBeforeConfigurationObjectMemberSetHandlerAttribute : Attribute
+    {
+    }
+
 	[AttributeUsage(AttributeTargets.Method)]
 	public class ChoAfterConfigurationObjectMemberLoadedHandlerAttribute : Attribute
 	{
 	}
 
+    [AttributeUsage(AttributeTargets.Method)]
+    public class ChoAfterConfigurationObjectMemberSetHandlerAttribute : Attribute
+    {
+    }
+
 	[AttributeUsage(AttributeTargets.Method)]
 	public class ChoConfigurationObjectMemberLoadErrorHandlerAttribute : Attribute
 	{
 	}
+
+    [AttributeUsage(AttributeTargets.Method)]
+    public class ChoConfigurationObjectMemberSetErrorHandlerAttribute : Attribute
+    {
+    }
+
+    [AttributeUsage(AttributeTargets.Method)]
+    public class ChoBeforeConfigurationObjectLoadedHandlerAttribute : Attribute
+    {
+    }
 
 	[AttributeUsage(AttributeTargets.Method)]
 	public class ChoAfterConfigurationObjectLoadedHandlerAttribute : Attribute

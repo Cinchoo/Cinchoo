@@ -15,6 +15,7 @@ namespace Cinchoo.Core.Xml
     using Cinchoo.Core.IO;
     using Cinchoo.Core.Services;
     using Cinchoo.Core.Collections.Generic;
+    using Cinchoo.Core.Diagnostics;
 
 	#endregion
 
@@ -219,8 +220,10 @@ namespace Cinchoo.Core.Xml
 				_xmlDocument = new XmlDocument(_nameTable);
                 if (IsXmlFile)
                 {
-                    using (FileStream fs = new FileStream(_filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                        _xmlDocument.Load(fs);
+                    //using (FileStream fs = new FileStream(_filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    //    _xmlDocument.Load(fs);
+                    if (File.Exists(_filePath))
+                        _xmlDocument.Load(_filePath);
                 }
                 else
                     _xmlDocument.LoadXml(_xml);
@@ -569,7 +572,7 @@ namespace Cinchoo.Core.Xml
             return doc.InnerXml.IndentXml();
         }
 
-		public static string SetInnerXml(string fileName, string xpath, string innerXml)
+		public static string SetInnerXml(string fileName, string xpath, string innerXml, XmlNamespaceManager nsmgr = null)
 		{
 			if (String.IsNullOrEmpty(fileName))
 				throw new ArgumentNullException("FileName");
@@ -581,20 +584,29 @@ namespace Cinchoo.Core.Xml
 			XmlDocument doc = Load(fileName);
 
 			//Select the cd node with the matching title
-			XmlNode configNode = doc.DocumentElement.SelectSingleNode(xpath);
+			XmlNode configNode = null;
+            if (nsmgr == null)
+                configNode = doc.DocumentElement.SelectSingleNode(xpath);
+            else
+                configNode = doc.DocumentElement.SelectSingleNode(xpath, nsmgr);
+
 			if (configNode == null)
 				throw new NullReferenceException(String.Format("Can't find {0} xpath in the {1} config file.", xpath, fileName));
 
 			return SetInnerXml(configNode, innerXml);
 		}
-		
-		public static string SetInnerXml(XmlNode xmlNode, string xpath, string innerXml)
+
+        public static string SetInnerXml(XmlNode xmlNode, string xpath, string innerXml, XmlNamespaceManager nsmgr = null)
 		{
 			ChoGuard.ArgumentNotNull(xmlNode, "XmlNode");
 
 			//Select the cd node with the matching title
-			XmlNode configNode = xmlNode.SelectSingleNode(xpath);
-			if (configNode == null)
+            XmlNode configNode = null;
+            if (nsmgr == null)
+                configNode = xmlNode.SelectSingleNode(xpath);
+            else
+                configNode = xmlNode.SelectSingleNode(xpath, nsmgr);
+            if (configNode == null)
 				throw new NullReferenceException(String.Format("Can't find {0} xpath in the XmlNode.", xpath));
 
 			return SetInnerXml(configNode, innerXml);
@@ -641,13 +653,17 @@ namespace Cinchoo.Core.Xml
 			return SetNamespaceAwareOuterXml(xmlNode, xpath, outerXml, null);
 		}
 
-		public static string SetNamespaceAwareOuterXml(XmlNode xmlNode, string xpath, string outerXml, string namespaceURI)
+        public static string SetNamespaceAwareOuterXml(XmlNode xmlNode, string xpath, string outerXml, string namespaceURI, XmlNamespaceManager nsmgr = null)
 		{
 			ChoGuard.ArgumentNotNull(xmlNode, "XmlNode");
 
 			//Select the cd node with the matching title
-			XmlNode configNode = xmlNode.SelectSingleNode(xpath);
-			if (configNode == null)
+            XmlNode configNode = null;
+            if (nsmgr == null)
+                configNode = xmlNode.SelectSingleNode(xpath);
+            else
+                configNode = xmlNode.SelectSingleNode(xpath, nsmgr);
+            if (configNode == null)
 				throw new NullReferenceException(String.Format("Can't find {0} xpath in the XmlNode.", xpath));
 
 			return SetNamespaceAwareOuterXml(configNode, outerXml, namespaceURI);
@@ -658,7 +674,7 @@ namespace Cinchoo.Core.Xml
 			return SetNamespaceAwareOuterXml(fileName, xpath, outerXml, null);
 		}
 
-		public static string SetNamespaceAwareOuterXml(string fileName, string xpath, string outerXml, string namespaceURI)
+        public static string SetNamespaceAwareOuterXml(string fileName, string xpath, string outerXml, string namespaceURI, XmlNamespaceManager nsmgr = null)
 		{
 			if (String.IsNullOrEmpty(fileName))
 				throw new ArgumentNullException("FileName");
@@ -670,8 +686,12 @@ namespace Cinchoo.Core.Xml
 			XmlDocument doc = Load(fileName);
 
 			//Select the cd node with the matching title
-			XmlNode configNode = doc.DocumentElement.SelectSingleNode(xpath);
-			if (configNode == null)
+            XmlNode configNode = null;
+            if (nsmgr == null)
+                configNode = doc.DocumentElement.SelectSingleNode(xpath);
+            else
+                configNode = doc.DocumentElement.SelectSingleNode(xpath, nsmgr);
+            if (configNode == null)
 				throw new NullReferenceException(String.Format("Can't find {0} xpath in the {1} config file.", xpath, fileName));
 
 			return SetNamespaceAwareOuterXml(configNode, outerXml, namespaceURI);
@@ -720,23 +740,33 @@ namespace Cinchoo.Core.Xml
 				xws.ConformanceLevel = ConformanceLevel.Auto;
 				xws.Indent = false;
 			}
-			using (FileStream fs = File.Create(xmlFilePath))
-			{
-				// Create a XMLTextWriter that will send its output to a memory stream (file)
-				using (XmlWriter xtw = XmlTextWriter.Create(fs, xws))
-				{
-					// Set the formatting property of the XML Text Writer to indented
-					// the text writer is where the indenting will be performed
-					//if (indentOutput)
-					//    xtw.Formatting = Formatting.Indented;
+            try
+            {
+                //using (FileStream fs = File.Create(xmlFilePath))
+                //using (FileStream fs = new FileStream(xmlFilePath, FileMode.Open, FileAccess.Write, FileShare.ReadWrite))
+                //{
+                using (StreamWriter sw = new StreamWriter(xmlFilePath, false))
+                {
+                    // Create a XMLTextWriter that will send its output to a memory stream (file)
+                    using (XmlWriter xtw = XmlTextWriter.Create(sw, xws))
+                    {
+                        // Set the formatting property of the XML Text Writer to indented
+                        // the text writer is where the indenting will be performed
+                        //if (indentOutput)
+                        //    xtw.Formatting = Formatting.Indented;
 
-					// write dom xml to the xmltextwriter
-					xmlNode.WriteContentTo(xtw);
-					// Flush the contents of the text writer
-					// to the memory stream, which is simply a memory file
-					xtw.Flush();
-				}
-			}
+                        // write dom xml to the xmltextwriter
+                        xmlNode.WriteContentTo(xtw);
+                        // Flush the contents of the text writer
+                        // to the memory stream, which is simply a memory file
+                        xtw.Flush();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ChoTrace.Error(ex);
+            }
 		}
 
 		#region Embedded Include File Loading Members
@@ -962,7 +992,8 @@ namespace Cinchoo.Core.Xml
 				{
 					if (!includeSubFileList.ContainsKey(includeFileName))
 						includeSubFileList.Add(includeFileName, newNode);
-					ExpandIncludes(newNode, baseDirectory, includeSubFileList, xmlnsManager);
+                    baseDirectory = Path.GetDirectoryName(includeFileName);
+                    ExpandIncludes(newNode, baseDirectory, includeSubFileList, xmlnsManager);
 				}
 			}
 			//includeSubFileList.Add(includeFileName, includeElement);
@@ -1081,7 +1112,8 @@ namespace Cinchoo.Core.Xml
         public static void CreateXmlFileIfEmpty(string appConfigPath, string rootElementName)
         {
             ChoGuard.ArgumentNotNullOrEmpty(rootElementName, "RootElementName");
-            
+
+            bool hasRoot = false;
             if (!File.Exists(appConfigPath))
             {
                 ChoDirectory.CreateDirectoryFromFilePath(appConfigPath);
@@ -1090,22 +1122,22 @@ namespace Cinchoo.Core.Xml
                 {
                 }
             }
-
-            bool hasRoot = false;
-            using (XmlReader xmlReader = XmlReader.Create(appConfigPath))
+            else
             {
-                try
+                using (XmlReader xmlReader = XmlReader.Create(appConfigPath))
                 {
-                    if (xmlReader.MoveToContent() == XmlNodeType.Element)
-                        hasRoot = true;
-                }
-                catch (Exception ex)
-                {
-                    if (ex.Message != "Root element is missing.")
-                        throw;
+                    try
+                    {
+                        if (xmlReader.MoveToContent() == XmlNodeType.Element)
+                            hasRoot = true;
+                    }
+                    catch (Exception) // ex)
+                    {
+                        //if (ex.Message != "Root element is missing.")
+                        //    throw;
+                    }
                 }
             }
-
             //string allText = File.ReadAllText(appConfigPath);
             if (!hasRoot) //allText.IsNullOrWhiteSpace())
             {

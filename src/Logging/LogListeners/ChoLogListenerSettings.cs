@@ -17,7 +17,9 @@ namespace Cinchoo.Core.Logging
 	[XmlRoot("logListenerSettings")]
 	public class ChoLogListenerSettings : IChoObjectInitializable
 	{
-		#region Instance Data Members (Public)
+        private static readonly ChoLogListenerSettings _instance = new ChoLogListenerSettings();
+        
+        #region Instance Data Members (Public)
 
 		[XmlAttribute("turnOn")]
 		public bool TurnOn = true;
@@ -45,7 +47,7 @@ namespace Cinchoo.Core.Logging
 
 		#region Shared Data Members (Private)
 
-        private static string _buildInLogListenerType = typeof(ChoConsoleLogListener).AssemblyQualifiedName;
+        private static string _buildInLogListenerType = typeof(ChoConsoleLogListener).SimpleQualifiedName();
 
 		#endregion Shared Data Members (Private)
 
@@ -71,7 +73,7 @@ namespace Cinchoo.Core.Logging
 
 		public static ChoLogListenerSettings Me
 		{
-			get { return ChoConfigurationManagementFactory.CreateInstance<ChoLogListenerSettings>(); }
+            get { return _instance; }
 		}
 
 		private static ChoDictionary<string, ChoLogListener> _defaultLogListeners;

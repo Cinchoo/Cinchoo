@@ -11,8 +11,8 @@ namespace Cinchoo.Core
 
     #endregion NameSpaces
 
-    [ChoStringObjectFormattable]
-    public class ChoLong
+    [ChoStringObjectFormattable(typeof(long))]
+    public class ChoLong : IChoStringObjectFormatter<long>
     {
         #region Constants
 
@@ -72,6 +72,12 @@ namespace Cinchoo.Core
         public long Value
         {
             get { return _value; }
+        }
+
+        public string GetHelpText()
+        {
+            ChoLong x = new ChoLong(99);
+            return x.ToFormattedString();
         }
 
         #endregion Instance Members (Public)

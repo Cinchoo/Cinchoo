@@ -1,6 +1,6 @@
 namespace Cinchoo.Core
 {
-	#region Namespaces
+    #region Namespaces
 
     using System;
     using System.Xml.Serialization;
@@ -14,12 +14,126 @@ namespace Cinchoo.Core
     using System.Net;
     using System.Collections.Generic;
     using System.Configuration;
+    using System.Drawing;
 
-	#endregion
+    #endregion
 
     public enum ChoTrayAppTurnOnMode { OnMinimize, OnClose, OnMinimizeOrClose }
 
-    public class ChoTrayApplicationBehaviourSettings
+    public class ChoTrayApplicationFontSettings : IChoMergeable<ChoTrayApplicationFontSettings>
+    {
+        [XmlAttribute("fontName")]
+        public string FontName = "Helvetica";
+
+        [XmlAttribute("fontSize")]
+        public int FontSize = 8;
+
+        [XmlElement("fontColor")]
+        public Color FontColor = Color.Black;
+
+        #region Object Overrides
+
+        public override string ToString()
+        {
+            ChoStringMsgBuilder msg = new ChoStringMsgBuilder("Tray Application Font Settings");
+
+            msg.AppendFormatLine("FontName: {0}", FontName);
+            msg.AppendFormatLine("FontSize: {0}", FontSize);
+            msg.AppendFormatLine("FontColor: {0}", FontColor);
+
+            return msg.ToString();
+        }
+
+        #endregion Object Overrides
+
+        public void Merge(ChoTrayApplicationFontSettings source)
+        {
+            if (source == null) return;
+
+            if (source.FontName.IsNullOrWhiteSpace())
+                FontName = source.FontName;
+
+            FontSize = source.FontSize;
+            FontColor = source.FontColor;
+        }
+
+        public void Merge(object source)
+        {
+            Merge(source as ChoTrayApplicationFontSettings);
+        }
+    }
+
+    public class ChoTrayApplicationContextMenuSettings : IChoMergeable<ChoTrayApplicationContextMenuSettings>
+    {
+        [XmlAttribute("displayShowMainWndMenuItem")]
+        public bool DisplayShowMainWndMenuItem = false;
+
+        [XmlAttribute("displayAlwaysOnTopMenuItem")]
+        public bool DisplayAlwaysOnTopMenuItem = true;
+
+        [XmlAttribute("displayRunAtSystemsStartupMenuItem")]
+        public bool DisplayRunAtSystemsStartupMenuItem = true;
+
+        [XmlAttribute("displayShowInTaskbarMenuItem")]
+        public bool DisplayShowInTaskbarMenuItem = true;
+
+        [XmlAttribute("displayAboutMenuItem")]
+        public bool DisplayAboutMenuItem = true;
+
+        [XmlAttribute("displayHelpMenuItem")]
+        public bool DisplayHelpMenuItem = true;
+
+        [XmlAttribute("displayExitMenuItem")]
+        public bool DisplayExitMenuItem = true;
+
+        #region Object Overrides
+
+        public override string ToString()
+        {
+            ChoStringMsgBuilder msg = new ChoStringMsgBuilder("Tray Application Context Menu Settings");
+
+            msg.AppendFormatLine("DisplayAlwaysOnTopMenuItem: {0}", DisplayAlwaysOnTopMenuItem);
+            msg.AppendFormatLine("DisplayRunAtSystemsStartupMenuItem: {0}", DisplayRunAtSystemsStartupMenuItem);
+            msg.AppendFormatLine("DisplayShowInTaskbarMenuItem: {0}", DisplayShowInTaskbarMenuItem);
+            msg.AppendFormatLine("DisplayAboutMenuItem: {0}", DisplayAboutMenuItem);
+            msg.AppendFormatLine("DisplayHelpMenuItem: {0}", DisplayHelpMenuItem);
+            msg.AppendFormatLine("DisplayExitMenuItem: {0}", DisplayExitMenuItem);
+
+            return msg.ToString();
+        }
+
+        #endregion Object Overrides
+
+        public void Merge(ChoTrayApplicationContextMenuSettings source)
+        {
+            if (source == null) return;
+
+            if (!source.DisplayAlwaysOnTopMenuItem)
+                DisplayAlwaysOnTopMenuItem = source.DisplayAlwaysOnTopMenuItem;
+
+            if (!source.DisplayRunAtSystemsStartupMenuItem)
+                DisplayRunAtSystemsStartupMenuItem = source.DisplayRunAtSystemsStartupMenuItem;
+
+            if (!source.DisplayShowInTaskbarMenuItem)
+                DisplayShowInTaskbarMenuItem = source.DisplayShowInTaskbarMenuItem;
+
+            if (!source.DisplayAboutMenuItem)
+                DisplayAboutMenuItem = source.DisplayAboutMenuItem;
+
+            if (!source.DisplayHelpMenuItem)
+                DisplayHelpMenuItem = source.DisplayHelpMenuItem;
+
+            if (!source.DisplayExitMenuItem)
+                DisplayExitMenuItem = source.DisplayExitMenuItem;
+        }
+
+        public void Merge(object source)
+        {
+            Merge(source as ChoTrayApplicationContextMenuSettings);
+        }
+    }
+
+    public class ChoTrayApplicationBehaviourSettings : IChoMergeable<ChoTrayApplicationBehaviourSettings>
     {
         [XmlAttribute("turnOn")]
         public bool TurnOn = false;
@@ -31,19 +145,31 @@ namespace Cinchoo.Core
         public bool HideMainWindowAtStartup = false;
 
         [XmlAttribute("tooltipText")]
-        public string TooltipText;
+        public string TooltipText = String.Empty;
 
         [XmlAttribute("balloonTipText")]
-        public string BalloonTipText;
+        public string BalloonTipText = String.Empty;
 
         [XmlAttribute("hideTrayIconWhenMainWindowShown")]
         public bool HideTrayIconWhenMainWindowShown = false;
 
-        [XmlAttribute("trayAppTurnOnMode")]
-        public ChoTrayAppTurnOnMode TrayAppTurnOnMode = ChoTrayAppTurnOnMode.OnMinimize;
+        [XmlAttribute("disableDefaultDoubleClickEvent")]
+        public bool DisableDefaultDoubleClickEvent = false;
+
+        [XmlAttribute("disableDefaultClickEvent")]
+        public bool DisableDefaultClickEvent = false;
+
+        [XmlAttribute("turnOnMode")]
+        public ChoTrayAppTurnOnMode TurnOnMode = ChoTrayAppTurnOnMode.OnMinimize;
 
         [XmlElement("trayIcon")]
-        public string TrayIcon;
+        public string TrayIcon = String.Empty;
+
+        [XmlElement("fontSettings")]
+        public ChoTrayApplicationFontSettings FontSettings = new ChoTrayApplicationFontSettings();
+
+        [XmlElement("contextMenuSettings")]
+        public ChoTrayApplicationContextMenuSettings ContextMenuSettings = new ChoTrayApplicationContextMenuSettings();
 
         #region Object Overrides
 
@@ -56,17 +182,62 @@ namespace Cinchoo.Core
             msg.AppendFormatLine("HideTrayIconWhenMainWindowShown: {0}", HideTrayIconWhenMainWindowShown);
             msg.AppendFormatLine("TooltipText: {0}", TooltipText);
             msg.AppendFormatLine("BalloonTipText: {0}", BalloonTipText);
-            msg.AppendFormatLine("TrayAppTurnOnMode: {0}", TrayAppTurnOnMode);
+            msg.AppendFormatLine("TurnOnMode: {0}", TurnOnMode);
             msg.AppendFormatLine("ShowInTaskbar: {0}", ShowInTaskbar);
             msg.AppendFormatLine("TrayIcon: {0}", TrayIcon);
+            if (FontSettings != null)
+            {
+                msg.AppendFormatLine(FontSettings.ToString().Indent());
+            }
+            if (ContextMenuSettings != null)
+            {
+                msg.AppendFormatLine(ContextMenuSettings.ToString().Indent());
+            }
 
             return msg.ToString();
         }
 
         #endregion Object Overrides
+
+        public void Merge(ChoTrayApplicationBehaviourSettings source)
+        {
+            if (source == null) return;
+
+            if (source.TurnOn)
+                TurnOn = source.TurnOn;
+
+            if (!source.ShowInTaskbar)
+                ShowInTaskbar = source.ShowInTaskbar;
+
+            if (source.HideMainWindowAtStartup)
+                HideMainWindowAtStartup = source.HideMainWindowAtStartup;
+
+            if (!source.TooltipText.IsNullOrWhiteSpace())
+                TooltipText = source.TooltipText;
+
+            if (source.HideTrayIconWhenMainWindowShown)
+                HideTrayIconWhenMainWindowShown = source.HideTrayIconWhenMainWindowShown;
+
+            if (source.TurnOnMode != ChoTrayAppTurnOnMode.OnMinimize)
+                TurnOnMode = source.TurnOnMode;
+
+            if (!source.TrayIcon.IsNullOrWhiteSpace())
+                TrayIcon = source.TrayIcon;
+
+            if (source.FontSettings != null)
+                FontSettings.Merge(source.FontSettings);
+
+            if (source.ContextMenuSettings != null)
+                ContextMenuSettings.Merge(source.ContextMenuSettings);
+        }
+
+        public void Merge(object source)
+        {
+            Merge(source as ChoTrayApplicationBehaviourSettings);
+        }
     }
 
-    public class ChoApplicationBehaviourSettings
+    public class ChoApplicationBehaviourSettings : IChoMergeable<ChoApplicationBehaviourSettings>
     {
         [XmlAttribute("hideWindow")]
         public bool HideWindow = false;
@@ -84,10 +255,13 @@ namespace Cinchoo.Core
         public bool RunOnceAtStartup = false;
 
         [XmlAttribute("singleInstanceApp")]
-        public bool SingleInstanceApp = false;
+        public bool SingleInstanceApp = true;
 
         [XmlAttribute("activateFirstInstance")]
         public bool ActivateFirstInstance = false;
+
+        [XmlAttribute("showEnvironmentSelectionWnd")]
+        public bool ShowEnvironmentSelectionWnd = true;
 
         #region Object Overrides
 
@@ -102,26 +276,65 @@ namespace Cinchoo.Core
             msg.AppendFormatLine("RunOnceAtStartup: {0}", RunOnceAtStartup);
             msg.AppendFormatLine("SingleInstanceApp: {0}", SingleInstanceApp);
             msg.AppendFormatLine("ActivateFirstInstance: {0}", ActivateFirstInstance);
+            msg.AppendFormatLine("ShowEnvironmentSelectionWnd: {0}", ShowEnvironmentSelectionWnd);
 
             return msg.ToString();
         }
 
         #endregion Object Overrides
+
+        public void Merge(ChoApplicationBehaviourSettings source)
+        {
+            if (source == null) return;
+
+            if (source.HideWindow)
+                HideWindow = source.HideWindow;
+            if (source.BringWindowToTop)
+                BringWindowToTop = source.BringWindowToTop;
+            if (source.AlwaysOnTop)
+                AlwaysOnTop = source.AlwaysOnTop;
+            if (source.RunAtStartup)
+                RunAtStartup = source.RunAtStartup;
+            if (source.RunOnceAtStartup)
+                RunOnceAtStartup = source.RunOnceAtStartup;
+            if (!source.SingleInstanceApp)
+                SingleInstanceApp = source.SingleInstanceApp;
+            if (source.ActivateFirstInstance)
+                ActivateFirstInstance = source.ActivateFirstInstance;
+            if (!source.ShowEnvironmentSelectionWnd)
+                ShowEnvironmentSelectionWnd = source.ShowEnvironmentSelectionWnd;
+        }
+
+        public void Merge(object source)
+        {
+            Merge(source as ChoApplicationBehaviourSettings);
+        }
     }
 
-    public class ChoLogSettings
+    public class ChoLogSettings : IChoMergeable<ChoLogSettings>
     {
-        [XmlAttribute("traceLevel")]
-        public int TraceLevel = 4;
+        //[XmlAttribute("traceLevel")]
+        internal TraceLevel TraceLevel
+        {
+            get { return ChoTraceSwitch.Switch.Level; }
+            //set 
+            //{
+            //    if (ChoTraceSwitch.Switch.Level == value) return;
+            //    ChoTraceSwitch.Switch = new TraceSwitch("ChoSwitch", "Cinchoo Trace Switch", value.ToString());
+            //}
+        }
 
         [XmlElement("logFolder")]
-        public string LogFolder = String.Empty;
+        public string LogFolder;
 
         [XmlElement("logFilename")]
         public string LogFileName = String.Empty;
 
         [XmlElement("logTimeStampFormat")]
         public string LogTimeStampFormat = String.Empty;
+
+        [XmlElement("doAppendProcessIdToLogDir")]
+        public ChoNullable<bool> DoAppendProcessIdToLogDir;
 
         #region Object Overrides
 
@@ -133,16 +346,37 @@ namespace Cinchoo.Core
             msg.AppendFormatLine("LogFolder: {0}", LogFolder);
             msg.AppendFormatLine("LogFileName: {0}", LogFileName);
             msg.AppendFormatLine("LogTimeStampFormat: {0}", LogTimeStampFormat);
+            msg.AppendFormatLine("DoAppendProcessIdToLogDir: {0}", DoAppendProcessIdToLogDir);
 
             return msg.ToString();
         }
 
         #endregion Object Overrides
+
+        public void Merge(ChoLogSettings source)
+        {
+            if (source == null) return;
+
+            if (!source.LogFolder.IsNullOrWhiteSpace())
+                LogFolder = source.LogFolder;
+            if (!source.LogFileName.IsNullOrWhiteSpace())
+                LogFileName = source.LogFileName;
+            if (!source.LogTimeStampFormat.IsNullOrWhiteSpace())
+                LogTimeStampFormat = source.LogTimeStampFormat;
+            //if (source.DoAppendProcessIdToLogDir != null)
+                DoAppendProcessIdToLogDir = source.DoAppendProcessIdToLogDir;
+        }
+
+        public void Merge(object source)
+        {
+            Merge(source as ChoLogSettings);
+        }
     }
 
     [XmlRoot("globalApplicationSettings")]
-    public class ChoGlobalApplicationSettings : IChoInitializable, IChoObjectChangeWatcheable
+    public class ChoGlobalApplicationSettings : IChoInitializable /*, IChoObjectChangeWatcheable */, IChoMergeable<ChoGlobalApplicationSettings>
     {
+        internal readonly static ChoGlobalApplicationSettings Default = new ChoGlobalApplicationSettings();
         internal static string AppFrxConfigFilePath = String.Empty;
 
         #region Shared Data Members (Private)
@@ -155,13 +389,13 @@ namespace Cinchoo.Core
         #region Instance Data Members (Public)
 
         [XmlElement("behaviourSettings")]
-        public ChoApplicationBehaviourSettings ApplicationBehaviourSettings;
+        public ChoApplicationBehaviourSettings ApplicationBehaviourSettings = new ChoApplicationBehaviourSettings();
 
         [XmlElement("trayApplicationBehaviourSettings")]
-        public ChoTrayApplicationBehaviourSettings TrayApplicationBehaviourSettings;
+        public ChoTrayApplicationBehaviourSettings TrayApplicationBehaviourSettings = new ChoTrayApplicationBehaviourSettings();
 
         [XmlElement("logSettings")]
-        public ChoLogSettings LogSettings;
+        public ChoLogSettings LogSettings = new ChoLogSettings();
 
         [XmlAttribute("applicationId")]
         public string ApplicationName = String.Empty;
@@ -169,32 +403,37 @@ namespace Cinchoo.Core
         [XmlAttribute("eventLogSourceName")]
         public string EventLogSourceName = String.Empty;
 
-        [XmlAttribute("appConfigFilePath")]
-        public string AppConfigFilePath = String.Empty;
+        //[XmlAttribute("appConfigFilePath")]
+        [XmlIgnore]
+        internal string AppConfigFilePath = String.Empty;
 
-        [XmlAttribute("turnOnConsoleOutput")]
-        public bool TurnOnConsoleOutput = false;
+        //[XmlAttribute("turnOnConsoleOutput")]
+        //public bool TurnOnConsoleOutput = false;
 
         [XmlIgnore]
         internal string ApplicationConfigFilePath = String.Empty;
 
         [XmlIgnore]
-        public string ApplicationNameWithoutExtension;
+        public string ApplicationNameWithoutExtension
+        {
+            get { return Path.GetFileNameWithoutExtension(ApplicationName); }
+        }
 
         [XmlIgnore]
-        public string HostName = String.Empty;
+        public string HostName
+        {
+            get;
+            private set;
+        }
 
         [XmlIgnore]
-        public List<string> IPAddresses = new List<string>();
-
-        [XmlIgnore]
-        internal bool DoAppendProcessIdToLogDir;
+        public readonly List<string> IPAddresses = new List<string>();
 
         [XmlIgnore]
         internal string ApplicationConfigDirectory;
 
         [XmlIgnore]
-        internal string ApplicationLogDirectory;
+        public string ApplicationLogDirectory;
 
         #endregion
 
@@ -214,7 +453,7 @@ namespace Cinchoo.Core
 
             msg.AppendFormatLine("ApplicationId: {0}", ApplicationName);
             msg.AppendFormatLine("EventLogSourceName: {0}", EventLogSourceName);
-            msg.AppendFormatLine("TurnOnConsoleOutput: {0}", TurnOnConsoleOutput);
+            ////msg.AppendFormatLine("TurnOnConsoleOutput: {0}", TurnOnConsoleOutput);
             msg.AppendFormatLine("ApplicationConfigFilePath: {0}", ApplicationConfigFilePath);
 
             msg.AppendFormatLine(String.Empty);
@@ -230,7 +469,7 @@ namespace Cinchoo.Core
 
             if (TrayApplicationBehaviourSettings != null)
                 msg.AppendFormatLine(TrayApplicationBehaviourSettings.ToString());
-            
+
             if (LogSettings != null)
                 msg.AppendFormatLine(LogSettings.ToString());
 
@@ -252,6 +491,8 @@ namespace Cinchoo.Core
                 {
                     if (_instance == null)
                     {
+                        //Update overriables
+
                         _instance = ChoCoreFrxConfigurationManager.Register<ChoGlobalApplicationSettings>();
                     }
                 }
@@ -266,14 +507,7 @@ namespace Cinchoo.Core
 
         public void Initialize()
         {
-            if (ApplicationBehaviourSettings == null)
-                ApplicationBehaviourSettings = new ChoApplicationBehaviourSettings();
-
-            if (TrayApplicationBehaviourSettings == null)
-                TrayApplicationBehaviourSettings = new ChoTrayApplicationBehaviourSettings();
-
-            if (LogSettings == null)
-                LogSettings = new ChoLogSettings();
+            #region Get ApplicationName
 
             if (ApplicationName.IsNullOrWhiteSpace())
             {
@@ -283,75 +517,11 @@ namespace Cinchoo.Core
                 }
                 catch (System.Security.SecurityException ex)
                 {
-                    ChoApplication.Trace(ChoTrace.ChoSwitch.TraceError, ex.ToString());
+                    ChoApplication.Trace(ChoTraceSwitch.Switch.TraceError, ex.ToString());
                 }
             }
 
-            if (ApplicationName.IsNullOrEmpty())
-            {
-                ChoApplication.OnFatalApplicationException(101, "Missing ApplicationName.");
-            }
-
-            ApplicationNameWithoutExtension = Path.GetFileNameWithoutExtension(ApplicationName);
-
-            if (EventLogSourceName.IsNullOrWhiteSpace())
-                EventLogSourceName = System.IO.Path.GetFileName(ChoAssembly.GetEntryAssemblyLocation());
-            if (LogSettings.LogTimeStampFormat.IsNullOrWhiteSpace())
-                LogSettings.LogTimeStampFormat = "yyyy-MM-dd hh:mm:ss.fffffff";
-
-            if (LogSettings.LogFileName.IsNullOrWhiteSpace())
-                LogSettings.LogFileName = ChoPath.ChangeExtension(ApplicationName, ChoReservedFileExt.Log);
-
-            LogSettings.LogFileName = ChoPath.CleanFileName(LogSettings.LogFileName);
-            if (Path.IsPathRooted(LogSettings.LogFileName))
-                LogSettings.LogFileName = Path.GetFileName(LogSettings.LogFileName);
-
-            try
-            {
-                DateTime.Now.ToString(LogSettings.LogTimeStampFormat);
-            }
-            catch (Exception ex)
-            {
-                ChoApplication.Trace(ChoTrace.ChoSwitch.TraceError, "Invalid LogTimeStampFormat '{0}' configured.".FormatString(LogSettings.LogTimeStampFormat));
-                ChoApplication.Trace(ChoTrace.ChoSwitch.TraceError, ex.ToString());
-                LogSettings.LogTimeStampFormat = "yyyy-MM-dd hh:mm:ss.fffffff";
-            }
-
-            try 
-            {
-                string sharedEnvConfigDir = null;
-
-                if (!AppFrxConfigFilePath.IsNullOrEmpty())
-                    sharedEnvConfigDir = Path.GetDirectoryName(AppFrxConfigFilePath);
-
-                if (AppConfigFilePath.IsNullOrWhiteSpace())
-                {
-                    if (sharedEnvConfigDir.IsNullOrWhiteSpace())
-                        ApplicationConfigFilePath = ChoPath.GetFullPath(Path.Combine(ChoReservedDirectoryName.Config, ChoPath.AddExtension(ChoPath.CleanFileName(ApplicationName), ChoReservedFileExt.Xml)));
-                    else
-                        ApplicationConfigFilePath = Path.Combine(sharedEnvConfigDir, ChoPath.AddExtension(ChoPath.CleanFileName(ApplicationName), ChoReservedFileExt.Xml));
-                }
-                else
-                {
-                    if (!Path.IsPathRooted(AppConfigFilePath))
-                    {
-                        if (sharedEnvConfigDir.IsNullOrWhiteSpace())
-                            ApplicationConfigFilePath = ChoPath.GetFullPath(Path.Combine(ChoReservedDirectoryName.Config, AppConfigFilePath));
-                        else
-                            ApplicationConfigFilePath = Path.Combine(sharedEnvConfigDir, AppConfigFilePath);
-                    }
-                    else
-                        ApplicationConfigFilePath = AppFrxConfigFilePath;
-                }
-
-                ApplicationConfigDirectory = Path.GetDirectoryName(ApplicationConfigFilePath);
-            }
-            catch (System.Security.SecurityException ex)
-            {
-                // This security exception will occur if the caller does not have 
-                // some undefined set of SecurityPermission flags.
-                ChoApplication.Trace(ChoTrace.ChoSwitch.TraceError, ex.ToString());
-            }
+            #endregion Get ApplicationName
 
             #region Get HostName
 
@@ -409,13 +579,88 @@ namespace Cinchoo.Core
 
             #endregion Get IpAddresses
 
-            if (LogSettings.TraceLevel < 0)
-                LogSettings.TraceLevel = 4;
+            if (ApplicationBehaviourSettings == null)
+                ApplicationBehaviourSettings = new ChoApplicationBehaviourSettings();
+
+            if (TrayApplicationBehaviourSettings == null)
+                TrayApplicationBehaviourSettings = new ChoTrayApplicationBehaviourSettings();
+
+            if (LogSettings == null)
+                LogSettings = new ChoLogSettings();
+
+            ChoApplication.RaiseGlobalApplicationSettingsOverrides(this);
+            Merge(ChoGlobalApplicationSettings.Default);
+
+            PostInitialize();
+        }
+
+        internal void PostInitialize()
+        {
+            if (ApplicationName.IsNullOrEmpty())
+                ChoEnvironment.Exit(101, "Missing ApplicationName.");
+
+            if (EventLogSourceName.IsNullOrWhiteSpace())
+                EventLogSourceName = System.IO.Path.GetFileName(ChoAssembly.GetEntryAssemblyLocation());
+            if (LogSettings.LogTimeStampFormat.IsNullOrWhiteSpace())
+                LogSettings.LogTimeStampFormat = "yyyy-MM-dd hh:mm:ss.fffffff";
+
+            if (LogSettings.LogFileName.IsNullOrWhiteSpace())
+                LogSettings.LogFileName = ChoPath.ChangeExtension(ApplicationName, ChoReservedFileExt.Log);
+
+            LogSettings.LogFileName = ChoPath.CleanFileName(LogSettings.LogFileName);
+            if (Path.IsPathRooted(LogSettings.LogFileName))
+                LogSettings.LogFileName = Path.GetFileName(LogSettings.LogFileName);
+
+            try
+            {
+                DateTime.Now.ToString(LogSettings.LogTimeStampFormat);
+            }
+            catch (Exception ex)
+            {
+                ChoApplication.Trace(ChoTraceSwitch.Switch.TraceError, "Invalid LogTimeStampFormat '{0}' configured.".FormatString(LogSettings.LogTimeStampFormat));
+                ChoApplication.Trace(ChoTraceSwitch.Switch.TraceError, ex.ToString());
+                LogSettings.LogTimeStampFormat = "yyyy-MM-dd hh:mm:ss.fffffff";
+            }
+
+            try
+            {
+                string sharedEnvConfigDir = null;
+
+                if (!AppFrxConfigFilePath.IsNullOrEmpty())
+                    sharedEnvConfigDir = Path.GetDirectoryName(ChoPath.GetFullPath(AppFrxConfigFilePath));
+
+                if (AppConfigFilePath.IsNullOrWhiteSpace())
+                {
+                    if (sharedEnvConfigDir.IsNullOrWhiteSpace())
+                        ApplicationConfigFilePath = ChoPath.GetFullPath(Path.Combine(ChoReservedDirectoryName.Config, ChoPath.AddExtension(ChoPath.CleanFileName(ApplicationName), ChoReservedFileExt.Xml)));
+                    else
+                        ApplicationConfigFilePath = Path.Combine(sharedEnvConfigDir, ChoPath.AddExtension(ChoPath.CleanFileName(ApplicationName), ChoReservedFileExt.Xml));
+                }
+                else
+                {
+                    if (!Path.IsPathRooted(AppConfigFilePath))
+                    {
+                        if (sharedEnvConfigDir.IsNullOrWhiteSpace())
+                            ApplicationConfigFilePath = ChoPath.GetFullPath(Path.Combine(ChoReservedDirectoryName.Config, AppConfigFilePath));
+                        else
+                            ApplicationConfigFilePath = Path.Combine(sharedEnvConfigDir, AppConfigFilePath);
+                    }
+                    else
+                        ApplicationConfigFilePath = AppConfigFilePath;
+                }
+
+                ApplicationConfigDirectory = Path.GetDirectoryName(ChoPath.GetFullPath(ApplicationConfigFilePath));
+                AppFrxConfigFilePath = Path.Combine(ApplicationConfigDirectory, ChoReservedFileName.CoreFrxConfigFileName);
+            }
+            catch (System.Security.SecurityException ex)
+            {
+                // This security exception will occur if the caller does not have 
+                // some undefined set of SecurityPermission flags.
+                ChoApplication.Trace(ChoTraceSwitch.Switch.TraceError, ex.ToString());
+            }
 
             if (!LogSettings.LogFolder.IsNullOrWhiteSpace())
                 ApplicationLogDirectory = ChoString.ExpandProperties(LogSettings.LogFolder, ChoEnvironmentVariablePropertyReplacer.Instance);
-            //else
-            //    ApplicationLogDirectory = Path.Combine(Path.GetDirectoryName(ChoGlobalApplicationSettings.SharedEnvConfigPath), ChoReservedDirectoryName.Logs);
 
             if (ApplicationLogDirectory.IsNullOrWhiteSpace())
             {
@@ -456,5 +701,45 @@ namespace Cinchoo.Core
         }
 
         #endregion IChoConfigChangeWatcheable Overrides
+
+        public void Merge(ChoGlobalApplicationSettings source)
+        {
+            if (source == null) return;
+
+            if (source.ApplicationBehaviourSettings != null)
+                ApplicationBehaviourSettings.Merge(source.ApplicationBehaviourSettings);
+
+            if (source.TrayApplicationBehaviourSettings != null)
+                TrayApplicationBehaviourSettings.Merge(source.TrayApplicationBehaviourSettings);
+
+            if (source.LogSettings != null)
+                LogSettings.Merge(source.LogSettings);
+
+            if (!source.ApplicationName.IsNullOrWhiteSpace())
+                ApplicationName = source.ApplicationName;
+
+            if (!source.EventLogSourceName.IsNullOrWhiteSpace())
+                EventLogSourceName = source.EventLogSourceName;
+
+            if (!source.AppConfigFilePath.IsNullOrWhiteSpace())
+                AppConfigFilePath = source.AppConfigFilePath;
+
+            //if (!source.TurnOnConsoleOutput)
+            //    TurnOnConsoleOutput = source.TurnOnConsoleOutput;
+
+            if (!source.ApplicationConfigFilePath.IsNullOrWhiteSpace())
+                ApplicationConfigFilePath = source.ApplicationConfigFilePath;
+
+            if (!source.ApplicationConfigDirectory.IsNullOrWhiteSpace())
+                ApplicationConfigDirectory = source.ApplicationConfigDirectory;
+
+            if (!source.ApplicationLogDirectory.IsNullOrWhiteSpace())
+                ApplicationLogDirectory = source.ApplicationLogDirectory;
+        }
+
+        public void Merge(object source)
+        {
+            Merge(source as ChoGlobalApplicationSettings);
+        }
     }
 }

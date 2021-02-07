@@ -1055,6 +1055,10 @@ namespace Cinchoo.Core
                             {
                                 return EvaluateProperty(functionOrPropertyName);
                             }
+                            catch (ChoFatalApplicationException)
+                            {
+                                throw;
+                            }
                             catch
                             {
                                 return functionOrPropertyName;
@@ -1063,6 +1067,10 @@ namespace Cinchoo.Core
                     }
                     else
                         return null; // this is needed because of short-circuit evaluation
+                }
+                catch (ChoFatalApplicationException)
+                {
+                    throw;
                 }
                 catch (Exception e)
                 {

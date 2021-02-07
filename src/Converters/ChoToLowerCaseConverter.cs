@@ -9,17 +9,10 @@ namespace Cinchoo.Core
 
     public class ChoToLowerCaseConverter : TypeConverter
     {
-        #region Instance Data Members (Private)
-
-        private string _format;
-
-        #endregion Instance Data Members (Private)
-
         #region Constructors
 
-        public ChoToLowerCaseConverter(string format)
+        public ChoToLowerCaseConverter()
         {
-            _format = format;
         }
 
         #endregion Constructors

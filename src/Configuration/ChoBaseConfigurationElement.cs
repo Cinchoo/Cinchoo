@@ -1,8 +1,9 @@
 ﻿namespace Cinchoo.Core.Configuration
 {
-	#region NameSpaces
+    #region NameSpaces
 
     using System;
+    using System.Collections.Generic;
     using System.Configuration;
     using System.Diagnostics;
     using System.Reflection;
@@ -12,6 +13,8 @@
     using Cinchoo.Core.Properties;
     using Cinchoo.Core.Services;
     using Cinchoo.Core.Text;
+    using System.ComponentModel;
+    using System.Text;
 
     #endregion NameSpaces
 
@@ -38,31 +41,28 @@
 
     //sfsdf
     [DebuggerDisplay("ConfigElementPath = {ConfigElementPath}")]
-	public abstract class ChoBaseConfigurationElement : ChoLoggableObject
-	{
-		#region Instance Data Members (Private)
+    public abstract class ChoBaseConfigurationElement : ChoLoggableObject
+    {
+        #region Instance Data Members (Private)
 
-		protected ChoConfigSection ConfigSection;
-		protected object DefaultConfigObject;
-		protected Type ConfigObjectType;
+        protected ChoConfigSection ConfigSection;
+        protected object DefaultConfigObject;
+        protected Type ConfigObjectType;
 
         private readonly object _syncRoot = new object();
-		private Type _configSectionHandlerType;
+        private Type _configSectionHandlerType;
         private readonly ModifiedStateObject _modifiedStateObject = new ModifiedStateObject();
 
-#if DEBUG
-        int counter = 0;
-#endif
-		#endregion
+        #endregion
 
-		#region Instance Properties
+        #region Instance Properties
 
         internal DateTime LastLoadedTimeStamp = DateTime.MinValue;
 
         internal Type ConfigbObjectType
-		{
-			get { return ConfigObjectType; }
-		}
+        {
+            get { return ConfigObjectType; }
+        }
 
         public string ConfigSectionName
         {
@@ -70,30 +70,30 @@
             set;
         }
 
-		private string _configElementPath;
-		internal string ConfigElementPath
-		{
-			get { return _configElementPath; }
-			private set
-			{
-				if (value.IsNullOrWhiteSpace())
-					throw new NullReferenceException("ConfigElementPath");
+        private string _configElementPath;
+        internal string ConfigElementPath
+        {
+            get { return _configElementPath; }
+            private set
+            {
+                if (value.IsNullOrWhiteSpace())
+                    throw new NullReferenceException("ConfigElementPath");
 
-				_configElementPath = value;
+                _configElementPath = value;
                 ConfigSectionName = GetConfigNameFromPath(_configElementPath);
-			}
-		}
+            }
+        }
 
-		internal Type ConfigSectionHandlerType
-		{
-			get { return _configSectionHandlerType; }
-			set
-			{
-				if (_configSectionHandlerType == value)
-					return;
-				_configSectionHandlerType = value;
-			}
-		}
+        internal Type ConfigSectionHandlerType
+        {
+            get { return _configSectionHandlerType; }
+            set
+            {
+                if (_configSectionHandlerType == value)
+                    return;
+                _configSectionHandlerType = value;
+            }
+        }
 
         internal IChoConfigStorage ConfigStorage
         {
@@ -122,42 +122,42 @@
         }
 
         internal Type DefaultConfigSectionHandlerType
-		{
-			get;
-			set;
-		}
+        {
+            get;
+            set;
+        }
 
         private ChoConfigurationBindingMode _bindingMode;
-		public ChoConfigurationBindingMode BindingMode
-		{
+        public ChoConfigurationBindingMode BindingMode
+        {
             get
             {
                 return _bindingMode;
             }
-			set
-			{
+            set
+            {
                 _bindingMode = value;
-				switch (value)
-				{
-					case ChoConfigurationBindingMode.TwoWay:
+                switch (value)
+                {
+                    case ChoConfigurationBindingMode.TwoWay:
                         _persistable = true;
-						_watchChange = true;
-						break;
-					case ChoConfigurationBindingMode.OneWay:
+                        _watchChange = true;
+                        break;
+                    case ChoConfigurationBindingMode.OneWay:
                         _persistable = false;
-						_watchChange = true;
-						break;
-					case ChoConfigurationBindingMode.OneWayToSource:
+                        _watchChange = true;
+                        break;
+                    case ChoConfigurationBindingMode.OneWayToSource:
                         _persistable = true;
-						_watchChange = false;
-						break;
-					case ChoConfigurationBindingMode.OneTime:
+                        _watchChange = false;
+                        break;
+                    case ChoConfigurationBindingMode.OneTime:
                         _persistable = false;
-						_watchChange = false;
-						break;
-				}
-			}
-		}
+                        _watchChange = false;
+                        break;
+                }
+            }
+        }
 
         private bool _firstTime = true;
         private bool _inLoadingProcess = false;
@@ -176,10 +176,11 @@
             set { _ignoreCase = value; }
         }
 
+        private string _configFilePath;
         public string ConfigFilePath
         {
-            get;
-            set;
+            get { return _configFilePath; }
+            set { _configFilePath = value; }
         }
 
         private bool _persistable = true;
@@ -194,81 +195,115 @@
             get { return _watchChange; }
         }
 
-		private bool _silent = true;
+        private bool _silent = false;
         internal bool Silent
-		{
-			get { return _silent; }
-			set { _silent = value; }
-		}
+        {
+            get { return _silent; }
+            set { _silent = value; }
+        }
 
-		private readonly ChoDictionaryService<string, object> _stateInfo = new ChoDictionaryService<string, object>("ConfigStateInfoDictService");
-		public ChoDictionaryService<string, object> StateInfo
-		{
-			get { return _stateInfo; }
-		}
+        private readonly ChoDictionaryService<string, object> _stateInfo = new ChoDictionaryService<string, object>("ConfigStateInfoDictService");
+        public ChoDictionaryService<string, object> StateInfo
+        {
+            get { return _stateInfo; }
+        }
 
-		public object this[string key]
-		{
-			get { return _stateInfo[key]; }
-			set { _stateInfo[key] = value; }
-		}
+        public object this[string key]
+        {
+            get { return _stateInfo[key]; }
+            set { _stateInfo[key] = value; }
+        }
 
-		#endregion Instance Properties
+        #endregion Instance Properties
 
-		#region Constructors
+        #region Constructors
+
+        static ChoBaseConfigurationElement()
+        {
+            ChoTypeDescriptor.TypeMemberConverterResolve += ChoTypeDescriptor_TypeMemberConverterResolve;
+        }
 
         public ChoBaseConfigurationElement(string configElementPath)
-		{
-			ConfigElementPath = configElementPath;
-		}
+        {
+            ConfigElementPath = configElementPath;
+        }
 
-		#endregion Constructors
+        #endregion Constructors
 
-		#region Instance Members (Abstract)
+        #region Instance Members (Abstract)
 
         public abstract void GetConfig(Type configObjectType, bool refresh);
-		public abstract void PersistConfig(ChoDictionaryService<string, object> stateInfo);
-		protected abstract void ApplyConfigMetaData(ChoBaseConfigurationMetaDataInfo configurationMetaDataInfo);
+        public abstract void PersistConfig(ChoDictionaryService<string, object> stateInfo);
+        protected abstract void ApplyConfigMetaData(ChoBaseConfigurationMetaDataInfo configurationMetaDataInfo);
 
-		#endregion Instance Members (Abstract)
+        #endregion Instance Members (Abstract)
 
-		#region Instance Members (Public)
+        #region Instance Members (Public)
 
-		internal virtual object Construct(object configObject)
-		{
-			DefaultConfigObject = configObject;
+        internal void ReapplyConfigMetaData()
+        {
+            if (this.MetaDataInfo != null)
+                ApplyConfigMetaData(this.MetaDataInfo);
+        }
+
+        internal virtual object Construct(object configObject)
+        {
+            DefaultConfigObject = configObject;
             if (configObject != null)
             {
                 ConfigObjectType = configObject.GetType();
                 Reset();
             }
-			Refresh(false);
+            Refresh(false);
 
-			return ConfigObject;
-		}
+            return ConfigObject;
+        }
 
-		public virtual object Construct(Type configObjType)
-		{
-			ConfigObjectType = configObjType;
-			ChoObjectFactoryAttribute objectFactoryAttribute = ChoType.GetAttribute(configObjType, typeof(ChoObjectFactoryAttribute)) as ChoObjectFactoryAttribute;
-			if (objectFactoryAttribute == null)
-			{
-				ChoType.SetCustomAttribute(configObjType, new ChoObjectFactoryAttribute(ChoObjectConstructionType.Singleton));
-				objectFactoryAttribute = ChoType.GetAttribute(configObjType, typeof(ChoObjectFactoryAttribute)) as ChoObjectFactoryAttribute;
-				if (objectFactoryAttribute == null)
-					throw new ChoConfigurationConstructionException(String.Format("Failed to set custom attribute to object {0} of type.", configObjType.Name));
-			}
+        private static void ChoTypeDescriptor_TypeMemberConverterResolve(object sender, ChoTypeMemberConverterEventArgs e)
+        {
+            if (e.IsParamsRequested) return;
+            if (!e.TypeConverters.IsNullOrEmpty()) return;
 
-			bool isModfied = false;
-			Exception ex;
-			DefaultConfigObject = ChoObjectManagementFactory.CreateInstance(configObjType, objectFactoryAttribute.ObjectConstructionType, true, out ex);
-			SetNThrowException(ex, ref isModfied);
+            if (e.MemberInfo != null)
+            {
+                Type memberType = ChoType.GetMemberType(e.MemberInfo);
+                if (memberType.IsSimple()) return;
+
+                if (e.TypeConverters.IsNullOrEmpty())
+                {
+                    e.TypeConverters.Add(new ChoXmlSerializerConverter(memberType));
+                    e.Resolved = true;
+                }
+            }
+        }
+
+        public virtual object Construct(Type configObjType)
+        {
+            ConfigObjectType = configObjType;
+            ChoObjectFactoryAttribute objectFactoryAttribute = ChoType.GetAttribute(configObjType, typeof(ChoObjectFactoryAttribute)) as ChoObjectFactoryAttribute;
+            if (objectFactoryAttribute == null)
+            {
+                ChoType.SetCustomAttribute(configObjType, new ChoObjectFactoryAttribute(ChoObjectConstructionType.Singleton));
+                objectFactoryAttribute = ChoType.GetAttribute(configObjType, typeof(ChoObjectFactoryAttribute)) as ChoObjectFactoryAttribute;
+                if (objectFactoryAttribute == null)
+                {
+                    if (_silent)
+                        throw new ChoConfigurationConstructionException(String.Format("Failed to set custom attribute to object {0} of type.", configObjType.Name));
+                    else
+                        throw new ChoFatalApplicationException(String.Format("Failed to set custom attribute to object {0} of type.", configObjType.Name));
+                }
+            }
+
+            bool isModfied = false;
+            Exception ex;
+            DefaultConfigObject = ChoObjectManagementFactory.CreateInstance(configObjType, objectFactoryAttribute.ObjectConstructionType, true, out ex);
+            SetNThrowException(ex, ref isModfied);
             Reset();
 
-			Refresh(false);
+            Refresh(false);
 
-			return ConfigObject;
-		}
+            return ConfigObject;
+        }
 
         private void Reset()
         {
@@ -277,6 +312,10 @@
 
             ChoConfigurationObjectErrorManagerService.ResetObjectErrors(ConfigObject);
 
+            string name = null;
+            string defaultValueText = null;
+            object defaultValue = null;
+
             //MemberInfo[] memberInfos = ChoType.GetMembers(ConfigObject.GetType(), typeof(ChoConfigurationPropertyAttribute));
             MemberInfo[] memberInfos = ChoTypeMembersCache.GetAllMemberInfos(ConfigObject.GetType());
             if (memberInfos != null && memberInfos.Length > 0)
@@ -284,18 +323,33 @@
                 ChoPropertyInfoAttribute memberInfoAttribute = null;
                 foreach (MemberInfo memberInfo in memberInfos)
                 {
+                    if (memberInfo.GetCustomAttribute<ChoIgnorePropertyAttribute>() != null)
+                        continue;
+                    
                     memberInfoAttribute = (ChoPropertyInfoAttribute)ChoType.GetMemberAttribute(memberInfo, typeof(ChoPropertyInfoAttribute));
-                    string name = ChoType.GetMemberName(memberInfo);
-                    object defaultValue = null;
-                    bool isDefaultValueSpecified = ChoConfigurationMetaDataManager.TryConfigDefaultValue(this, name, memberInfoAttribute, out defaultValue);
+                    name = ChoType.GetMemberName(memberInfo);
+                    defaultValueText = null;
+                    defaultValue = null;
+
+                    bool isDefaultValueSpecified = ChoConfigurationMetaDataManager.TryGetDefaultValue(this, name, memberInfoAttribute, out defaultValueText);
                     if (memberInfoAttribute == null || !isDefaultValueSpecified)
                         continue;
 
                     try
                     {
+                        try
+                        {
+                            defaultValue = defaultValueText.Evaluate();
+                        }
+                        catch (Exception innerEx1)
+                        {
+                            //ChoConfigurationObjectErrorManagerService.SetObjectMemberError(ConfigObject, memberInfo.Name, String.Format("Failed to assign `{0}` default value. {1}", ChoString.ToString(defaultValue), innerEx1.Message));
+                            defaultValue = defaultValueText;
+                        }
                         //object newConvertedValue = memberInfoAttribute.DefaultValue;
-                        object newConvertedValue = ChoConvert.ConvertFrom(ConfigObject, defaultValue, ChoType.GetMemberType(memberInfo),
-                            ChoTypeDescriptor.GetTypeConverters(memberInfo), ChoTypeDescriptor.GetTypeConverterParams(memberInfo));
+                        object newConvertedValue = ChoConvert.ConvertFrom(defaultValue, memberInfo, ConfigObject);
+                        //object newConvertedValue = ChoConvert.ConvertFrom(ConfigObject, defaultValue, ChoType.GetMemberType(memberInfo),
+                        //    ChoTypeDescriptor.GetTypeConverters(memberInfo), ChoTypeDescriptor.GetTypeConverterParams(memberInfo));
                         SetConfigPropertyValue(newConvertedValue, memberInfo);
                         //ChoType.SetMemberValue(ConfigObject, memberInfo, newConvertedValue);
                     }
@@ -307,72 +361,91 @@
             }
         }
 
+        protected virtual void TraceOutput(bool isDirty)
+        {
+            if (!XmlLogCondition)
+                return;
 
-		protected virtual void TraceOutput(bool isDirty)
-		{
-			if (!LogCondition)
-				return;
+            if (ConfigObject == null)
+            {
+                if (_silent)
+                    throw new ChoConfigurationConstructionException("configObject");
+                else
+                    throw new ChoFatalApplicationException("configObject");
+            }
 
-			if (ConfigObject == null)
-				throw new ChoConfigurationConstructionException("configObject");
-
-			try
-			{
+            try
+            {
                 ChoStringMsgBuilder msg = new ChoStringMsgBuilder(String.Format("{0} {1}", isDirty ? "*" : " ", ChoObject.ToString(ConfigObject, ChoFormattableObject.ExtendedFormatName)));
 
-				if (ConfigSection != null && MetaDataInfo != null)
-				{
-					msg.AppendNewLine();
-					ChoStringMsgBuilder metaDataMsg = new ChoStringMsgBuilder(ChoObject.ToString(MetaDataInfo));
-					msg.Append(metaDataMsg.ToString());
-				}
-
-				Log(msg.ToString());
-			}
-			catch (Exception ex)
-			{
-				Trace.Write(ex);
-				if (!Silent)
-					throw;
-			}
-		}
-
-		#endregion Instance Members (Public)
-
-		#region Instance Members (Internal)
-
-		internal void Persist(bool traceOutput, ChoDictionaryService<string, object> stateInfo)
-		{
-			lock (SyncRoot)
-			{
-                if (ConfigSection == null || ConfigSection.ConfigData == null)
+                if (ConfigSection != null && MetaDataInfo != null)
                 {
-                    if (_firstTime && _defaultable)
+                    msg.AppendNewLine();
+                    ChoStringMsgBuilder metaDataMsg = new ChoStringMsgBuilder(ChoObject.ToString(MetaDataInfo));
+                    msg.Append(metaDataMsg.ToString());
+                }
+
+                Log(msg.ToString());
+            }
+            catch (Exception ex)
+            {
+                Trace.Write(ex);
+                if (!Silent)
+                    throw;
+            }
+        }
+
+        #endregion Instance Members (Public)
+
+        #region Instance Members (Internal)
+
+        internal void Persist(bool traceOutput, ChoDictionaryService<string, object> stateInfo, bool forcePersist = false)
+        {
+            if (ChoAppFrxSettings.Me.DisableAppConfig)
+                return;
+            if (ChoAppFrxSettings.Me.DisableWriteAppConfig)
+                return;
+
+            lock (SyncRoot)
+            {
+                //if (ConfigSection == null || ConfigSection.ConfigData == null)
+                if (!_hasConfigSectionDefined)
+                {
+                    if ((_firstTime && _defaultable) || forcePersist || _persistable)
+                    {
                         PersistInternal(traceOutput, stateInfo);
+                        _hasConfigSectionDefined = true;
+                    }
                     else
                         ChoConfigurationMetaDataManager.SetMetaDataSection(this);
                 }
-                else if (_persistable)
-                {
-                    PersistInternal(traceOutput, stateInfo);
-                }
-/*
-                if (_bindingMode == ChoConfigurationBindingMode.OneTime)
-                {
-                    if (_firstTime)
-                        PersistInternal(traceOutput, stateInfo);
-                }
-                else if (!_persistable || (ConfigSection == null || ConfigSection.ConfigData == null))
-                {
-                    ChoConfigurationMetaDataManager.SetMetaDataSection(this);
-                }
                 else
                 {
-                    PersistInternal(traceOutput, stateInfo);
+                    if (_persistable)
+                    {
+                        PersistInternal(traceOutput, stateInfo);
+                        _hasConfigSectionDefined = true;
+                    }
+                    else
+                        ChoConfigurationMetaDataManager.SetMetaDataSection(this);
                 }
- * */
-			}
-		}
+                /*
+                                if (_bindingMode == ChoConfigurationBindingMode.OneTime)
+                                {
+                                    if (_firstTime)
+                                        PersistInternal(traceOutput, stateInfo);
+                                }
+                                else if (!_persistable || (ConfigSection == null || ConfigSection.ConfigData == null))
+                                {
+                                    ChoConfigurationMetaDataManager.SetMetaDataSection(this);
+                                }
+                                else
+                                {
+                                    PersistInternal(traceOutput, stateInfo);
+                                }
+                 * */
+            }
+        }
 
         private void PersistInternal(bool traceOutput, ChoDictionaryService<string, object> stateInfo)
         {
@@ -402,22 +475,26 @@
             //    ((ChoConfigurableObject)ConfigObject).OnAfterConfigurationObjectPersisted();
         }
 
+        private bool _hasConfigSectionDefined = false;
         internal void Refresh(bool refresh)
         {
             if (_inLoadingProcess)
                 return;
-      
+
             lock (SyncRoot)
             {
-                if (ConfigObject is IChoConfigurationParametersOverridable)
-                    ((IChoConfigurationParametersOverridable)ConfigObject).OverrideParameters(this);
-
+                if (ConfigObject != null && ConfigObject is ChoConfigurableObject)
+                {
+                    if (((ChoConfigurableObject)ConfigObject).RaiseBeforeConfigurationObjectLoaded())
+                        return;
+                }
                 _modifiedStateObject.ResetModified();
 
                 bool isDirty = false;
                 bool errorHandled = false;
                 bool canTraceOutput = true;
                 bool hasErrors = false;
+                _hasConfigSectionDefined = false;
                 this[ChoConfigurationConstants.FORCE_PERSIST] = false;
 
                 _inLoadingProcess = true;
@@ -437,7 +514,7 @@
                         {
                             ChoInterceptableObject interceptableObject = ConfigObject as ChoInterceptableObject;
                             interceptableObject.SetDirty(false);
-                            interceptableObject.SetSilent(false);
+                            interceptableObject.SetSilent(Silent);
                             interceptableObject.SetInitialized(false);
                             interceptableObject.IsConfigObjectSilent = Silent;
                         }
@@ -473,7 +550,7 @@
                     if (ConfigSection != null && ConfigObject is ChoConfigurableObject)
                     {
                         //Call Notify Property Changed for all default values
-                        CallNotifyPropertyChangedForAllDefaultableMembers();
+                        //CallNotifyPropertyChangedForAllDefaultableMembers();
                         ConfigSection.Initialize();
                     }
 
@@ -504,7 +581,13 @@
 
                         if ((ConfigSection == null || ConfigSection.ConfigData == null) && !_defaultable /*&& !_persistable*/)
                         {
-                            throw new ChoConfigurationConstructionException(String.Format("Failed to load '[{0}]' configuration section.", this._configElementPath));
+                            if (!ChoApplication.ServiceInstallation)
+                            {
+                                if (_silent)
+                                    throw new ChoConfigurationConstructionException(String.Format("Failed to load '[{0}]' configuration section.", this._configElementPath));
+                                else
+                                    throw new ChoFatalApplicationException(String.Format("Failed to load '[{0}]' configuration section.", this._configElementPath));
+                            }
                         }
                         else
                         {
@@ -512,9 +595,11 @@
                                 prevConfigSection.Dispose();
 
                             if (ConfigObject is ChoConfigurableObject)
+                            {
                                 ((ChoConfigurableObject)ConfigObject).SetReadOnly(true);
-
-                            bool hasConfigSectionDefined = ConfigSection != null ? ConfigSection.HasConfigSectionDefined : false;
+                                ((ChoConfigurableObject)ConfigObject).SetSilent(Silent);
+                            }
+                            _hasConfigSectionDefined = ConfigSection != null ? ConfigSection.HasConfigSectionDefined : false;
 
                             try
                             {
@@ -522,27 +607,29 @@
                                 {
                                     if (!(ConfigSection is IChoCustomConfigSection))
                                     {
-                                        if (hasConfigSectionDefined)
+                                        if (_hasConfigSectionDefined)
                                         {
                                             _modifiedStateObject.SetModified(ExtractNPopulateValues(ref hasErrors, ref isDirty));
                                         }
                                         else
-                                            _modifiedStateObject.SetModified(AssignToFallbackOrDefaultValues(ref isDirty));
+                                        {
+                                            _modifiedStateObject.SetModified(AssignToFallbackOrDefaultValues(ref hasErrors, ref isDirty));
+                                        }
                                     }
                                     else
                                     {
-                                        if (hasConfigSectionDefined)
+                                        if (_hasConfigSectionDefined)
                                         {
                                             //isModfied = true;
                                             if (ConfigSection == null)
-                                                _modifiedStateObject.SetModified(AssignToFallbackOrDefaultValues(ref isDirty));
+                                                _modifiedStateObject.SetModified(AssignToFallbackOrDefaultValues(ref hasErrors, ref isDirty));
                                             else if (!ChoObject.Equals(ConfigSection, prevConfigSection))
                                                 _modifiedStateObject.SetModified(true);
                                             else
-                                                _modifiedStateObject.SetModified(AssignToFallbackOrDefaultValues(ref isDirty));
+                                                _modifiedStateObject.SetModified(AssignToFallbackOrDefaultValues(ref hasErrors, ref isDirty));
                                         }
                                         else
-                                            _modifiedStateObject.SetModified(AssignToFallbackOrDefaultValues(ref isDirty));
+                                            _modifiedStateObject.SetModified(AssignToFallbackOrDefaultValues(ref hasErrors, ref isDirty));
                                     }
                                 }
 
@@ -604,7 +691,7 @@
                                 if (ConfigObject is ChoConfigurableObject)
                                     ((ChoConfigurableObject)ConfigObject).SetReadOnly(false);
 
-                                if (!hasConfigSectionDefined || isDirty || hasErrors)
+                                if (!_hasConfigSectionDefined || isDirty || hasErrors)
                                 {
                                     if (_defaultable)
                                     {
@@ -612,11 +699,23 @@
                                     }
                                 }
                                 else if ((bool)this[ChoConfigurationConstants.FORCE_PERSIST])
+                                {
+                                    //_firstTime = false;
                                     Persist(false, null);
+                                }
 
                                 _inLoadingProcess = false;
                                 if (_watchChange && ConfigSection != null)
                                     ConfigSection.StartWatching();
+
+                                if (!Silent)
+                                {
+                                    if (hasErrors)
+                                    {
+                                        bool isModified = false;
+                                        errorHandled = SetNThrowException(new ChoConfigurationConstructionException(String.Format("Failed to load '[{0}]' configuration section.", this._configElementPath)), ref isModified);
+                                    }
+                                }
 
                                 ChoConfigurationObjectErrorManagerService.ResetObjectErrors(ConfigObject);
                                 _firstTime = false;
@@ -627,53 +726,65 @@
             }
         }
 
-		#endregion Instance Members (Internal)
+        #endregion Instance Members (Internal)
 
-		#region Instance Members (Private)
+        #region Instance Members (Private)
 
-		internal object ConfigObject
-		{
-			get
-			{
-				if (ConfigSection != null && ConfigSection.ConfigObject == null)
-					ConfigSection.ConfigObject = DefaultConfigObject;
+        protected void LoadParameters(string parameters)
+        {
+            if (parameters.IsNullOrEmpty())
+                return;
 
-				if (ConfigSection is IChoCustomConfigSection)
-					return DefaultConfigObject;
-				else
-					return ConfigSection == null || ConfigSection.ConfigObject == null ? DefaultConfigObject : ConfigSection.ConfigObject;
-			}
-		}
+            parameters = parameters.ExpandProperties();
+            foreach (Tuple<string, string> keyValue in parameters.ToKeyValuePairs())
+            {
+                this[keyValue.Item1] = keyValue.Item2;
+            }
+        }
 
-		private bool SetNThrowException(Exception ex, ref bool isModified)
-		{
-			bool handled = false;
+        internal object ConfigObject
+        {
+            get
+            {
+                if (ConfigSection != null && ConfigSection.ConfigObject == null)
+                    ConfigSection.ConfigObject = DefaultConfigObject;
 
-			if (ex == null)
-				return handled;
+                if (ConfigSection is IChoCustomConfigSection)
+                    return DefaultConfigObject;
+                else
+                    return ConfigSection == null || ConfigSection.ConfigObject == null ? DefaultConfigObject : ConfigSection.ConfigObject;
+            }
+        }
 
-			if (ConfigObject != null && ConfigObject is ChoConfigurableObject)
-				handled = ((ChoConfigurableObject)ConfigObject).RaiseConfigurationObjectLoadError(ex, ref isModified);
+        private bool SetNThrowException(Exception ex, ref bool isModified)
+        {
+            bool handled = false;
 
-			if (!handled)
-			{
-				if (ConfigObject != null && ConfigObject is IChoExceptionHandledObject)
-					handled = ((IChoExceptionHandledObject)ConfigObject).HandleException(ex, ref isModified);
-			}
+            if (ex == null)
+                return handled;
 
-			//ChoConfigurationErrorsProfiler.Me.AppendLine(ChoApplicationException.ToString(ex));
+            if (ConfigObject != null && ConfigObject is ChoConfigurableObject)
+                handled = ((ChoConfigurableObject)ConfigObject).RaiseConfigurationObjectLoadError(ex, ref isModified);
 
-			if (!Silent)
-				throw new ChoConfigurationConstructionException("Failed to build configuration element.", ex);
-			else
-			{
-				//if (_configSection is IChoCustomConfigSection)
-				//    ChoConfigurationObjectErrorManagerService.SetObjectError(_configSection.ConfigData, ChoApplicationException.ToString(ex));
-				//else
-					ChoConfigurationObjectErrorManagerService.SetObjectError(ConfigObject, ChoApplicationException.ToString(ex));
-			}
-			return handled;
-		}
+            if (!handled)
+            {
+                if (ConfigObject != null && ConfigObject is IChoExceptionHandledObject)
+                    handled = ((IChoExceptionHandledObject)ConfigObject).HandleException(ex, ref isModified);
+            }
+
+            //ChoConfigurationErrorsProfiler.Me.AppendLine(ChoApplicationException.ToString(ex));
+
+            if (!Silent)
+                throw new ChoFatalApplicationException(String.Format("Failed to load '[{0}]' configuration section.", this._configElementPath), ex);
+            else
+            {
+                //if (_configSection is IChoCustomConfigSection)
+                //    ChoConfigurationObjectErrorManagerService.SetObjectError(_configSection.ConfigData, ChoApplicationException.ToString(ex));
+                //else
+                ChoConfigurationObjectErrorManagerService.SetObjectError(ConfigObject, ChoApplicationException.ToString(ex));
+            }
+            return handled;
+        }
 
         public void Refresh()
         {
@@ -685,11 +796,11 @@
             catch { }
         }
 
-		private void OnConfigurationChanged(object sender, ChoConfigurationChangedEventArgs e)
-		{
+        private void OnConfigurationChanged(object sender, ChoConfigurationChangedEventArgs e)
+        {
             this.LastLoadedTimeStamp = e.LastUpdatedTimeStamp;
-			Refresh();
-		}
+            Refresh();
+        }
 
         private void CallNotifyPropertyChangedForAllDefaultableMembers()
         {
@@ -721,6 +832,8 @@
             object origValue = null;
             object defaultValue = null;
             object fallbackValue = null;
+            string defaultValueText = null;
+            string fallbackValueText = null;
 
             bool isConfigmemberDefined = false;
 
@@ -745,6 +858,8 @@
                     origValue = null;
                     defaultValue = null;
                     fallbackValue = null;
+                    defaultValueText = null;
+                    fallbackValueText = null;
 
                     name = ChoType.GetMemberName(memberInfo);
                     isConfigmemberDefined = ConfigSection.HasConfigMemberDefined(name);
@@ -753,8 +868,29 @@
 
                     object configFallbackValue = null;
                     object configDefaultValue = null;
-                    bool isDefaultValueSpecified = ChoConfigurationMetaDataManager.TryConfigDefaultValue(this, name, memberInfoAttribute, out configDefaultValue);
-                    ChoConfigurationMetaDataManager.TryConfigFallbackValue(this, name, memberInfoAttribute, out configFallbackValue);
+                    bool isDefaultValueSpecified = ChoConfigurationMetaDataManager.TryGetDefaultValue(this, name, memberInfoAttribute, out defaultValueText);
+                    bool isExpressionProperty = ChoConfigurationMetaDataManager.IsExpressionProperty(this, name, memberInfoAttribute);
+
+                    try
+                    {
+                        configDefaultValue = defaultValueText.Evaluate();
+                    }
+                    catch
+                    {
+                        isDefaultValueSpecified = false;
+                        configDefaultValue = null;
+                    }
+
+                    ChoConfigurationMetaDataManager.TryGetFallbackValue(this, name, memberInfoAttribute, out fallbackValueText);
+
+                    try
+                    {
+                        configFallbackValue = fallbackValueText.Evaluate();
+                    }
+                    catch
+                    {
+                        configFallbackValue = null;
+                    }
 
                     if (configFallbackValue == null)
                     {
@@ -768,14 +904,19 @@
                     {
                         if (!isDirty)
                             isDirty = memberInfoAttribute != null && memberInfoAttribute.Persistable ? true : false;
+
+                        if (isDefaultValueSpecified)
+                            newValue = configDefaultValue;
                     }
-                    else
+                    else if (!isExpressionProperty)
                         origValue = newValue = ConfigSection[name];
 
                     try
                     {
-                        object newConvertedValue = ChoConvert.ConvertFrom(ConfigObject, newValue, ChoType.GetMemberType(memberInfo),
-                            ChoTypeDescriptor.GetTypeConverters(memberInfo), ChoTypeDescriptor.GetTypeConverterParams(memberInfo));
+                        object newConvertedValue = ChoConvert.ConvertFrom(newValue, memberInfo, ConfigObject);
+
+                        //object newConvertedValue = ChoConvert.ConvertFrom(ConfigObject, newValue, ChoType.GetMemberType(memberInfo),
+                        //    ChoTypeDescriptor.GetTypeConverters(memberInfo), ChoTypeDescriptor.GetTypeConverterParams(memberInfo));
                         newValue = newConvertedValue;
                     }
                     catch { }
@@ -783,19 +924,27 @@
                     ChoConfigurableObject configObject = ConfigObject as ChoConfigurableObject;
                     if (configObject != null)
                     {
-                        if (!configObject.IsMemeberValueEqualInternal(memberInfo, oldValue, newValue))
+                        if ((oldValue == null && newValue == null) || !configObject.IsMemeberValueEqualInternal(memberInfo, oldValue, newValue))
                         {
                             if (!configObject.RaiseBeforeConfigurationObjectMemberLoaded(memberInfo.Name, name, origValue, ref newValue))
                             {
                                 try
                                 {
-                                    //ChoType.SetMemberValue(ConfigObject, memberInfo.Name, newValue != null ? ChoConvert.ConvertFrom(ConfigObject, newValue,
-                                    //    ChoType.GetMemberType(memberInfo), ChoTypeConvertersCache.GetTypeConverters(memberInfo)) : null);
-                                    SetConfigPropertyValue(newValue, memberInfo);
-                                    if (!_firstTime)
-                                        isModfied = true;
+                                    if (!configObject.IsMemeberValueEqualInternal(memberInfo, oldValue, newValue))
+                                    {
+                                        newValue = ChoConvert.ConvertFrom(newValue, memberInfo, ConfigObject);
 
-                                    configObject.RaiseAfterConfigurationObjectMemberLoaded(memberInfo.Name, name, newValue);
+                                        //ChoType.SetMemberValue(ConfigObject, memberInfo.Name, newValue != null ? ChoConvert.ConvertFrom(ConfigObject, newValue,
+                                        //    ChoType.GetMemberType(memberInfo), ChoTypeConvertersCache.GetTypeConverters(memberInfo)) : null);
+                                        SetConfigPropertyValue(newValue, memberInfo);
+                                        if (!_firstTime)
+                                            isModfied = true;
+
+                                        configObject.RaiseAfterConfigurationObjectMemberLoaded(memberInfo.Name, name, newValue);
+                                    }
+                                    else
+                                        ChoValidation.Validate(memberInfo, newValue);
+
                                     ChoConfigurationObjectErrorManagerService.ResetObjectMemberError(ConfigObject, memberInfo.Name);
                                 }
                                 catch (Exception innerEx)
@@ -809,11 +958,18 @@
                                                 AssignToFallbackOrDefaultValue(defaultValue, fallbackValue, memberInfo);
                                             }
 
-                                            ChoConfigurationObjectErrorManagerService.SetObjectMemberError(ConfigObject, memberInfo.Name, String.Format(Resources.ConfigConstructMsg, ChoString.ToString(origValue), innerEx.Message));
+                                            ChoConfigurationObjectErrorManagerService.SetObjectMemberError(ConfigObject, memberInfo.Name, 
+                                                String.Format(Resources.ConfigConstructMsg, ChoString.ToString(origValue), innerEx.Message));
                                         }
                                         else
-                                            throw new ChoConfigurationConstructionException(String.Format(Resources.ConfigConstructExceptionMsg, ChoString.ToString(origValue), ConfigObject.GetType().FullName,
-                                                memberInfo.Name), innerEx);
+                                        {
+                                            if (_silent)
+                                                throw new ChoConfigurationConstructionException(String.Format(Resources.ConfigConstructExceptionMsg, 
+                                                    ChoString.ToString(origValue), ConfigObject.GetType().FullName, memberInfo.Name), innerEx);
+                                            else
+                                                throw new ChoFatalApplicationException(String.Format(Resources.ConfigConstructExceptionMsg, 
+                                                    ChoString.ToString(origValue), ConfigObject.GetType().FullName, memberInfo.Name), innerEx);
+                                        }
                                     }
                                 }
                             }
@@ -841,8 +997,12 @@
                                 ChoConfigurationObjectErrorManagerService.SetObjectMemberError(ConfigObject, memberInfo.Name, String.Format(Resources.ConfigConstructMsg, ChoString.ToString(origValue), innerEx.Message));
                             }
                             else
-                                throw new ChoConfigurationConstructionException(String.Format(Resources.ConfigConstructExceptionMsg, ChoString.ToString(origValue), ConfigObject.GetType().FullName,
-                                    memberInfo.Name), innerEx);
+                                if (_silent)
+                                    throw new ChoConfigurationConstructionException(String.Format(Resources.ConfigConstructExceptionMsg, ChoString.ToString(origValue), ConfigObject.GetType().FullName,
+                                        memberInfo.Name), innerEx);
+                                else
+                                    throw new ChoFatalApplicationException(String.Format(Resources.ConfigConstructExceptionMsg, ChoString.ToString(origValue), ConfigObject.GetType().FullName,
+                                        memberInfo.Name), innerEx);
                         }
                     }
                 }
@@ -851,11 +1011,13 @@
             return isModfied;
         }
 
-        private bool AssignToFallbackOrDefaultValues(ref bool isDirty)
+        private bool AssignToFallbackOrDefaultValues(ref bool hasError, ref bool isDirty)
         {
             bool isModfied = false;
             object defaultValue = null;
             object fallbackValue = null;
+            string defaultValueText = null;
+            string fallbackValueText = null;
 
             MemberInfo[] memberInfos = ChoTypeMembersCache.GetAllMemberInfos(ConfigObject.GetType());
             if (memberInfos != null && memberInfos.Length > 0)
@@ -874,17 +1036,43 @@
 
                     defaultValue = null;
                     fallbackValue = null;
+                    defaultValueText = null;
+                    fallbackValueText = null;
 
-                    bool isDefaultValueSpecified = ChoConfigurationMetaDataManager.TryConfigDefaultValue(this, name, memberInfoAttribute, out defaultValue);
-                    ChoConfigurationMetaDataManager.TryConfigFallbackValue(this, name, memberInfoAttribute, out fallbackValue);
+                    bool isDefaultValueSpecified = ChoConfigurationMetaDataManager.TryGetDefaultValue(this, name, memberInfoAttribute, out defaultValueText);
+                    ChoConfigurationMetaDataManager.TryGetFallbackValue(this, name, memberInfoAttribute, out fallbackValueText);
+
+                    try
+                    {
+                        //defaultValue = ChoString.ExpandPropertiesEx(defaultValue);
+                        defaultValue = defaultValueText.Evaluate();
+                    }
+                    catch
+                    {
+                        isDefaultValueSpecified = false;
+                        defaultValue = null;
+                    }
+
+                    try
+                    {
+                        //fallbackValue = ChoString.ExpandPropertiesEx(fallbackValue);
+                        fallbackValue = fallbackValueText.Evaluate();
+                    }
+                    catch
+                    {
+                        fallbackValue = null;
+                    }
 
                     if (fallbackValue == null)
                     {
                         if (!isDefaultValueSpecified)
+                        {
+                            ChoValidation.Validate(memberInfo, ChoType.GetMemberValue(ConfigObject, memberInfo));
                             continue;
+                        }
                     }
 
-                    bool hasError = !ChoConfigurationObjectErrorManagerService.GetObjectMemberError(ConfigObject, memberInfo.Name).IsNullOrEmpty();
+                    hasError = !ChoConfigurationObjectErrorManagerService.GetObjectMemberError(ConfigObject, memberInfo.Name).IsNullOrEmpty();
                     if (hasError)
                     {
                         isModfied = true;
@@ -902,16 +1090,20 @@
         {
             try
             {
-                object convertedFallbackValue = ChoConvert.ConvertFrom(ConfigObject, fallbackValue, ChoType.GetMemberType(memberInfo),
-                    ChoTypeDescriptor.GetTypeConverters(memberInfo), ChoTypeDescriptor.GetTypeConverterParams(memberInfo));
+                //object convertedFallbackValue = ChoConvert.ConvertFrom(ConfigObject, fallbackValue, ChoType.GetMemberType(memberInfo),
+                //    ChoTypeDescriptor.GetTypeConverters(memberInfo), ChoTypeDescriptor.GetTypeConverterParams(memberInfo));
+                object convertedFallbackValue = ChoConvert.ConvertFrom(fallbackValue, memberInfo, ConfigObject);
+
                 SetConfigPropertyValue(convertedFallbackValue, memberInfo);
             }
             catch
             {
                 try
                 {
-                    object convertedDefaultValue = ChoConvert.ConvertFrom(ConfigObject, defaultValue, ChoType.GetMemberType(memberInfo),
-                        ChoTypeDescriptor.GetTypeConverters(memberInfo), ChoTypeDescriptor.GetTypeConverterParams(memberInfo));
+                    object convertedDefaultValue = ChoConvert.ConvertFrom(defaultValue, memberInfo, ConfigObject);
+
+                    //object convertedDefaultValue = ChoConvert.ConvertFrom(ConfigObject, defaultValue, ChoType.GetMemberType(memberInfo),
+                    //    ChoTypeDescriptor.GetTypeConverters(memberInfo), ChoTypeDescriptor.GetTypeConverterParams(memberInfo));
                     SetConfigPropertyValue(convertedDefaultValue, memberInfo);
                 }
                 catch { }
@@ -922,36 +1114,34 @@
         {
             ChoType.SetMemberValue(ConfigObject, memberInfo, newValue);
             if (ConfigObject is ChoConfigurableObject)
-            {
                 ((ChoConfigurableObject)ConfigObject).OnPropertyChanged(memberInfo.Name);
-            }
         }
 
-		private void SetWatcher(bool refresh)
-		{
+        private void SetWatcher(bool refresh)
+        {
             ChoConfigurationMetaDataManager.SetWatcher(this);
 
-			if (ConfigSection != null)
-			{
-				if (!refresh)
-				{
-					//Hookup the configuration watch job
-					if (_watchChange)
-					{
+            if (ConfigSection != null)
+            {
+                if (!refresh)
+                {
+                    //Hookup the configuration watch job
+                    if (_watchChange)
+                    {
                         ConfigSection.SetWatcher(new ChoConfigurationChangedEventHandler(OnConfigurationChanged));
-					}
-				}
-				else
-				{
-					ConfigSection.StopWatching();
-					if (ConfigObject is ChoInterceptableObject)
-					{
-						ChoInterceptableObject interceptableObject = ConfigObject as ChoInterceptableObject;
+                    }
+                }
+                else
+                {
+                    ConfigSection.StopWatching();
+                    if (ConfigObject is ChoInterceptableObject)
+                    {
+                        ChoInterceptableObject interceptableObject = ConfigObject as ChoInterceptableObject;
                         //((ChoInterceptableObject)ConfigObject).SetInitialized(false);
-					}
-				}
-			}
-		}
+                    }
+                }
+            }
+        }
 
         private string GetConfigNameFromPath(string configSectionFullPath)
         {
@@ -965,20 +1155,20 @@
                 return configSectionFullPath.Substring(lastIndex + 1);
         }
 
-		private object SyncRoot
-		{
-			get
-			{
-				object syncRoot = null;
-				if (ConfigSection != null)
-					syncRoot = ConfigSection.SyncRoot;
-				if (syncRoot == null)
-					syncRoot = _syncRoot;
+        private object SyncRoot
+        {
+            get
+            {
+                object syncRoot = null;
+                if (ConfigSection != null)
+                    syncRoot = ConfigSection.SyncRoot;
+                if (syncRoot == null)
+                    syncRoot = _syncRoot;
 
-				return syncRoot;
-			}
-		}
-		#endregion Instance Members (Private)
+                return syncRoot;
+            }
+        }
+        #endregion Instance Members (Private)
 
         protected override void Dispose(bool finalize)
         {
@@ -987,5 +1177,50 @@
             if (ConfigSection != null)
                 ConfigSection.StopWatching();
         }
-	}
+
+        internal string GetHelpText(Type configObjectType)
+        {
+            if (configObjectType == null)
+                return null;
+
+            StringBuilder msg = new StringBuilder();
+            DescriptionAttribute descAttr = null;
+            string name = null;
+            string description = null;
+            string defaultValue = null;
+            string fallbackValue = null;
+
+            msg.AppendLine("-- {0} Help --".FormatString(configObjectType.Name));
+            msg.AppendLine();
+
+            MemberInfo[] memberInfos = ChoTypeMembersCache.GetAllMemberInfos(configObjectType);
+            if (memberInfos != null && memberInfos.Length > 0)
+            {
+                ChoPropertyInfoAttribute memberInfoAttribute = null;
+                foreach (MemberInfo memberInfo in memberInfos)
+                {
+                    if (memberInfo.GetCustomAttribute<ChoIgnorePropertyAttribute>() != null)
+                        continue;
+
+                    descAttr = null;
+                    name = null;
+                    description = null;
+                    fallbackValue = null;
+                    defaultValue = null;
+
+                    descAttr = (DescriptionAttribute)ChoType.GetMemberAttribute(memberInfo, typeof(DescriptionAttribute));
+                    description = descAttr != null ? descAttr.Description : null;
+                    name = ChoType.GetMemberName(memberInfo);
+
+                    bool isDefaultValueSpecified = ChoConfigurationMetaDataManager.TryGetDefaultValue(this, name, memberInfoAttribute, out defaultValue);
+                    bool isFallbackValueSpecified = ChoConfigurationMetaDataManager.TryGetFallbackValue(this, name, memberInfoAttribute, out fallbackValue);
+                    bool isExpression = ChoConfigurationMetaDataManager.IsExpressionProperty(this, name, memberInfoAttribute);
+
+                    msg.AppendLine("{0}:\t{1} [DefaultValue: {2}, FallbackValue: {3}, IsExpression: {4}]".FormatString(name, description, defaultValue, fallbackValue, isExpression).Indent());
+                }
+            }
+
+            return msg.ToString();
+        }
+    }
 }

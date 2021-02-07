@@ -15,6 +15,9 @@
     {
         public static void SaveAsChild(this XmlNode node, object target)
         {
+            if (node == null)
+                return;
+
             if (target == null)
                 return;
 

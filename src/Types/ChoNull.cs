@@ -8,7 +8,7 @@ namespace Cinchoo.Core
 
     #endregion NameSpaces
 
-    public class ChoNull
+    public class ChoNull : IChoStringObjectFormatter<object>
     {
         #region Constants
 
@@ -37,6 +37,17 @@ namespace Cinchoo.Core
         public override string ToString()
         {
             return ToFormattedString();
+        }
+
+        public object Value
+        {
+            get { return null; }
+        }
+
+        public string GetHelpText()
+        {
+            ChoNull x = new ChoNull();
+            return x.ToFormattedString();
         }
 
         #endregion Object Overrides

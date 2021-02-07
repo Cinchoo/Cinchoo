@@ -24,7 +24,7 @@ namespace Cinchoo.Core
 		
 		static ChoInterceptableObject()
 		{
-            ChoAppDomain.Initialize();
+            //ChoAppDomain.Initialize();
 		}
 
 		#endregion Constructors
@@ -153,6 +153,10 @@ namespace Cinchoo.Core
             return new ChoSilentableObject(interceptableObject);
         }
 
+        public void Init()
+        {
+        }
+
         private class ChoSilentableObject : ChoInterceptableObject, IDisposable
         {
             #region Instance Data Members
@@ -180,7 +184,7 @@ namespace Cinchoo.Core
             {
 				if (_interceptableObject != null)
 				{
-					_interceptableObject.SetSilent(false);
+                    //_interceptableObject.SetSilent(false);
 					_interceptableObject.Dispose();
 					_interceptableObject = null;
 				}

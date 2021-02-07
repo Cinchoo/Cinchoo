@@ -10,6 +10,7 @@
     #endregion NameSpaces
 
     [Serializable]
+    [ChoDoNotShowStackTrace]
     public class ChoCommandLineArgUsageException : ApplicationException
     {
         public ChoCommandLineArgUsageException()

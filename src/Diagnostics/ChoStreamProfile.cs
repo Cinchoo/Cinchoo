@@ -17,40 +17,37 @@ namespace Cinchoo.Core.Diagnostics
 
 		#endregion Shared Data Members (Internal)
 
-
 		#region Constrctors
 
 		static ChoStreamProfile()
         {
         }
 
-		public ChoStreamProfile(string msg) : base(msg)
+        public ChoStreamProfile(string msg)
+            : base(msg, ChoProfile.GetContext(new StackFrame(1)))
 		{
 		}
 
-		public ChoStreamProfile(string msg, ChoBaseProfile outerProfile)
+        public ChoStreamProfile(string msg, IChoProfile outerProfile)
 			: base(msg, outerProfile)
 		{
 		}
 
-        public ChoStreamProfile(string name, string msg)
-			: base(name, msg)
+        public ChoStreamProfile(string name, string msg, IChoProfile outerProfile = null)
+            : base(name, msg, outerProfile == null ?
+                (name != ChoProfile.NULL_PROFILE_NAME && name != ChoProfile.DEFAULT_PROFILE_NAME ? ChoProfile.GetContext(new StackFrame(1)) : outerProfile) : outerProfile)
         {
         }
 
-        public ChoStreamProfile(bool condition, string name, string msg)
-			: base(condition, name, msg)
+        internal ChoStreamProfile(bool condition, string name, string msg)
+            : base(condition, name, msg, ChoProfile.GetContext(new StackFrame(1)))
         {
         }
 
-		internal ChoStreamProfile(bool condition, string name, string msg, ChoBaseProfile outerProfile, bool delayedStartProfile, string startActions, string stopActions)
+        internal ChoStreamProfile(bool condition, string name, string msg, IChoProfile outerProfile, bool delayedStartProfile, string startActions, string stopActions)
 			: base(condition, name, msg, outerProfile, delayedStartProfile, startActions, stopActions)
 		{
         }
-		
-		internal ChoStreamProfile(string name, string msg, bool dummy) : base(name, msg, dummy)
-		{
-		}
 
         #endregion Constrctors
 

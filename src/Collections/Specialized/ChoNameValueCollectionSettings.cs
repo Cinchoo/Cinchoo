@@ -12,15 +12,17 @@ namespace Cinchoo.Core.Collections.Specialized
 
 	[ChoTypeFormatter("NameValueCollection Settings")]
 	[ChoConfigurationSection("cinchoo/nameValueCollectionSettings")]
-	public class ChoNameValueCollectionSettings : ChoConfigurableObject
+	public class ChoNameValueCollectionSettings //: ChoConfigurableObject
 	{
+        private static readonly ChoNameValueCollectionSettings _instance = new ChoNameValueCollectionSettings();
+
 		#region Instance Data Members (Public)
 
-		[ChoPropertyInfo("NameValueSeperator")]
-		public string NameValueSeperator = "=";
+		[ChoPropertyInfo("NameValueSeparator")]
+		public string NameValueSeparator = "=";
 
-		[ChoPropertyInfo("NameValuePairSeperator")]
-		public string NameValuePairSeperator = ";";
+		[ChoPropertyInfo("NameValuePairSeparator")]
+		public string NameValuePairSeparator = ";";
 
 		#endregion
 
@@ -28,7 +30,7 @@ namespace Cinchoo.Core.Collections.Specialized
 
 		public static ChoNameValueCollectionSettings Me
 		{
-			get { return ChoConfigurationManagementFactory.CreateInstance<ChoNameValueCollectionSettings>(); }
+            get { return _instance; }
 		}
 
 		#endregion

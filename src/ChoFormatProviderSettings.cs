@@ -17,7 +17,9 @@ namespace Cinchoo.Core
 	[XmlRoot("formatProviderSettings")]
 	public class ChoFormatProviderSettings : IChoObjectInitializable
 	{
-		#region Instance Data Members (Public)
+        private static readonly ChoFormatProviderSettings _instance = new ChoFormatProviderSettings();
+        
+        #region Instance Data Members (Public)
 
 		[XmlElement("formatProvider", typeof(ChoObjConfigurable))]
 		[ChoIgnoreMemberFormatter]
@@ -62,7 +64,7 @@ namespace Cinchoo.Core
 
 		public static ChoFormatProviderSettings Me
 		{
-			get { return ChoConfigurationManagementFactory.CreateInstance<ChoFormatProviderSettings>(); }
+            get { return _instance; }
 		}
 
 		#endregion
@@ -73,7 +75,7 @@ namespace Cinchoo.Core
 		{
 			if (!beforeFieldInit)
 				ChoObjConfigurable.Load<IFormatProvider>(ChoPath.AddExtension(typeof(ChoFormatProviderSettings).FullName, ChoReservedFileExt.Log), ChoType.GetTypes<IFormatProvider>(),
-					_formatProviders, FormatProviderTypes, ChoDefaultObjectKey.Name);
+					_formatProviders, FormatProviderTypes, ChoTypeNameSpecifier.Name);
 			//else
 				//ChoStreamProfile.Clean(ChoReservedDirectoryName.Settings, ChoPath.AddExtension(typeof(ChoFormatProviderSettings).FullName, ChoReservedFileExt.Err));
 			

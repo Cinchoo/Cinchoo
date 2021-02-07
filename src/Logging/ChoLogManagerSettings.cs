@@ -17,6 +17,8 @@ namespace Cinchoo.Core.Logging
     [XmlRoot("logManagerSettings")]
     public class ChoLogManagerSettings : IChoObjectInitializable
     {
+        private static readonly ChoLogManagerSettings _instance = new ChoLogManagerSettings();
+
         #region Instance Data Members (Public)
 
         [XmlAttribute("turnOn")]
@@ -37,7 +39,7 @@ namespace Cinchoo.Core.Logging
 
         #region Shared Data Members (Private)
 
-        private static string _buildInLogManagerType = typeof(ChoLogManager).AssemblyQualifiedName;
+        private static string _buildInLogManagerType = typeof(ChoLogManager).SimpleQualifiedName();
 
         #endregion Shared Data Members (Private)
 
@@ -63,7 +65,7 @@ namespace Cinchoo.Core.Logging
 
         public static ChoLogManagerSettings Me
         {
-            get { return ChoConfigurationManagementFactory.CreateInstance<ChoLogManagerSettings>(); }
+            get { return _instance; }
         }
 
         private static ChoDictionary<string, IChoLogManager> _defaultLogManagers;

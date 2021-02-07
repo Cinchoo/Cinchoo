@@ -12,9 +12,9 @@ namespace Cinchoo.Core
 
     [ChoTypeFormatter("Type Factory")]
     [ChoObjectFactory(ChoObjectConstructionType.Singleton)]
-	[ChoBufferProfile("Configured types with short name....", NameFromTypeFullName = typeof(ChoTypeFactory), StartActions = "Truncate")]
+	[ChoBufferProfile("Configured types with short name....", NameFromTypeFullName = typeof(ChoTypeFactory))]
     [ChoEnlistProfile(NameFromTypeFullName = typeof(ChoTypeFactory))]
-    public class ChoTypeFactory : ChoConfigurableObject, IChoObjectInitializable
+    public class ChoTypeFactory : /* ChoConfigurableObject, */ IChoObjectInitializable
     {
         #region Instance Data Members (Private)
 
@@ -96,7 +96,7 @@ namespace Cinchoo.Core
             {
                 if (!overrideType)
                 {
-                    errProfile.AppendLine(String.Format("Type: {0}, ShortName: {1}", type.AssemblyQualifiedName, typeShortName));
+                    errProfile.AppendLine(String.Format("Type: {0}, ShortName: {1}", type.SimpleQualifiedName(), typeShortName));
                     return;
                 }
                 else
@@ -106,9 +106,9 @@ namespace Cinchoo.Core
                 }
             }
 
-            typeShortNameMap.Add(typeShortName, type.AssemblyQualifiedName);
+            typeShortNameMap.Add(typeShortName, type.SimpleQualifiedName());
 
-            ChoTrace.Debug(String.Format("ADDED: Type: {0}, ShortName: {1}", type.AssemblyQualifiedName, typeShortName));
+            ChoTrace.Debug(String.Format("ADDED: Type: {0}, ShortName: {1}", type.SimpleQualifiedName(), typeShortName));
         }
 
         #endregion

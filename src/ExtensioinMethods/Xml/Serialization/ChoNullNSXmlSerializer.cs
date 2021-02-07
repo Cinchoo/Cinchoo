@@ -7,6 +7,7 @@ namespace System.Xml.Serialization
     using System.IO;
     using System.Xml;
     using System.Security.Policy;
+    using System.Security.Permissions;
 
     #endregion NameSpaces
 

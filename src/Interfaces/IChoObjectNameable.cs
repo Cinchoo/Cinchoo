@@ -6,6 +6,6 @@ namespace Cinchoo.Core
 {
     public interface IChoObjectNameable
     {
-        string Name { get; set; }
+        string Name { get; }
     }
 }

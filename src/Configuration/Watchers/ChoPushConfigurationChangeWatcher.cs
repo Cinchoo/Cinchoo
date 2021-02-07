@@ -151,7 +151,8 @@ namespace Cinchoo.Core.Configuration
 			}
 			catch (ChoFatalApplicationException)
 			{
-			}
+                throw;
+            }
 			catch (Exception ex)
 			{
 				ChoTrace.Write(ex);

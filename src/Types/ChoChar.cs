@@ -10,8 +10,8 @@ namespace Cinchoo.Core
 
     #endregion NameSpaces
 
-    [ChoStringObjectFormattable]
-    public partial class ChoChar
+    [ChoStringObjectFormattable(typeof(char))]
+    public partial class ChoChar : IChoStringObjectFormatter<char>
     {
         #region Constants
 
@@ -117,6 +117,12 @@ namespace Cinchoo.Core
         public char Value
         {
             get { return _value; }
+        }
+
+        public string GetHelpText()
+        {
+            ChoChar x = new ChoChar('A');
+            return x.ToFormattedString();
         }
 
         #endregion Instance Members (Public)

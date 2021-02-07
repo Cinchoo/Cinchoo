@@ -40,7 +40,7 @@
 
                 if (Environment.UserInteractive)
                 {
-                    if (ChoWindowsManager.ConsoleWindowHandle == ChoWindowsManager.MainWindowHandle)
+                    if (ConsoleWindowHandle != IntPtr.Zero)
                         ApplicationMode = ChoApplicationMode.Console;
                     else
                         ApplicationMode = ChoApplicationMode.Windows;
@@ -49,7 +49,9 @@
                 {
                     ApplicationMode = ChoApplicationMode.Service;
                     if (HttpContext.Current != null)
+                    {
                         ApplicationMode = ChoApplicationMode.Web;
+                    }
                 }
             }
             catch { }
@@ -79,21 +81,38 @@
             }
         }
 
+        public static void SetTop(IntPtr? handle = null)
+        {
+            if (handle == null)
+                handle = MainWindowHandle;
+
+            ChoUser32.SetWindowPos(handle.Value, (IntPtr)SpecialWindowHandles.HWND_TOP, 0, 0, 0, 0, SetWindowPosFlags.SWP_NOMOVE | SetWindowPosFlags.SWP_NOSIZE | SetWindowPosFlags.SWP_SHOWWINDOW);
+        }
+
+        private static bool _show = true;
         public static void ShowInTaskbar(bool show)
         {
             if (HasWindow)
             {
                 if (!show)
                 {
-                    Hide();
-                    ChoUser32.SetWindowLong(MainWindowHandle, (int)GwlIndexEnum.GWL_EXSTYLE, (int)((WindowStyles)_origExWindowStyle | WindowStyles.WS_EX_TOOLWINDOW));
-                    ChoUser32.ShowWindow(MainWindowHandle, (int)SHOWWINDOW.SW_SHOWNA);
+                    if (_show)
+                    {
+                        _show = false;
+                        Hide();
+                        ChoUser32.SetWindowLong(MainWindowHandle, (int)GwlIndexEnum.GWL_EXSTYLE, (int)((WindowStyles)_origExWindowStyle | WindowStyles.WS_EX_TOOLWINDOW));
+                        ChoUser32.ShowWindow(MainWindowHandle, (int)SHOWWINDOW.SW_SHOWNA);
+                    }
                 }
                 else
                 {
-                    Hide();
-                    ChoUser32.SetWindowLong(MainWindowHandle, (int)GwlIndexEnum.GWL_EXSTYLE, (int)_origExWindowStyle);
-                    ChoUser32.ShowWindow(MainWindowHandle, (int)SHOWWINDOW.SW_SHOWNA);
+                    if (!_show)
+                    {
+                        _show = true;
+                        Hide();
+                        ChoUser32.SetWindowLong(MainWindowHandle, (int)GwlIndexEnum.GWL_EXSTYLE, (int)_origExWindowStyle);
+                        ChoUser32.ShowWindow(MainWindowHandle, (int)SHOWWINDOW.SW_SHOWNA);
+                    }
                 }
             }
         }
@@ -101,7 +120,10 @@
         public static void BringWindowToTop()
         {
             if (HasWindow)
+            {
+                SetTop();
                 ChoUser32.SetForegroundWindow(MainWindowHandle);
+            }
         }
         /// <summary>
         /// Creates a new console instance if the process is not attached to a console already.
@@ -111,6 +133,7 @@
             if (HasWindow)
             {
                 ChoUser32.ShowWindow(MainWindowHandle, (int)SHOWWINDOW.SW_SHOWNORMAL); //1 = SW_SHOWNORMA
+                ChoWindowsManager.SetTop();
             }
         }
 

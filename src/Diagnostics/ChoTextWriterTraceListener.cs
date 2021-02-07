@@ -60,7 +60,9 @@ namespace Cinchoo.Core.Diagnostics
 	/// </summary>
 	public class ChoTextWriterTraceListener : TextWriterTraceListener
 	{
-		#region TextTraceMsg Struct
+        private static ChoStaticResourceManager myResourceManager = new ChoStaticResourceManager();
+
+        #region TextTraceMsg Struct
 
 		private enum FileOperation { CreateNew, Rename, WriteLine, Write, Flush }
 
@@ -148,7 +150,7 @@ namespace Cinchoo.Core.Diagnostics
 		bool _timeStamp = true;
 		bool _processInfo = false;
 		bool _callerInfo = false;
-		string _seperator=",";
+		string _separator=",";
 
 		#endregion
 
@@ -265,8 +267,8 @@ namespace Cinchoo.Core.Diagnostics
 							{
 							}
 							break;
-						case "SEPERATOR":
-							_seperator = nameValues.GetValue(1).ToString().Trim();
+						case "SEPARATOR":
+							_separator = nameValues.GetValue(1).ToString().Trim();
 							break;
 					}
 				}
@@ -288,7 +290,7 @@ namespace Cinchoo.Core.Diagnostics
 		/// <param name="cyclic"></param>
 		/// <param name="autoBackup">If this flag is off, only one log file will be created and appended thereafter.</param>
 		/// <param name="allowSplitMsg"></param>
-		/// <param name="seperator"></param>
+		/// <param name="separator"></param>
 		public ChoTextWriterTraceListener(string directoryName,
 			long maxFileSize,
 			string baseFileName,
@@ -299,7 +301,7 @@ namespace Cinchoo.Core.Diagnostics
 			bool cyclic,
 			bool autoBackup,
 			bool allowSplitMsg, 
-			string seperator
+			string separator
 			)
 		{
 			_directoryName = directoryName;
@@ -311,7 +313,7 @@ namespace Cinchoo.Core.Diagnostics
 			_excludeList = excludeList;
 			_cyclic = cyclic;
 			_autoBackup = autoBackup;
-			_seperator = seperator;
+			_separator = separator;
 
 			Init();
 		}
@@ -329,7 +331,7 @@ namespace Cinchoo.Core.Diagnostics
 		/// <param name="cyclic"></param>
 		/// <param name="autoBackup">If this flag is off, only one log file will be created and appended thereafter.</param>
 		/// <param name="allowSplitMsg"></param>
-		/// <param name="seperator"></param>
+		/// <param name="separator"></param>
 		/// <param name="timeStamp"></param>
 		/// <param name="processInfo"></param>
 		/// <param name="callerInfo"></param>
@@ -343,7 +345,7 @@ namespace Cinchoo.Core.Diagnostics
 			bool cyclic,
 			bool autoBackup,
 			bool allowSplitMsg,
-			string seperator,
+			string separator,
 			bool timeStamp,
 			bool processInfo,
 			bool callerInfo
@@ -361,7 +363,7 @@ namespace Cinchoo.Core.Diagnostics
 			_timeStamp = timeStamp;
 			_processInfo = processInfo;
 			_callerInfo = callerInfo;
-			_seperator = seperator;
+			_separator = separator;
 
 			Init();
 		}
@@ -431,13 +433,13 @@ namespace Cinchoo.Core.Diagnostics
 			StringBuilder formattedMessage = new StringBuilder();
 
 			if (_timeStamp)
-                formattedMessage.AppendFormat("{0}{1} ", DateTime.Now.ToString(ChoGlobalApplicationSettings.Me.LogSettings.LogTimeStampFormat), _seperator);
+                formattedMessage.AppendFormat("{0}{1} ", DateTime.Now.ToString(ChoGlobalApplicationSettings.Me.LogSettings.LogTimeStampFormat), _separator);
 			if (_processInfo)
 				formattedMessage.AppendFormat("{0}/{1}{2} ", Process.GetCurrentProcess().Id, 
-					Thread.CurrentThread.GetHashCode(), _seperator);
+					Thread.CurrentThread.GetHashCode(), _separator);
 
 			if (_callerInfo)
-				formattedMessage.AppendFormat("{0}{1} ", CallerMethod(), _seperator);
+				formattedMessage.AppendFormat("{0}{1} ", CallerMethod(), _separator);
 
 			formattedMessage.Append(message);
 
@@ -569,79 +571,102 @@ namespace Cinchoo.Core.Diagnostics
 			{
 				TextTraceMsg item = null;
 
-				try
-				{
-					object queueObject = null;
-					if (_messageQ.Count > 0)
-						queueObject = _messageQ.Dequeue();
-					else
-					{
-						_newMsgArrived.WaitOne();
-						continue;
-					}
+                if (_isDisposed)
+                    break;
 
-					item = (TextTraceMsg)queueObject;
-					if (item.IsFlushMsg) break;
+                try
+                {
+                    object queueObject = null;
+                    if (_messageQ.Count > 0)
+                        queueObject = _messageQ.Dequeue();
+                    else
+                    {
+                        _newMsgArrived.WaitOne();
+                        continue;
+                    }
 
-					switch (item.Operation)
-					{
-						case FileOperation.WriteLine:
-							if (base.Writer == null)
-							{
+                    item = (TextTraceMsg)queueObject;
+                    if (item.IsFlushMsg) break;
+
+                    switch (item.Operation)
+                    {
+                        case FileOperation.WriteLine:
+                            if (base.Writer == null)
+                            {
                                 lock (LogFileManager.SyncRoot)
                                 {
                                     base.Writer = LogFileManager.GetWriter(item.LogFilePath);
                                     if (base.Writer == null)
-                                        base.Writer = LogFileManager.Add(item.LogFilePath, new StreamWriter(new ChoFileStreamWithBackup(FilePath,
-                                            _maxFileSize, _maxFileCount, FileMode.Append, _cyclic, _autoBackup, _allowSplitMsg)));
+                                    {
+                                        StreamWriter sw = new StreamWriter(new ChoFileStreamWithBackup(FilePath,
+                                        _maxFileSize, _maxFileCount, FileMode.Append, _cyclic, _autoBackup, _allowSplitMsg));
+                                        myResourceManager.AddStream(sw);
+                                        base.Writer = LogFileManager.Add(item.LogFilePath, sw);
+                                    }
                                 }
-							}
-							base.Writer.WriteLine(item.Msg);
-							base.Writer.Flush();
-							break;
-						case FileOperation.Write:
-							if (base.Writer == null)
-							{
+                            }
+                            base.Writer.WriteLine(item.Msg);
+                            base.Writer.Flush();
+                            break;
+                        case FileOperation.Write:
+                            if (base.Writer == null)
+                            {
                                 lock (LogFileManager.SyncRoot)
                                 {
                                     base.Writer = LogFileManager.GetWriter(item.LogFilePath);
                                     if (base.Writer == null)
-                                        base.Writer = LogFileManager.Add(item.LogFilePath, new StreamWriter(new ChoFileStreamWithBackup(FilePath,
-                                            _maxFileSize, _maxFileCount, FileMode.Append, _cyclic, _autoBackup, _allowSplitMsg)));
+                                    {
+                                        StreamWriter sw = new StreamWriter(new ChoFileStreamWithBackup(FilePath,
+                                        _maxFileSize, _maxFileCount, FileMode.Append, _cyclic, _autoBackup, _allowSplitMsg));
+                                        myResourceManager.AddStream(sw);
+                                        base.Writer = LogFileManager.Add(item.LogFilePath, sw);
+                                    }
                                 }
-							}
-							base.Writer.Write(item.Msg);
-							base.Writer.Flush();
-							break;
-						case FileOperation.CreateNew:
-							LogFileManager.Remove(item.LogFilePath);
-							base.Writer = LogFileManager.Add(item.LogFilePath, new StreamWriter(new ChoFileStreamWithBackup(item.LogFilePath, 
-								_maxFileSize, _maxFileCount, FileMode.Append, _cyclic, _autoBackup, _allowSplitMsg)));
-							break;
-						case FileOperation.Rename:
-							base.Writer = LogFileManager.Add(item.LogFilePath, new StreamWriter(new ChoFileStreamWithBackup(item.LogFilePath, _maxFileSize, _maxFileCount, FileMode.Append, _cyclic, _autoBackup, _allowSplitMsg)));
-							if (File.Exists(item.PrevLogFilePath))
-							{
-								using (StreamReader reader = File.OpenText(item.PrevLogFilePath))
-									base.Writer.WriteLine(reader.ReadToEnd());
+                            }
+                            base.Writer.Write(item.Msg);
+                            base.Writer.Flush();
+                            break;
+                        case FileOperation.CreateNew:
+                            LogFileManager.Remove(item.LogFilePath);
+                            base.Writer = LogFileManager.Add(item.LogFilePath, new StreamWriter(new ChoFileStreamWithBackup(item.LogFilePath,
+                                _maxFileSize, _maxFileCount, FileMode.Append, _cyclic, _autoBackup, _allowSplitMsg)));
+                            break;
+                        case FileOperation.Rename:
+                            base.Writer = LogFileManager.Add(item.LogFilePath, new StreamWriter(new ChoFileStreamWithBackup(item.LogFilePath, _maxFileSize, _maxFileCount, FileMode.Append, _cyclic, _autoBackup, _allowSplitMsg)));
+                            if (File.Exists(item.PrevLogFilePath))
+                            {
+                                using (StreamReader reader = File.OpenText(item.PrevLogFilePath))
+                                    base.Writer.WriteLine(reader.ReadToEnd());
 
-								LogFileManager.Remove(item.PrevLogFilePath);
-								//File.Delete(Path.Combine(_directoryName, Path.ChangeExtension(item.PrevLogFilePath, _fileExt)));
-							}
-							break;
-					}
-				}
-				catch (Exception ex)
-				{
-					string errMsg;
-					if (item != null)
-						errMsg = String.Format("Error while writing the below message.{0}{1}{0}Exception: {2}", Environment.NewLine,
-							item.ToString(), ex.ToString());
-					else
-						errMsg = ex.ToString();
+                                LogFileManager.Remove(item.PrevLogFilePath);
+                                //File.Delete(Path.Combine(_directoryName, Path.ChangeExtension(item.PrevLogFilePath, _fileExt)));
+                            }
+                            break;
+                    }
+                }
+                catch (IOException ioEx)
+                {
+                    string errMsg;
+                    if (item != null)
+                        errMsg = String.Format("Error while writing the below message.{0}{1}{0}Exception: {2}", Environment.NewLine,
+                            item.ToString(), ioEx.ToString());
+                    else
+                        errMsg = ioEx.ToString();
 
-					ChoApplication.WriteToEventLog(errMsg, EventLogEntryType.Error);
-				}
+                    ChoApplication.WriteToEventLog(errMsg, EventLogEntryType.Error);
+                    Environment.Exit(-100);
+                }
+                catch (Exception ex)
+                {
+                    string errMsg;
+                    if (item != null)
+                        errMsg = String.Format("Error while writing the below message.{0}{1}{0}Exception: {2}", Environment.NewLine,
+                            item.ToString(), ex.ToString());
+                    else
+                        errMsg = ex.ToString();
+
+                    ChoApplication.WriteToEventLog(errMsg, EventLogEntryType.Error);
+                }
 			}
 		}
 
@@ -740,7 +765,7 @@ namespace Cinchoo.Core.Diagnostics
 		{
 			while (true)
 			{
-				if (ChoTrace.ChoSwitch.TraceVerbose)
+				if (ChoTraceSwitch.Switch.TraceVerbose)
 					Trace.WriteLine("Trace.Flush...");
 				
 				Push2Queue(TextTraceMsg.FlushTraceMsg);
@@ -786,5 +811,12 @@ namespace Cinchoo.Core.Diagnostics
 		}
 
 		#endregion
+
+        private bool _isDisposed = false;
+        protected override void Dispose(bool disposing)
+        {
+            _isDisposed = true;
+            base.Dispose(disposing);
+        }
 	}
 }

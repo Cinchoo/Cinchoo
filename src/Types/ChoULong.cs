@@ -9,9 +9,9 @@ namespace Cinchoo.Core
 
     #endregion NameSpaces
 
-    [ChoStringObjectFormattable]
+    [ChoStringObjectFormattable(typeof(ulong))]
     [CLSCompliant(false)]
-    public class ChoULong
+    public class ChoULong : IChoStringObjectFormatter<ulong>
     {
         #region Constants
 
@@ -71,6 +71,12 @@ namespace Cinchoo.Core
         public ulong Value
         {
             get { return _value; }
+        }
+
+        public string GetHelpText()
+        {
+            ChoULong x = new ChoULong(10);
+            return x.ToFormattedString();
         }
 
         #endregion Instance Members (Public)

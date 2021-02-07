@@ -17,12 +17,24 @@ namespace Cinchoo.Core
 
         public ChoCompositeValidator(params IChoSurrogateValidator[] validators)
         {
-            _validators.AddRange(validators);
+            Add(validators);
         }
 
         #endregion Constructors
 
         #region Instance Properties (Protected)
+
+        internal string Name
+        {
+            get;
+            set;
+        }
+
+        internal ChoCompositeValidator Parent
+        {
+            get;
+            set;
+        }
 
         protected IEnumerable<IChoSurrogateValidator> Validators
         {
@@ -31,7 +43,31 @@ namespace Cinchoo.Core
 
         public void Add(params IChoSurrogateValidator[] validators)
         {
-            _validators.AddRange(validators);
+            if (validators == null) return;
+
+            foreach (IChoSurrogateValidator val in validators)
+            {
+                if (val is ChoCompositeValidator)
+                {
+                    if (IsCircularReferenceFound(val as ChoCompositeValidator)) continue;
+                    ((ChoCompositeValidator)val).Parent = this;
+                }
+
+                _validators.AddRange(validators);
+            }
+        }
+
+        private bool IsCircularReferenceFound(ChoCompositeValidator val)
+        {
+            ChoCompositeValidator parent = val.Parent;
+            while (parent != null)
+            {
+                if (parent == val)
+                    return true;
+                parent = val.Parent;
+            }
+
+            return false;
         }
 
         public void Clear()

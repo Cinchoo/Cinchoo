@@ -92,7 +92,7 @@ namespace Cinchoo.Core.Common
 		#region Load (TypeName) Overloads
 
 		public static void Load<T>(string logFileName, string typeName, ChoDictionary<string, T> objDictionary,
-			ChoObjConfigurable[] objTypeConfigurables, ChoDefaultObjectKey defaultObjectKey) where T : class
+			ChoObjConfigurable[] objTypeConfigurables, ChoTypeNameSpecifier defaultObjectKey) where T : class
 		{
 			if (String.IsNullOrEmpty(typeName)) return;
 			Load<T>(logFileName, new string[] { typeName }, objDictionary, objTypeConfigurables, defaultObjectKey);
@@ -101,17 +101,17 @@ namespace Cinchoo.Core.Common
 		public static void Load<T>(string logFileName, string typeName, ChoDictionary<string, T> objDictionary,
 			ChoObjConfigurable[] objTypeConfigurables) where T : class
 		{
-			Load<T>(logFileName, typeName, objDictionary, objTypeConfigurables, ChoDefaultObjectKey.FullName);
+			Load<T>(logFileName, typeName, objDictionary, objTypeConfigurables, ChoTypeNameSpecifier.FullName);
 		}
 
 		public static void Load<T>(string logFileName, string[] typeNames, ChoDictionary<string, T> objDictionary,
 			ChoObjConfigurable[] objTypeConfigurables) where T : class
 		{
-			Load<T>(logFileName, typeNames, objDictionary, objTypeConfigurables, ChoDefaultObjectKey.FullName);
+			Load<T>(logFileName, typeNames, objDictionary, objTypeConfigurables, ChoTypeNameSpecifier.FullName);
 		}
 
 		public static void Load<T>(string logFileName, string[] typeNames, ChoDictionary<string, T> objDictionary,
-			ChoObjConfigurable[] objTypeConfigurables, ChoDefaultObjectKey defaultObjectKey) where T : class
+			ChoObjConfigurable[] objTypeConfigurables, ChoTypeNameSpecifier defaultObjectKey) where T : class
 		{
 			ChoGuard.ArgumentNotNull(logFileName, "LogFileName");
 			ChoGuard.ArgumentNotNull(objDictionary, "ObjectDictionary");
@@ -131,7 +131,7 @@ namespace Cinchoo.Core.Common
 		#region Load (Type) Overloads
 
 		public static void Load<T>(string logFileName, Type type, ChoDictionary<string, T> objDictionary,
-			ChoObjConfigurable[] objTypeConfigurables, ChoDefaultObjectKey defaultObjectKey) where T : class
+			ChoObjConfigurable[] objTypeConfigurables, ChoTypeNameSpecifier defaultObjectKey) where T : class
 		{
 			if (type == null) return;
 			Load<T>(logFileName, new Type[] { type }, objDictionary, objTypeConfigurables, defaultObjectKey);
@@ -140,17 +140,17 @@ namespace Cinchoo.Core.Common
 		public static void Load<T>(string logFileName, Type type, ChoDictionary<string, T> objDictionary,
 			ChoObjConfigurable[] objTypeConfigurables) where T : class
 		{
-			Load<T>(logFileName, type, objDictionary, objTypeConfigurables, ChoDefaultObjectKey.FullName);
+			Load<T>(logFileName, type, objDictionary, objTypeConfigurables, ChoTypeNameSpecifier.FullName);
 		}
 
 		public static void Load<T>(string logFileName, Type[] types, ChoDictionary<string, T> objDictionary,
 			ChoObjConfigurable[] objTypeConfigurables) where T : class
 		{
-			Load<T>(logFileName, types, objDictionary, objTypeConfigurables, ChoDefaultObjectKey.FullName);
+			Load<T>(logFileName, types, objDictionary, objTypeConfigurables, ChoTypeNameSpecifier.FullName);
 		}
 
 		public static void Load<T>(string logFileName, Type[] types, ChoDictionary<string, T> objDictionary,
-			ChoObjConfigurable[] objTypeConfigurables, ChoDefaultObjectKey defaultObjectKey) where T : class
+			ChoObjConfigurable[] objTypeConfigurables, ChoTypeNameSpecifier defaultObjectKey) where T : class
 		{
 			ChoGuard.ArgumentNotNull(logFileName, "LogFileName");
 			ChoGuard.ArgumentNotNull(objDictionary, "ObjectDictionary");
@@ -158,7 +158,7 @@ namespace Cinchoo.Core.Common
 			if (types == null || types.Length == 0) return;
 
 			foreach (Type type in types)
-				Add<T>(logFileName, objDictionary, defaultObjectKey, type.AssemblyQualifiedName);
+                Add<T>(logFileName, objDictionary, defaultObjectKey, type.SimpleQualifiedName());
 
 			Adjust<T>(logFileName, objDictionary, objTypeConfigurables, defaultObjectKey);
 		}
@@ -169,7 +169,7 @@ namespace Cinchoo.Core.Common
 
 		#region Shared Members (Private)
 
-		private static void Add<T>(string logFileName, ChoDictionary<string, T> objDictionary, ChoDefaultObjectKey defaultObjectKey, string typeName) where T : class
+		private static void Add<T>(string logFileName, ChoDictionary<string, T> objDictionary, ChoTypeNameSpecifier defaultObjectKey, string typeName) where T : class
 		{
 			try
 			{
@@ -199,7 +199,7 @@ namespace Cinchoo.Core.Common
 		}
 
 		private static void Adjust<T>(string logFileName, ChoDictionary<string, T> objDictionary,
-			ChoObjConfigurable[] objTypeConfigurables, ChoDefaultObjectKey typeName) where T : class
+			ChoObjConfigurable[] objTypeConfigurables, ChoTypeNameSpecifier typeName) where T : class
 		{
 			if (objTypeConfigurables != null && objTypeConfigurables.Length > 0)
 			{

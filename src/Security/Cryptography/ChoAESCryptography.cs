@@ -54,30 +54,18 @@ namespace Cinchoo.Core.Security.Cryptography
 
         private ICryptoTransform _encryptTransform;
         private ICryptoTransform _decryptTransform;
-        private Encoding _encoding;
 
         #endregion Instance Data Members (Private)
 
         #region Constructors
 
-        public ChoAESCryptography()
-            : this(ChoAESCryptoGraphySettings.Me.Key, ChoAESCryptoGraphySettings.Me.Vector)
+        public ChoAESCryptography(string key = null, string vector = null) 
+            : this(key.IsNullOrWhiteSpace() ? ChoAESCryptoGraphySettings.Me.Key.ToByteArray() : key.ToByteArray(), 
+                vector.IsNullOrWhiteSpace() ? ChoAESCryptoGraphySettings.Me.Vector.ToByteArray() : vector.ToByteArray())
         {
         }
 
-        public ChoAESCryptography(string key, string vector) : this(key, vector, new UTF8Encoding())
-        {
-        }
-        
-        public ChoAESCryptography(string key, string vector, Encoding encoding) : this(key.ToByteArray(), vector.ToByteArray(), encoding)
-        {
-        }
-
-        public ChoAESCryptography(byte[] key, byte[] vector) : this(key, vector, new UTF8Encoding())
-        {
-        }
-
-        public ChoAESCryptography(byte[] key, byte[] vector, Encoding encoding)
+        public ChoAESCryptography(byte[] key, byte[] vector)
         {
             ChoGuard.ArgumentNotNull(key, "Key");
             ChoGuard.ArgumentNotNull(vector, "Vector");
@@ -88,9 +76,13 @@ namespace Cinchoo.Core.Security.Cryptography
             //Create an encryptor and a decryptor using our encryption method, key, and vector.
             _encryptTransform = rm.CreateEncryptor(key, vector);
             _decryptTransform = rm.CreateDecryptor(key, vector);
+            Encoding = Encoding.UTF8;
+        }
 
-            if (encoding != null)
-                _encoding = encoding;
+        public Encoding Encoding
+        {
+            get;
+            set;
         }
 
         #endregion Constructors
@@ -101,7 +93,7 @@ namespace Cinchoo.Core.Security.Cryptography
         public string Encrypt(string text)
         {
             //Translates our text value into a byte array.
-            Byte[] bytes = _encoding.GetBytes(text);
+            Byte[] bytes = Encoding.GetBytes(text);
 
             //Used to stream the data in and out of the CryptoStream.
             using (MemoryStream memoryStream = new MemoryStream())
@@ -141,7 +133,7 @@ namespace Cinchoo.Core.Security.Cryptography
                     Byte[] decryptedBytes = new Byte[encryptedStream.Length];
                     encryptedStream.Read(decryptedBytes, 0, decryptedBytes.Length);
 
-                    return _encoding.GetString(decryptedBytes);
+                    return Encoding.GetString(decryptedBytes);
                 }
             }
         }

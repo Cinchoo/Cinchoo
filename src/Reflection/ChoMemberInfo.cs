@@ -13,6 +13,7 @@ namespace Cinchoo.Core.Reflection
 		private IMethodMessage _methodMsg;
 		internal IMethodMessage MethodMsg
 		{
+            get { return _methodMsg; }
 			set 
 			{ 
 				if (_methodMsg.MethodName != "FieldSetter" 
@@ -58,6 +59,7 @@ namespace Cinchoo.Core.Reflection
         public Exception Exception
         {
             get { return _exception; }
+            internal set { _exception = value; }
         }
 
 		public object Value
@@ -153,11 +155,10 @@ namespace Cinchoo.Core.Reflection
 			if (_dirtyOperation)
 			{
 				//Set Converted value
-				Value = ChoConvert.ConvertFrom(_target, Value, ChoType.GetMemberType(_memberInfo),
-                    ChoTypeDescriptor.GetTypeConverters(_memberInfo), ChoTypeDescriptor.GetTypeConverterParams(_memberInfo));
-				//Value = ChoConvert.ConvertFrom(_target, Value, ChoType.GetMemberType(_target.GetType(), _name),
-				//    ChoType.GetTypeConverters(ChoType.GetMember(_target.GetType(), _name), typeof(ChoTypeConverterAttribute)));
-			}
+                //Value = ChoConvert.ConvertFrom(_target, Value, ChoType.GetMemberType(_memberInfo),
+                //    ChoTypeDescriptor.GetTypeConverters(_memberInfo), ChoTypeDescriptor.GetTypeConverterParams(_memberInfo));
+                Value = ChoConvert.ConvertFrom(Value, _memberInfo, _target);
+            }
 		}
 	}
 }

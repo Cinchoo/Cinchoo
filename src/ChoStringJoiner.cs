@@ -16,10 +16,12 @@ namespace Cinchoo.Core
 	[ChoConfigurationSection("cinchoo/stringJoinerSettings")]
 	public class ChoStringJoinerSettings
 	{
+        private static readonly ChoStringJoinerSettings _instance = new ChoStringJoinerSettings();
+
 		#region Instance Data Members (Public)
 
-		[ChoPropertyInfo("Seperator")]
-		public string Seperator = ",";
+		[ChoPropertyInfo("Separator")]
+		public string Separator = ",";
 
 		[ChoPropertyInfo("Prefix")]
 		public string Prefix;
@@ -35,9 +37,9 @@ namespace Cinchoo.Core
 		{
 		}
 
-		public ChoStringJoinerSettings(string seperator, string prefix, string postFix)
+		public ChoStringJoinerSettings(string separator, string prefix, string postFix)
 		{
-			Seperator = seperator;
+			Separator = separator;
 			Prefix = prefix;
 			Postfix = postFix;
 		}
@@ -48,7 +50,7 @@ namespace Cinchoo.Core
 
 		public static ChoStringJoinerSettings Me
 		{
-			get { return ChoConfigurationManagementFactory.CreateInstance<ChoStringJoinerSettings>(); }
+            get { return _instance; }
 		}
 
 		#endregion
@@ -69,9 +71,9 @@ namespace Cinchoo.Core
 			_charJoinerSettings = ChoStringJoinerSettings.Me;
 		}
 
-		public ChoStringJoiner(string seperator) : this()
+		public ChoStringJoiner(string separator) : this()
 		{
-			_charJoinerSettings.Seperator = seperator;
+			_charJoinerSettings.Separator = separator;
 		}
 
 		public ChoStringJoiner(ChoStringJoinerSettings stringJoinerSettings)
@@ -90,7 +92,7 @@ namespace Cinchoo.Core
 			foreach (char inChar in inChars)
 				joinedChars.Append(joinedChars.Length == 0 ?
 					String.Format(@"{0}{1}{2}", _charJoinerSettings.Prefix, inChar.ToString(), _charJoinerSettings.Postfix) :
-					String.Format(@"{0}{1}{2}{3}", _charJoinerSettings.Seperator, _charJoinerSettings.Prefix, inChar.ToString(), _charJoinerSettings.Postfix));
+					String.Format(@"{0}{1}{2}{3}", _charJoinerSettings.Separator, _charJoinerSettings.Prefix, inChar.ToString(), _charJoinerSettings.Postfix));
 
 			return joinedChars.ToString();
 		}
@@ -101,7 +103,7 @@ namespace Cinchoo.Core
 			foreach (string inString in inStrings)
 				result.Append(result.Length == 0 ?
 					String.Format(@"{0}{1}{2}", _charJoinerSettings.Prefix, inString.ToString(), _charJoinerSettings.Postfix) :
-					String.Format(@"{0}{1}{2}{3}", _charJoinerSettings.Seperator, _charJoinerSettings.Prefix, inString.ToString(), _charJoinerSettings.Postfix));
+					String.Format(@"{0}{1}{2}{3}", _charJoinerSettings.Separator, _charJoinerSettings.Prefix, inString.ToString(), _charJoinerSettings.Postfix));
 
 			return result.ToString();
 		}

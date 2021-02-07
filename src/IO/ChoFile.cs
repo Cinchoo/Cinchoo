@@ -11,7 +11,7 @@ namespace Cinchoo.Core.IO
     public class ChoFileSettings
     {
         public static int MaxFileRollCount = 100;
-        public static string RollFileNameSeperator = "_";
+        public static string RollFileNameSeparator = "_";
     }
 
 
@@ -21,20 +21,20 @@ namespace Cinchoo.Core.IO
 
         public static void Roll(string filePath)
         {
-            Roll(filePath, ChoFileSettings.MaxFileRollCount, ChoFileSettings.RollFileNameSeperator);
+            Roll(filePath, ChoFileSettings.MaxFileRollCount, ChoFileSettings.RollFileNameSeparator);
         }
 
         public static void Roll(string filePath, int maxFileCount)
         {
-            Roll(filePath, maxFileCount, ChoFileSettings.RollFileNameSeperator);
+            Roll(filePath, maxFileCount, ChoFileSettings.RollFileNameSeparator);
         }
 
-        public static void Roll(string filePath, string rollFileNameSeperator)
+        public static void Roll(string filePath, string rollFileNameSeparator)
         {
-            Roll(filePath, ChoFileSettings.MaxFileRollCount, rollFileNameSeperator);
+            Roll(filePath, ChoFileSettings.MaxFileRollCount, rollFileNameSeparator);
         }
 
-        public static void Roll(string filePath, int maxFileCount, string rollFileNameSeperator)
+        public static void Roll(string filePath, int maxFileCount, string rollFileNameSeparator)
         {
             ChoGuard.ArgumentNotNull(filePath, "FilePath");
             if (!File.Exists(filePath)) return;
@@ -55,7 +55,7 @@ namespace Cinchoo.Core.IO
             string rollFileName = null;
             for (int fileIndex = 0; fileIndex < maxFileCount; ++fileIndex)
             {
-                rollFileName = GetBackupFileName(filePath, fileDecimals, fileIndex, rollFileNameSeperator);
+                rollFileName = GetBackupFileName(filePath, fileDecimals, fileIndex, rollFileNameSeparator);
                 if (File.Exists(rollFileName))
                 {
                     rollFileName = null;
@@ -66,24 +66,24 @@ namespace Cinchoo.Core.IO
             }
 
             if (String.IsNullOrEmpty(rollFileName))
-                Roll(filePath, maxFileCount * 100, rollFileNameSeperator);
+                Roll(filePath, maxFileCount * 100, rollFileNameSeparator);
             else
                 Move(filePath, rollFileName);
         }
 
-        private static string GetBackupFileName(string filePath, int fileDecimals, int index, string rollFileNameSeperator)
+        private static string GetBackupFileName(string filePath, int fileDecimals, int index, string rollFileNameSeparator)
         {
             string fileExt = Path.GetExtension(filePath);
             if (Path.HasExtension(filePath))
             {
                 return Path.Combine(Path.GetDirectoryName(filePath),
                     String.Format("{0}{3}{1}{2}", Path.GetFileNameWithoutExtension(filePath),
-                    index.ToString(String.Format("D{0}", fileDecimals)), Path.GetExtension(filePath), rollFileNameSeperator));
+                    index.ToString(String.Format("D{0}", fileDecimals)), Path.GetExtension(filePath), rollFileNameSeparator));
             }
             else
                 return Path.Combine(Path.GetDirectoryName(filePath),
                     String.Format("{0}{2}{1}", Path.GetFileNameWithoutExtension(filePath),
-                    index.ToString(String.Format("D{0}", fileDecimals)), rollFileNameSeperator));
+                    index.ToString(String.Format("D{0}", fileDecimals)), rollFileNameSeparator));
         }
 
         public static void Clean(string filePath)
@@ -98,17 +98,38 @@ namespace Cinchoo.Core.IO
             }
         }
 
-        public static void Move(string sourceFilePath, string targetFilePath)
+        public static bool TryMove(string sourceFilePath, string targetFilePath, bool overwrite = true)
         {
             ChoGuard.ArgumentNotNull(sourceFilePath, "SourceFilePath");
             ChoGuard.ArgumentNotNull(targetFilePath, "TargetFilePath");
 
-            if (File.Exists(sourceFilePath))
+            if (String.Compare(sourceFilePath, targetFilePath, true) == 0)
             {
-                if (File.Exists(targetFilePath))
-                    File.Delete(targetFilePath);
                 File.Move(sourceFilePath, targetFilePath);
             }
+            else
+            {
+                if (File.Exists(sourceFilePath))
+                {
+                    if (File.Exists(targetFilePath))
+                    {
+                        if (overwrite)
+                        {
+                            File.Delete(targetFilePath);
+                        }
+                        else
+                            return false;
+                    }
+
+                    File.Move(sourceFilePath, targetFilePath);
+                }
+            }
+            return true;
+        }
+
+        public static void Move(string sourceFilePath, string targetFilePath, bool overwrite = true)
+        {
+            TryMove(sourceFilePath, targetFilePath, overwrite);
         }
 
         public static void WriteLine(string filePath, string msg)

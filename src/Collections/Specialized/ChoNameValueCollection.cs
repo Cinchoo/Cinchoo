@@ -48,11 +48,11 @@ namespace Cinchoo.Core.Collections.Specialized
             _nameValueCollectionSettings = nameValueCollectionSettings;
 
             ChoStringJoinerSettings stringJoinerSettings = new ChoStringJoinerSettings("|", @"\s*[", @"]\s*");
-            string nameValuePairSeperator = new ChoStringJoiner(stringJoinerSettings).Join(_nameValueCollectionSettings.NameValuePairSeperator.ToCharArray());
-            string nameValueSeperator = new ChoStringJoiner(stringJoinerSettings).Join(_nameValueCollectionSettings.NameValueSeperator.ToCharArray());
+            string nameValuePairSeparator = new ChoStringJoiner(stringJoinerSettings).Join(_nameValueCollectionSettings.NameValuePairSeparator.ToCharArray());
+            string nameValueSeparator = new ChoStringJoiner(stringJoinerSettings).Join(_nameValueCollectionSettings.NameValueSeparator.ToCharArray());
 
             string regExString = String.Format(@"(?<param>\w+){0}(?<value>[^{2}]*){1}|(?<param>\w+){0}(?<value>[^{2}]*)",
-                nameValueSeperator, nameValuePairSeperator, _nameValueCollectionSettings.NameValueSeperator);
+                nameValueSeparator, nameValuePairSeparator, _nameValueCollectionSettings.NameValueSeparator);
 
             Regex spliter = new Regex(regExString, RegexOptions.IgnoreCase | RegexOptions.Compiled);
 

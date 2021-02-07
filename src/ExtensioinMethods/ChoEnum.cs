@@ -8,6 +8,8 @@ namespace System
     using System.ComponentModel;
     using System.Collections.Generic;
     using System.Text.RegularExpressions;
+    using System.Linq;
+    using Cinchoo.Core.WPF;
 
     #endregion NameSpaces
 
@@ -38,6 +40,42 @@ namespace System
         public static string ToDescription(this Enum enumValue)
         {
             return ChoEnumTypeDescCache.GetEnumDescription(enumValue);
+        }
+
+        public static IEnumerable<Tuple<int, string>> ToEnumPairValues<T>()
+        {
+            var type = typeof(T);
+            if (!type.IsEnum)
+                throw new ArgumentException("Type is not an enum.");
+            
+            var names = Enum.GetNames(type);
+            var values = Enum.GetValues(type);
+            var pairs =
+                Enumerable.Range(0, names.Length)
+                .Select(i => new Tuple<int, string>((int)values.GetValue(i), (string)names.GetValue(i)))
+                .OrderBy(pair => pair.Item2);
+            return pairs;
+        }
+
+        public static ChoObservableNodeList AsNodeList<T>(string value)
+        {
+            var type = typeof(T);
+            if (!type.IsEnum)
+                throw new ArgumentException("Type is not an enum.");
+
+            ChoObservableNodeList itemSource = new ChoObservableNodeList();
+            foreach (string f in Enum.GetNames(type))
+            {
+                ChoNode a = new ChoNode(f);
+                a.IsSelected = (from x in value.ToNString().SplitNTrim()
+                                where x == f.ToString()
+                                select x).FirstOrDefault() != null;
+
+
+                itemSource.Add(a);
+            }
+
+            return itemSource;
         }
     }
 }

@@ -9,7 +9,7 @@ namespace Cinchoo.Core
 
     #endregion NameSpaces
 
-    [ChoBufferProfile("Property Manager Errors", NameFromTypeFullName = typeof(ChoPropertyManager), StartActions = "Truncate")]
+    [ChoBufferProfile("Property Manager Errors", NameFromTypeFullName = typeof(ChoPropertyManager))]
     public static class ChoPropertyManager
     {
         #region Shared Members (Public)
@@ -20,9 +20,9 @@ namespace Cinchoo.Core
             return ChoString.ExpandProperties(target, inString);
         }
 
-        internal static string FormatException(string expr, Exception ex)
+        public static string FormatException(string expr, Exception ex)
         {
-            ChoProfile.WriteLine("Expression: {1}{0}Error: {2}", Environment.NewLine, expr, ex.ToString());
+            //ChoProfile.WriteLine("Expression: {1}{0}Error: {2}", Environment.NewLine, expr, ex.ToString());
             return String.Format("{2} Error while evaluating `{0}' expression. {1}]", expr, ex.Message, ChoString.ExceptionStringToken);
         }
 

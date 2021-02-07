@@ -5,44 +5,63 @@
     using System;
     using Cinchoo.Core.Configuration;
     using System.Xml.Serialization;
-using Cinchoo.Core.Text;
+    using Cinchoo.Core.Text;
+    using System.Configuration;
 
     #endregion NameSpaces
 
-    public abstract class ChoFrxSettings
+    public class ChoConsoleSettings : ConfigurationSection
     {
-        public EventHandler FrxSettingsChanged;
+        #region Shared Data Members (Internal)
 
-        protected void OnFrxSettingsChanged()
-        {
-            FrxSettingsChanged.Raise(this, null);
-        }
-    }
-
-    [XmlRoot("consoleSettings")]
-    public class ChoConsoleSettings
-    {
-        #region Shared Data Members (Private)
-
+        private const string SECTION_NAME = "consoleSettings";
         private static readonly object _padLock = new object();
-        private static ChoConsoleSettings _instance;
+        private static readonly Lazy<ChoConsoleSettings> _defaultInstance = new Lazy<ChoConsoleSettings>(() =>
+        {
+            ChoConsoleSettings instance = new ChoConsoleSettings();
+            instance.ForegroundColor = Console.ForegroundColor;
+            instance.BackgroundColor = Console.BackgroundColor;
+            instance.ConsoleMode = uint.MinValue;
 
-        #endregion Shared Data Members (Private)
-        
+            return instance;
+        });
+        private static ChoConsoleSettings _instance = null;
+
+        #endregion Shared Data Members (Internal)
+
         #region Instance Data Members (Public)
 
-        [XmlAttribute("foregroundColor")]
-        public ConsoleColor ForegroundColor = Console.ForegroundColor;
+        [ConfigurationProperty("foregroundColor")]
+        public ConsoleColor ForegroundColor
+        {
+            get { return (ConsoleColor)this["foregroundColor"]; }
+            set { this["foregroundColor"] = value; }
+        }
 
-        [XmlAttribute("backgroundColor")]
-        public ConsoleColor BackgroundColor = Console.BackgroundColor;
+        [ConfigurationProperty("backgroundColor")]
+        public ConsoleColor BackgroundColor
+        {
+            get { return (ConsoleColor)this["backgroundColor"]; }
+            set { this["backgroundColor"] = value; }
+        }
 
-        [XmlAttribute("consoleMode")]
+        [ConfigurationProperty("consoleMode")]
         [CLSCompliant(false)]
-        public uint ConsoleMode = uint.MinValue;
+        public uint ConsoleMode
+        {
+            get { return (uint)this["consoleMode"]; }
+            set { this["consoleMode"] = value; }
+        }
+
+        [ConfigurationProperty("disableConsoleCtrlHandler")]
+        public bool DisableConsoleCtrlHandler
+        {
+            get { return (bool)this["disableConsoleCtrlHandler"]; }
+            set { this["disableConsoleCtrlHandler"] = value; }
+        }
 
         #endregion Instance Data Members (Public)
-    
+
         #region Object Overrides
 
         public override string ToString()
@@ -70,13 +89,13 @@ using Cinchoo.Core.Text;
                 lock (_padLock)
                 {
                     if (_instance == null)
-                        _instance = ChoCoreFrxConfigurationManager.Register<ChoConsoleSettings>();
+                        _instance = ChoConfigurationManager.GetSection(SECTION_NAME, _defaultInstance.Value);
                 }
 
-                return _instance;
+                return _instance == null ? _defaultInstance.Value : _instance;
             }
         }
 
         #endregion Factory Methods
-}
+    }
 }

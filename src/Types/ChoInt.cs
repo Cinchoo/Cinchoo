@@ -6,11 +6,12 @@ namespace Cinchoo.Core
     using System.Text;
     using System.Collections.Generic;
     using System.Text.RegularExpressions;
+    using System.Linq;
 
     #endregion NameSpaces
 
-    [ChoStringObjectFormattable]
-    public class ChoInt
+    [ChoStringObjectFormattable(typeof(int))]
+    public class ChoInt : IChoStringObjectFormatter<int>
     {
         #region Constants
 
@@ -70,6 +71,12 @@ namespace Cinchoo.Core
         public int Value
         {
             get { return _value; }
+        }
+
+        public string GetHelpText()
+        {
+            ChoInt x = new ChoInt(99);
+            return x.ToFormattedString();
         }
 
         #endregion Instance Members (Public)

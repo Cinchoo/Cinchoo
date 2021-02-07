@@ -8,7 +8,7 @@ namespace Cinchoo.Core
 
     [ChoTypeFormatter("String Settings")]
 	[ChoConfigurationSection("cinchoo/stringSettings")]
-	public class ChoStringSettings : ChoConfigurableObject
+	public class ChoStringSettings //: ChoConfigurableObject
 	{
 		#region Instance Data Members (Public)
 
@@ -29,7 +29,7 @@ namespace Cinchoo.Core
 
 		public static ChoStringSettings Me
 		{
-			get { return ChoConfigurationManagementFactory.CreateInstance<ChoStringSettings>(); }
+            get { return new ChoStringSettings(); } // return ChoConfigurationManagementFactory.CreateInstance<ChoStringSettings>(); }
 		}
 
 		#endregion

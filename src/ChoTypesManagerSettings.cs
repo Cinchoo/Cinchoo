@@ -15,6 +15,8 @@
     [ChoConfigurationSection("cinchoo/typeManagerSettings", Defaultable = false)]
     public class ChoTypesManagerSettings : IChoObjectInitializable
     {
+        private static readonly ChoTypesManagerSettings _default = new ChoTypesManagerSettings();
+
         #region Instance Data Members (Public)
 
         [XmlArray("excludedTypeNames")]
@@ -28,7 +30,7 @@
 
         public static ChoTypesManagerSettings Me
         {
-            get { return ChoConfigurationManagementFactory.CreateInstance<ChoTypesManagerSettings>(); }
+            get { return _default; /* ChoConfigurationManagementFactory.CreateInstance<ChoTypesManagerSettings>(); */ }
         }
 
         #endregion
@@ -70,7 +72,8 @@
                 foreach (string lTypeName in ChoTypesManagerSettings.Me.ExcludedTypeNames)
                 {
                     if (type.FullName == lTypeName
-                        || type.AssemblyQualifiedName == lTypeName)
+                        || type.AssemblyQualifiedName == lTypeName
+                        || type.SimpleQualifiedName() == lTypeName)
                         return true;
                 }
             }

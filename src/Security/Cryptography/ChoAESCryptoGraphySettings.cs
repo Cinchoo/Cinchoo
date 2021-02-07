@@ -52,14 +52,20 @@ namespace Cinchoo.Core.Security.Cryptography
     #endregion NameSpaces
 
     [Serializable]
-    [ChoTypeFormatter("Cryptography Settings")]
-    [ChoConfigurationSection("cinchoo/AESCryptoSettings")]
-    public sealed class ChoAESCryptoGraphySettings : ChoConfigurableObject, IChoObjectInitializable
+    [XmlRoot("AESCryptoSettings")]
+    public sealed class ChoAESCryptoGraphySettings
     {
         #region Shared Data Members (Private)
 
         private static readonly byte[] _defaultKey = { 123, 217, 19, 11, 24, 26, 85, 45, 114, 184, 27, 162, 37, 112, 222, 209, 241, 24, 175, 144, 173, 53, 196, 29, 24, 26, 17, 218, 131, 236, 53, 209 };
         private static readonly byte[] _defaultVector = { 146, 64, 191, 111, 23, 3, 113, 119, 231, 121, 25, 21, 112, 79, 32, 114, 156 };
+
+        #endregion Shared Data Members (Private)
+
+        #region Shared Data Members (Private)
+
+        private static readonly object _padLock = new object();
+        private static ChoAESCryptoGraphySettings _instance;
 
         #endregion Shared Data Members (Private)
 
@@ -77,21 +83,31 @@ namespace Cinchoo.Core.Security.Cryptography
 
         public static ChoAESCryptoGraphySettings Me
         {
-			get { return ChoConfigurationManagementFactory.CreateInstance<ChoAESCryptoGraphySettings>(); }
-		}
+            get
+            {
+                if (_instance != null)
+                    return _instance;
+
+                lock (_padLock)
+                {
+                    if (_instance == null)
+                        _instance = ChoCoreFrxConfigurationManager.Register<ChoAESCryptoGraphySettings>();
+                    if (_instance != null)
+                        _instance.Initialize();
+                }
+
+                return _instance;
+            }
+        }
 
         #endregion Shared Members (Public)
 
         #region IChoObjectInitializable Members
 
-        public bool Initialize(bool beforeFieldInit, object state)
+        private void Initialize()
         {
-            if (beforeFieldInit) return false;
-
             if (Key.IsNullOrEmpty()) Key = ChoByte.ToString(_defaultKey);
             if (Vector.IsNullOrEmpty()) Vector = ChoByte.ToString(_defaultVector);
-
-            return true;
         }
 
         #endregion

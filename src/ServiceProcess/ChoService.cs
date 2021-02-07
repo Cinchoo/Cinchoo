@@ -3,6 +3,7 @@
     #region NameSpaces
 
     using System;
+    using System.Linq;
     using System.Collections.Generic;
     using System.Text;
     using System.ServiceProcess;
@@ -13,6 +14,9 @@
     using System.ComponentModel;
     using Cinchoo.Core.Win32;
     using System.Diagnostics;
+    using Cinchoo.Core.Diagnostics;
+    using Cinchoo.Core.Configuration.Install;
+    using Microsoft.Win32;
 
     #endregion NameSpaces
 
@@ -21,47 +25,15 @@
         #region Instance Data Members (Private)
 
         private ChoApplicationHost _host;
+        private const string RegRunSubKey = @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\{0}";
 
         #endregion Instance Data Members (Private)
 
-        public ChoService()
+        public ChoService(ChoApplicationHost host)
         {
-            try
-            {
-                //Dicover Service Installer
-                Assembly entryAssembly = ChoAssembly.GetEntryAssembly();
-
-                Type runInstallerType = null;
-                if (entryAssembly != null)
-                {
-                    foreach (Type type in entryAssembly.GetTypes())
-                    {
-                        RunInstallerAttribute runInstallerAttribute = type.GetCustomAttribute<RunInstallerAttribute>();
-                        if (runInstallerAttribute == null)
-                            continue;
-
-                        if (typeof(ChoApplicationHost).IsAssignableFrom(type))
-                        {
-                            runInstallerType = type;
-                            break;
-                        }
-                    }
-                }
-
-
-                if (runInstallerType != null)
-                    _host = Activator.CreateInstance(runInstallerType) as ChoApplicationHost;
-                else
-                    ChoApplication.WriteToEventLog("No type found with RunInstallerAttribute in the entry assembly.");
-            }
-            catch (ChoFatalApplicationException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                ChoApplication.WriteToEventLog(ex.ToString());
-            }
+            ChoGuard.ArgumentNotNull(host, "Host");
+            _host = host;
+            _host.Service = this;
         }
 
         #region ServiceBase Overrides
@@ -126,77 +98,173 @@
 
         #endregion ServiceBase Overrides
 
-        internal static void Initialize()
+        internal static void Initialize(ChoApplicationHost host)
         {
             if (!ChoApplicationHost.IsApplicationHostUsed)
                 return;
 
             if (!Environment.UserInteractive)
             {
+                //Debugger.Break();
+                ChoService service = new ChoService(host);
+                
+                service.CanHandlePowerEvent = ChoServiceInstallerSettings.Me.CanHandlePowerEvent;
+                service.CanHandleSessionChangeEvent = ChoServiceInstallerSettings.Me.CanHandleSessionChangeEvent;
+                service.CanPauseAndContinue = ChoServiceInstallerSettings.Me.CanPauseAndContinue;
+                service.CanShutdown = ChoServiceInstallerSettings.Me.CanShutdown;
+                service.CanStop = ChoServiceInstallerSettings.Me.CanStop;
+                service.AutoLog = ChoServiceInstallerSettings.Me.AutoLog;
+                //service.ExitCode = ChoServiceInstallerSettings.Me.ExitCode;
+
                 //Windows Service Mode
                 ServiceBase[] ServicesToRun = new ServiceBase[]
 				{
-					new ChoService()
+					service
 				};
                 ServiceBase.Run(ServicesToRun);
             }
             else
             {
                 //Parse command line arguments, install, 
-                try
-                {
+                //try
+                //{
+                    ChoFrameworkCmdLineArgs frameworkCmdLineArgs = new ChoFrameworkCmdLineArgs();
+                    frameworkCmdLineArgs.Init();
                     ChoServiceCommandLineArgs serviceCmdLineArgs = new ChoServiceCommandLineArgs();
+                    serviceCmdLineArgs.Init();
 
-                    ServiceController sc = new ServiceController(ChoApplication.Host.ServiceName, Environment.MachineName);
+                    ServiceController sc = new ServiceController(ChoServiceCommandLineArgs.GetServiceName(), Environment.MachineName);
                     if (serviceCmdLineArgs.InstallService)
                     {
-                        ManagedInstallerClass.InstallHelper(new string[] { ChoApplication.EntryAssemblyLocation });
+                        ChoManagedInstallerClass.InstallService();
+
+                        //Save the command line parameters
+                        //if (serviceCmdLineArgs.ServiceParams != null)
+                        //{
+                        //    try
+                        //    {
+                        //        ChoRegistryKey _rkAppRun = new ChoRegistryKey(String.Format(RegRunSubKey.FormatString(ChoApplication.Host.ServiceName), true));
+                        //        _rkAppRun.SetValue("ImagePath", "{0} {1}".FormatString(ChoAssembly.GetEntryAssembly().Location, ChoServiceCommandLineArgs.GetServiceParams().Replace("'", @"""")));
+                        //    }
+                        //    catch (Exception ex)
+                        //    {
+                        //        System.Diagnostics.Trace.TraceError(ex.ToString());
+                        //    }
+                        //}
                     }
                     else if (serviceCmdLineArgs.UninstallService)
                     {
-                        ManagedInstallerClass.InstallHelper(new string[] { "/u", ChoApplication.EntryAssemblyLocation });
+                        ChoManagedInstallerClass.UninstallService();
                     }
                     else if (serviceCmdLineArgs.StartService)
                     {
-                        sc.Start();
+                        if (!ChoWindowsIdentity.IsAdministrator())
+                        {
+                            ChoApplication.RestartAsAdmin();
+                            return;
+                        }
+                        
+                        if (serviceCmdLineArgs.ServiceParams == null ||
+                            serviceCmdLineArgs.ServiceParams.Length == 0)
+                        {
+                            //ChoEnvironment.CommandLineArgs = Environment.GetCommandLineArgs().Skip(1).ToArray();
+                        }
+                        else
+                        {
+                            string commandLineArgs = null;
+                            if (serviceCmdLineArgs.ServiceParams.StartsWith("\"")
+                                && serviceCmdLineArgs.ServiceParams.EndsWith("\""))
+                                commandLineArgs = serviceCmdLineArgs.ServiceParams.Substring(1, serviceCmdLineArgs.ServiceParams.Length - 2);
+                            else
+                                commandLineArgs = serviceCmdLineArgs.ServiceParams;
+
+                            ChoEnvironment.CommandLineArgs = commandLineArgs.SplitNTrim(' ');
+                        }
+
+                        sc.Start(ChoEnvironment.CommandLineArgs);
+
+                        if (ChoServiceInstallerSettings.Me.Timeout > 0)
+                            sc.WaitForStatus(ServiceControllerStatus.Running, new TimeSpan(ChoServiceInstallerSettings.Me.Timeout));
                     }
                     else if (serviceCmdLineArgs.StopService)
                     {
+                        if (!ChoWindowsIdentity.IsAdministrator())
+                        {
+                            ChoApplication.RestartAsAdmin();
+                            return;
+                        }
                         sc.Stop();
                     }
                     else if (serviceCmdLineArgs.PauseService)
                     {
+                        if (!ChoWindowsIdentity.IsAdministrator())
+                        {
+                            ChoApplication.RestartAsAdmin();
+                            return;
+                        }
                         sc.Pause();
                     }
                     else if (serviceCmdLineArgs.ContinueService)
                     {
+                        if (!ChoWindowsIdentity.IsAdministrator())
+                        {
+                            ChoApplication.RestartAsAdmin();
+                            return;
+                        }
                         sc.Continue();
                     }
                     else if (serviceCmdLineArgs.ExecuteCommand != Int32.MinValue)
                     {
+                        if (!ChoWindowsIdentity.IsAdministrator())
+                        {
+                            ChoApplication.RestartAsAdmin();
+                            return;
+                        }
                         sc.ExecuteCommand(serviceCmdLineArgs.ExecuteCommand);
                     }
                     else
                     {
-                        //Console mode
-                        if (ChoApplication.ApplicationMode == ChoApplicationMode.Console)
+                        //ChoApplicationMode? applicationMode = ChoFrameworkCmdLineArgs.GetApplicationMode();
+                        //if (applicationMode != null)
+                        //    ChoApplication.ApplicationMode = applicationMode.Value;
+
+                        //ChoProfile.WriteLine(ChoApplication.ApplicationMode.ToString());
+                        if (ChoApplication.ApplicationMode == ChoApplicationMode.Windows)
+                        {
+                            ChoApplication.Host.OnStartService(ChoEnvironment.CommandLineArgs);
+                        }
+                        else if (ChoApplication.ApplicationMode == ChoApplicationMode.Console)
                         {
                             if (ChoConsoleSettings.Me.ConsoleMode != uint.MinValue && ChoWindowsManager.ConsoleWindowHandle != IntPtr.Zero)
-                                ChoKernel32.SetConsoleMode(ChoWindowsManager.ConsoleWindowHandle, ChoConsoleSettings.Me.ConsoleMode);
+                                ChoKernel32.SetConsoleMode(ChoWindowsManager.ConsoleWindowHandle, (uint)ChoConsoleSettings.Me.ConsoleMode);
 
                             ChoApplicationHost.RegisterConsoleControlHandler();
+                            ChoApplication.Host.OnStartService(ChoEnvironment.CommandLineArgs);
+                            //ChoApplication.Host.OnStopService();
                         }
-                        ChoApplication.Host.OnStartService(ChoApplication.Host.Args);
+                        else if (ChoApplication.ApplicationMode == ChoApplicationMode.Web)
+                            ChoApplication.Host.OnStartService(ChoEnvironment.CommandLineArgs);
                     }
-                }
-                catch (ChoFatalApplicationException)
-                {
-                    throw;
-                }
-                catch (Exception ex)
-                {
-                    ChoApplication.WriteToEventLog(ex.ToString(), EventLogEntryType.Error);
-                }
+                //}
+                //catch (ChoFatalApplicationException)
+                //{
+                //    throw;
+                //}
+                //catch (ChoCommandLineArgException argEx)
+                //{
+                //    ChoApplication.DisplayMsg(argEx.Message);
+                //    throw;
+                //}
+                //catch (ChoCommandLineArgUsageException usageEx)
+                //{
+                //    ChoApplication.DisplayMsg(usageEx.Message);
+                //    throw;
+                //}
+                //catch (Exception ex)
+                //{
+                //    ChoApplication.DisplayMsg(ex.Message, ex);
+                //    throw;
+                //}
             }
         }
     }

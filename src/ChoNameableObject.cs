@@ -7,6 +7,7 @@
 	using System.Linq;
 	using System.Text;
 using System.Diagnostics;
+    using System.Xml.Serialization;
 
 	#endregion NameSpaces
 
@@ -15,6 +16,7 @@ using System.Diagnostics;
 	{
 		#region Instance Properties (Public)
 
+        [XmlIgnore]
 		public string Name
 		{
 			get;

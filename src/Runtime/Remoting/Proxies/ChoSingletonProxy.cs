@@ -12,10 +12,15 @@
 	{
 		#region Constructors
 
-		public ChoSingletonProxy(MarshalByRefObject target, Type type)
+        //public ChoSingletonProxy(Type type)
+        //    : base(type)
+        //{
+        //}
+
+        public ChoSingletonProxy(MarshalByRefObject target, Type type)
             : base(target, type)
-		{
-		}
+        {
+        }
 
 		#endregion Constructors
 
@@ -48,5 +53,12 @@
 		{
 			base.Dispose(finalize);
 		}
-	}
+
+        //protected override ChoRealProxy CreateInstance()
+        //{
+        //    ChoSingletonProxy sp = new ChoSingletonProxy(GetProxiedType());
+        //    sp.InitializeServerObject(null);
+        //    return sp;
+        //}
+    }
 }
