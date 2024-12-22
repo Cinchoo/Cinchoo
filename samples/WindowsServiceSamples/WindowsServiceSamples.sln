@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "1. HelloWorld", "HelloWorld\1. HelloWorld.csproj", "{DE476546-B2C2-40AC-9537-9FC189BC7AB5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "2. TestServiceWithRecovery", "TestServiceWithRecovery\2. TestServiceWithRecovery.csproj", "{EE7D8B56-939C-4214-9C1D-E519A37036CF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "3. TestServiceWithArgs", "TestServiceWithArgs\3. TestServiceWithArgs.csproj", "{9C08754F-1A70-45AB-84F4-8BC047EB31A4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DE476546-B2C2-40AC-9537-9FC189BC7AB5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE476546-B2C2-40AC-9537-9FC189BC7AB5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE476546-B2C2-40AC-9537-9FC189BC7AB5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE476546-B2C2-40AC-9537-9FC189BC7AB5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE7D8B56-939C-4214-9C1D-E519A37036CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE7D8B56-939C-4214-9C1D-E519A37036CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE7D8B56-939C-4214-9C1D-E519A37036CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE7D8B56-939C-4214-9C1D-E519A37036CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C08754F-1A70-45AB-84F4-8BC047EB31A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C08754F-1A70-45AB-84F4-8BC047EB31A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C08754F-1A70-45AB-84F4-8BC047EB31A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C08754F-1A70-45AB-84F4-8BC047EB31A4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
