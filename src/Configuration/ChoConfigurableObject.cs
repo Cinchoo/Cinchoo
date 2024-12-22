@@ -5,7 +5,6 @@ namespace Cinchoo.Core.Configuration
     using System;
     using System.Data;
     using System.Linq;
-    using System.Reflection;
     using System.Collections;
     using System.Runtime.Remoting;
     using System.Runtime.Remoting.Proxies;
@@ -20,6 +19,7 @@ namespace Cinchoo.Core.Configuration
     using Cinchoo.Core.Properties;
     using System.Runtime.Serialization;
     using System.Globalization;
+    using MemberInfo = System.Reflection.MemberInfo;
 
     #endregion NameSpaces
 

@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace System.Collections.Generic
+namespace Cinchoo.Core
 {
     public static class IChoCollectionEx
     {

@@ -1,4 +1,4 @@
-﻿namespace System.Collections.Generic
+﻿namespace Cinchoo.Core
 {
     #region NameSpaces
 
@@ -7,6 +7,7 @@
     using System.Text;
     using System.Collections.Generic;
     using Cinchoo.Core;
+    using System.Collections;
 
     #endregion NameSpaces
 

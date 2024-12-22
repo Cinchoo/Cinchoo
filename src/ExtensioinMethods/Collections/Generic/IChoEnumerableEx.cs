@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Cinchoo.Core.Collections;
 
-namespace System.Collections.Generic
+namespace Cinchoo.Core
 {
     public static class IChoEnumerableEx
     {

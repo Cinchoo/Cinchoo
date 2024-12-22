@@ -1,4 +1,4 @@
-﻿namespace System.Xml
+﻿namespace Cinchoo.Core
 {
 	#region NameSpaces
 
@@ -8,8 +8,9 @@
 	using System.Text;
     using Cinchoo.Core.Attributes;
     using System.Xml.Serialization;
+    using System.Xml;
 
-	#endregion NameSpaces
+    #endregion NameSpaces
 
     public static class ChoXmlDocumentEx
     {

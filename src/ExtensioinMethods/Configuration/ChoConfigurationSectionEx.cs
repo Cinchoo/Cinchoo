@@ -6,7 +6,7 @@ using System.Configuration;
 using System.Linq;
 using System.Text;
 
-namespace System.Configuration
+namespace Cinchoo.Core
 {
     public static class ChoConfigurationSectionEx
     {
@@ -15,7 +15,7 @@ namespace System.Configuration
             ChoGuard.ArgumentNotNullOrEmpty(name, "SectionName");
             ChoGuard.ArgumentNotNullOrEmpty(section, "Section");
 
-            Configuration config = ChoConfigurationManager.ApplicationConfiguration; // ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            var config = ChoConfigurationManager.ApplicationConfiguration; // ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
             config.Sections.Add(name, section);
             config.Save(mode);
         }

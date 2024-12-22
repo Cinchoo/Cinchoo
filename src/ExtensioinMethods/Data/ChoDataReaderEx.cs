@@ -4,8 +4,9 @@ using System.Linq;
 using System.Text;
 using Cinchoo.Core;
 using System.Reflection;
+using System.Data;
 
-namespace System.Data
+namespace Cinchoo.Core
 {
     [AttributeUsage(AttributeTargets.Class)]
     public class ChoDataObjectAttribute : Attribute

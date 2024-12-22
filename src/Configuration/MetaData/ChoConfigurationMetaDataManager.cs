@@ -13,10 +13,10 @@
     using Cinchoo.Core.IO;
     using Cinchoo.Core.Services;
     using Cinchoo.Core.Xml;
-using System.Reflection;
     using Cinchoo.Core.Xml.Serialization;
-    
-	#endregion NameSpaces
+    using MemberInfo = System.Reflection.MemberInfo;
+
+    #endregion NameSpaces
 
     [ChoAppDomainEventsRegisterableType]
     internal static class ChoConfigurationMetaDataManager

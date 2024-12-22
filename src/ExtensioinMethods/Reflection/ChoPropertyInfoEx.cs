@@ -1,15 +1,16 @@
-﻿namespace System.Reflection
+﻿namespace Cinchoo.Core
 {
-	#region NameSpaces
+    #region NameSpaces
 
-	using System;
+    using System;
 	using System.Collections.Generic;
 	using System.Linq;
 	using System.Text;
 	using System.ComponentModel;
     using System.Reflection.Emit;
+    using System.Reflection;
 
-	#endregion NameSpaces
+    #endregion NameSpaces
 
     public delegate object MethodHandler(object target, params object[] args);
 

@@ -1,4 +1,6 @@
-﻿namespace Cinchoo.Core.Configuration
+﻿using System.Reflection;
+
+namespace Cinchoo.Core.Configuration
 {
     #region NameSpaces
 
@@ -6,7 +8,6 @@
     using System.Collections.Generic;
     using System.Configuration;
     using System.Diagnostics;
-    using System.Reflection;
     using Cinchoo.Core;
     using Cinchoo.Core.Factory;
     using Cinchoo.Core.IO;
@@ -15,6 +16,7 @@
     using Cinchoo.Core.Text;
     using System.ComponentModel;
     using System.Text;
+    using MemberInfo = System.Reflection.MemberInfo;
 
     #endregion NameSpaces
 

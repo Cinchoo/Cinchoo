@@ -1,11 +1,13 @@
-﻿namespace System.Reflection.Emit
+﻿namespace Cinchoo.Core
 {
-	#region NameSpaces
+    #region NameSpaces
 
-	using System;
+    using System;
 	using System.Collections.Generic;
 	using System.Linq;
-	using System.Text;
+    using System.Reflection;
+    using System.Reflection.Emit;
+    using System.Text;
 
 	#endregion NameSpaces
 

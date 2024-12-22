@@ -1,4 +1,4 @@
-﻿namespace System.Collections.Generic
+﻿namespace Cinchoo.Core
 {
     #region NameSpaces
 

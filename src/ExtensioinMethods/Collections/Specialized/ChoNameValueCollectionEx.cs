@@ -1,9 +1,10 @@
-﻿namespace System.Collections.Specialized
+﻿namespace Cinchoo.Core
 {
     #region NameSpaces
 
     using System;
     using System.Collections.Generic;
+    using System.Collections.Specialized;
     using System.Text;
 
     #endregion NameSpaces

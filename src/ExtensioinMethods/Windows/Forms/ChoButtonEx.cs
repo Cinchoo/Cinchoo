@@ -9,8 +9,9 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Windows.Forms;
 
-namespace System.Windows.Forms
+namespace Cinchoo.Core
 {
     public static class ChoButtonEx
     {

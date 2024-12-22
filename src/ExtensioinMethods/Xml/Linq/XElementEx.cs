@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml.Linq;
 using System.Xml.Serialization;
 using System.Xml.XPath;
 
-namespace System.Xml.Linq
+namespace Cinchoo.Core
 {
     public static class XElementEx
     {

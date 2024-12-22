@@ -1,8 +1,8 @@
-﻿namespace System.Xml
+﻿namespace Cinchoo.Core
 {
-	#region NameSpaces
+    #region NameSpaces
 
-	using System;
+    using System;
 	using System.Collections.Generic;
 	using System.Linq;
 	using System.Text;
@@ -11,10 +11,11 @@
 	using System.Collections;
 	using System.Collections.Specialized;
     using System.Xml.Linq;
+    using System.Xml;
 
-	#endregion NameSpaces
+    #endregion NameSpaces
 
-	public static class XmlNodeEx
+    public static class XmlNodeEx
 	{
 		#region Instance Members (Public)
 

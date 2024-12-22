@@ -1,8 +1,8 @@
-﻿namespace System.Xml.Linq
+﻿namespace Cinchoo.Core
 {
-	#region NameSpaces
+    #region NameSpaces
 
-	using System;
+    using System;
 	using System.Collections.Generic;
 	using System.Linq;
 	using System.Text;

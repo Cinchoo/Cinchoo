@@ -1,4 +1,4 @@
-﻿namespace System.Reflection
+﻿namespace Cinchoo.Core
 {
     #region NameSpaces
 
@@ -9,6 +9,7 @@
     using System.ComponentModel;
     using Cinchoo.Core.Configuration;
     using Cinchoo.Core;
+    using System.Reflection;
 
     #endregion NameSpaces
 

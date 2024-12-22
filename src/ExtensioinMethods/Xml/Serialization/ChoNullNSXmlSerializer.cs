@@ -1,4 +1,4 @@
-namespace System.Xml.Serialization
+namespace Cinchoo.Core
 {
     #region NameSpaces
 

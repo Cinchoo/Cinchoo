@@ -4,7 +4,6 @@
 
     using System;
     using System.Collections.Generic;
-    using System.Reflection;
     using System.Xml;
     using System.Xml.XPath;
     using Cinchoo.Core;
@@ -12,10 +11,11 @@
     using Cinchoo.Core.Win32;
     using Cinchoo.Core.Xml;
     using Microsoft.Win32;
+    using MemberInfo = System.Reflection.MemberInfo;
 
-	#endregion NameSpaces
+    #endregion NameSpaces
 
-	public class ChoRegistryConfigStorage : ChoConfigStorage, IChoDictionaryConfigStorage
+    public class ChoRegistryConfigStorage : ChoConfigStorage, IChoDictionaryConfigStorage
 	{
 		#region Instance Data Members (Private)
 

@@ -1,4 +1,4 @@
-﻿namespace System.Configuration
+﻿namespace Cinchoo.Core
 {
     #region NameSpaces
 
@@ -7,6 +7,7 @@
     using System.Linq;
     using System.Text;
     using System.Collections.Specialized;
+    using System.Configuration;
 
     #endregion NameSpaces
 
