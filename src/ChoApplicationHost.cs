@@ -430,6 +430,14 @@
                     if (WinApp != null)
                         WinApp.DispatcherUnhandledException += new System.Windows.Threading.DispatcherUnhandledExceptionEventHandler(ChoApplication.Current_DispatcherUnhandledException);
 
+                    if (ChoApplication.WindowsAppType == ChoWindowsAppType.NA)
+                    {
+                        if (GetMainWindowObject() is Window)
+                            ChoApplication.WindowsAppType = ChoWindowsAppType.WPF;
+                        else if (GetMainWindowObject() is Form)
+                            ChoApplication.WindowsAppType = ChoWindowsAppType.WinForms;
+                    }
+
                     if (ChoApplication.WindowsAppType == ChoWindowsAppType.WinForms)
                     {
                         ApplicationContext = new ChoApplicationContext(this);
