@@ -33,6 +33,16 @@
             try
             {
                 ConsoleWindowHandle = ChoKernel32.GetConsoleWindow();
+                System.Threading.Thread.Sleep(100);
+                IntPtr owner = ChoUser32.GetWindow(ConsoleWindowHandle, GetWindowType.GW_OWNER);
+                if (owner == IntPtr.Zero)
+                {
+                }
+                else
+                {
+                    ConsoleWindowHandle = owner; // Windows 11
+                }
+
                 MainWindowHandle = System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle;
                 
                 if (MainWindowHandle != IntPtr.Zero)

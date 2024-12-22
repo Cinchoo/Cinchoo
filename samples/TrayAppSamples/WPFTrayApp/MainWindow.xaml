@@ -1,0 +1,10 @@
+﻿<Window x:Class="WPFTrayApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MainWindow" Height="308" Width="389">
+    <Grid>
+        <Button Content="Close" HorizontalAlignment="Left" Margin="162,227,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_1"/>
+        <Label Content="WPF Tray App" HorizontalAlignment="Left" Margin="72,80,0,0" VerticalAlignment="Top" Width="260" FontSize="24" FontWeight="ExtraBold"/>
+
+    </Grid>
+</Window>
