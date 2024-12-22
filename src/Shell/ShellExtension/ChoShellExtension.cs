@@ -58,7 +58,7 @@ namespace Cinchoo.Core.Shell
 
         public static bool ExecuteShellExtensionMethodIfAnySpecified(string[] args)
         {
-            if (args.Length > 1)
+            if (args.Length >= 1)
             {
                 if (IsShellExtensionMethod(args[0]))
                 {
